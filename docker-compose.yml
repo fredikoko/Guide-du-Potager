@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: guide_potager_db
+    environment:
+      POSTGRES_DB: guide_potager
+      POSTGRES_USER: potager_user
+      POSTGRES_PASSWORD: potager_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: guide_potager_backend
+    command: >
+      sh -c "python manage.py migrate &&
+             python manage.py seed_data &&
+             python manage.py runserver 0.0.0.0:8000"
+    ports:
+      - "8000:8000"
+    environment:
+      - SECRET_KEY=django-insecure-guide-du-potager-docker-secret-2026
+      - DEBUG=1
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:

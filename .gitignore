@@ -1,0 +1,45 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+
+# Virtual Environments
+.env/
+env/
+venv/
+.venv/
+ENV/
+env.bak/
+venv.bak/
+*/.env/
+*/env/
+*/venv/
+
+# Django files
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+backend/db.sqlite3
+backend/media/
+backend/staticfiles/
+
+# Mobile / Kivy / Buildozer
+.buildozer/
+bin/
+mobile/app_data.json
+*.apk
+*.aab
+
+# Editor & OS artifacts
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
