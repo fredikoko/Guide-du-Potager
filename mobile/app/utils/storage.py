@@ -24,12 +24,18 @@ class LocalStorage:
             print(f"Error saving to storage: {e}")
 
     def get(self, key, default=None):
+        self.data = self._load()
         return self.data.get(key, default)
 
     def delete(self, key):
+        self.data = self._load()
         if key in self.data:
             del self.data[key]
-            self.save('__dummy__', None)
+            try:
+                with open(self.filepath, 'w', encoding='utf-8') as f:
+                    json.dump(self.data, f, ensure_ascii=False, indent=2)
+            except Exception as e:
+                print(f"Error deleting from storage: {e}")
 
     def clear(self):
         self.data = {}
