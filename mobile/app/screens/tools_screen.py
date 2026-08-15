@@ -31,7 +31,7 @@ class ToolsScreen(Screen):
         header.bind(size=self._update_header_rect, pos=self._update_header_rect)
 
         menu_btn = Button(
-            text="☰", font_size='22sp', size_hint_x=None, width=50,
+            text="≡", font_size='26sp', size_hint_x=None, width=50,
             background_normal='', background_color=(0, 0, 0, 0), color=Theme.TEXT_LIGHT
         )
         menu_btn.bind(on_release=self.toggle_drawer)
@@ -80,9 +80,9 @@ class ToolsScreen(Screen):
         for tool in tools:
             card = CardWidget(bg_color=Theme.CARD_BG)
 
-            badge = " ⭐ Premium" if tool.get('is_premium') else ""
+            badge = " [★ Premium]" if tool.get('is_premium') else ""
             t_title = Label(
-                text=f"[b]🛠️ {tool['name']}[/b][color=E8AB26]{badge}[/color]",
+                text=f"[b]⚙ {tool['name']}[/b][color=E8AB26]{badge}[/color]",
                 markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
                 size_hint_y=None, height=35, halign='left', valign='middle'
             )
@@ -100,7 +100,7 @@ class ToolsScreen(Screen):
 
             if tool.get('usage_tips'):
                 tips = Label(
-                    text=f"[b]💡 Conseils d'utilisation :[/b] {tool['usage_tips']}",
+                    text=f"[b]► Conseils d'utilisation :[/b] {tool['usage_tips']}",
                     markup=True, color=Theme.PRIMARY_MAIN, font_size='13sp', size_hint_y=None, halign='left', valign='top'
                 )
                 tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))

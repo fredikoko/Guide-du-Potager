@@ -30,8 +30,8 @@ class HomeScreen(Screen):
         header.bind(size=self._update_header_rect, pos=self._update_header_rect)
 
         menu_btn = Button(
-            text="☰",
-            font_size='22sp',
+            text="≡",
+            font_size='26sp',
             size_hint_x=None,
             width=50,
             background_normal='',
@@ -51,10 +51,10 @@ class HomeScreen(Screen):
         app_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
 
         profile_icon = Button(
-            text="👤",
-            font_size='20sp',
+            text="PROFIL",
+            font_size='12sp',
             size_hint_x=None,
-            width=50,
+            width=65,
             background_normal='',
             background_color=(0, 0, 0, 0),
             color=Theme.TEXT_LIGHT

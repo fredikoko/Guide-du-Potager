@@ -62,14 +62,14 @@ class SubscriptionScreen(Screen):
         # Banner Card
         banner_card = CardWidget(bg_color=Theme.PRIMARY_DARK)
         banner_card.add_widget(Label(
-            text="[b]⭐ Passez à l'expérience Premium ![/b]", markup=True, font_size='18sp',
+            text="[b]★ Passez à l'expérience Premium ![/b]", markup=True, font_size='18sp',
             color=Theme.GOLD_PREMIUM, size_hint_y=None, height=35, halign='left'
         ))
         features_text = (
-            "✔ Accès intégral aux Parties 2 et 3\n"
-            "✔ Fiches complètes des Maladies et Insectes\n"
-            "✔ Traitements Bio et Solutions préventives\n"
-            "✔ Guide des Outils Maraîchers de précision"
+            "✓ Accès intégral aux Parties 2 et 3\n"
+            "✓ Fiches complètes des Maladies et Insectes\n"
+            "✓ Traitements Bio et Solutions préventives\n"
+            "✓ Guide des Outils Maraîchers de précision"
         )
         banner_card.add_widget(Label(
             text=features_text, color=Theme.TEXT_LIGHT, font_size='14sp', size_hint_y=None, height=90, halign='left'
@@ -110,10 +110,10 @@ class SubscriptionScreen(Screen):
         ))
 
         methods = [
-            ("Orange Money 🍊", "orange_money"),
-            ("Wave 🌊", "wave"),
-            ("MTN Money 📱", "mtn_money"),
-            ("Carte / Stripe 💳", "stripe"),
+            ("Orange Money", "orange_money"),
+            ("Wave", "wave"),
+            ("MTN Money", "mtn_money"),
+            ("Carte Bancaire / Stripe", "stripe"),
         ]
 
         self.method_buttons = {}

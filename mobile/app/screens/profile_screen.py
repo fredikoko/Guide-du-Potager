@@ -32,7 +32,7 @@ class ProfileScreen(Screen):
         header.bind(size=self._update_header_rect, pos=self._update_header_rect)
 
         menu_btn = Button(
-            text="☰", font_size='22sp', size_hint_x=None, width=50,
+            text="≡", font_size='26sp', size_hint_x=None, width=50,
             background_normal='', background_color=(0, 0, 0, 0), color=Theme.TEXT_LIGHT
         )
         menu_btn.bind(on_release=self.toggle_drawer)
@@ -71,7 +71,7 @@ class ProfileScreen(Screen):
         # 1. Card Informations Personnelles
         card_user = CardWidget(bg_color=Theme.CARD_BG)
         card_user.add_widget(Label(
-            text="[b]👤 Informations Personnelles[/b]", markup=True, font_size='17sp',
+            text="[b]◆ Informations Personnelles[/b]", markup=True, font_size='17sp',
             color=Theme.PRIMARY_DARK, size_hint_y=None, height=35, halign='left'
         ))
 

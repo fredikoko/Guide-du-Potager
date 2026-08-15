@@ -6,12 +6,12 @@ from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 
 class DrawerButton(Button):
-    def __init__(self, text, icon="🌱", **kwargs):
+    def __init__(self, text, symbol="●", **kwargs):
         super().__init__(**kwargs)
-        self.text = f"  {icon}   {text}"
-        self.font_size = '16sp'
+        self.text = f"  {symbol}   {text}"
+        self.font_size = '15sp'
         self.size_hint_y = None
-        self.height = 54
+        self.height = 52
         self.background_normal = ''
         self.background_color = Theme.PRIMARY_MAIN
         self.color = Theme.TEXT_LIGHT
@@ -35,7 +35,7 @@ class NavigationDrawer(BoxLayout):
         self.bind(size=self._update_rect, pos=self._update_rect)
 
         # Header Section
-        header = BoxLayout(orientation='vertical', size_hint_y=None, height=120, padding=15, spacing=5)
+        header = BoxLayout(orientation='vertical', size_hint_y=None, height=110, padding=15, spacing=5)
         with header.canvas.before:
             Color(*Theme.BROWN_DARK)
             self.header_rect = Rectangle(size=header.size, pos=header.pos)
@@ -64,17 +64,17 @@ class NavigationDrawer(BoxLayout):
         menu_box.bind(minimum_height=menu_box.setter('height'))
 
         items = [
-            ("Accueil", "home", "🏠"),
-            ("Outils Maraîchers", "tools", "🛠️"),
-            ("Familles Botaniques", "families", "🌱"),
-            ("Maladies & Soins", "diseases", "🦠"),
-            ("Insectes Nuisibles", "insects", "🐛"),
+            ("Accueil", "home", "⌂"),
+            ("Outils Maraîchers", "tools", "⚙"),
+            ("Familles Botaniques", "families", "☘"),
+            ("Maladies & Soins", "diseases", "✚"),
+            ("Insectes Nuisibles", "insects", "◆"),
             ("Mon Profil", "profile", "👤"),
-            ("Abonnement Premium", "subscription", "⭐"),
+            ("Abonnement Premium", "subscription", "★"),
         ]
 
-        for title, screen_name, icon in items:
-            btn = DrawerButton(text=title, icon=icon)
+        for title, screen_name, symbol in items:
+            btn = DrawerButton(text=title, symbol=symbol)
             btn.bind(on_release=lambda instance, s=screen_name: self.navigate(s))
             menu_box.add_widget(btn)
 
@@ -82,7 +82,7 @@ class NavigationDrawer(BoxLayout):
         self.add_widget(scroll)
 
         # Logout Footer
-        logout_btn = DrawerButton(text="Déconnexion", icon="🚪")
+        logout_btn = DrawerButton(text="Déconnexion", symbol="⎋")
         logout_btn.background_color = Theme.BROWN_MAIN
         logout_btn.bind(on_release=lambda x: self.logout_callback())
         self.add_widget(logout_btn)

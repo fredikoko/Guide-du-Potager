@@ -30,7 +30,7 @@ class DiseasesScreen(Screen):
         header.bind(size=self._update_header_rect, pos=self._update_header_rect)
 
         menu_btn = Button(
-            text="☰", font_size='22sp', size_hint_x=None, width=50,
+            text="≡", font_size='26sp', size_hint_x=None, width=50,
             background_normal='', background_color=(0, 0, 0, 0), color=Theme.TEXT_LIGHT
         )
         menu_btn.bind(on_release=self.toggle_drawer)
@@ -78,30 +78,30 @@ class DiseasesScreen(Screen):
         for disease in diseases:
             card = CardWidget(bg_color=Theme.CARD_BG)
 
-            badge = " ⭐ Premium" if disease.get('is_premium') else ""
+            badge = " [★ Premium]" if disease.get('is_premium') else ""
             d_title = Label(
-                text=f"[b]🦠 {disease['name']}[/b][color=E8AB26]{badge}[/color]",
+                text=f"[b]✚ {disease['name']}[/b][color=E8AB26]{badge}[/color]",
                 markup=True, font_size='17sp', color=(0.8, 0.2, 0.2, 1),
                 size_hint_y=None, height=35, halign='left', valign='middle'
             )
             d_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
 
             symp = Label(
-                text=f"[b]🔍 Symptômes :[/b] {disease.get('symptoms', '')}",
+                text=f"[b]▸ Symptômes :[/b] {disease.get('symptoms', '')}",
                 markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
             )
             symp.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
             symp.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
 
             treat = Label(
-                text=f"[b]💊 Traitement :[/b] {disease.get('treatment', '')}",
+                text=f"[b]✓ Traitement :[/b] {disease.get('treatment', '')}",
                 markup=True, color=Theme.PRIMARY_MAIN, font_size='14sp', size_hint_y=None, halign='left', valign='top'
             )
             treat.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
             treat.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
 
             prev = Label(
-                text=f"[b]🛡️ Prévention :[/b] {disease.get('prevention', '')}",
+                text=f"[b]🛡 Prévention :[/b] {disease.get('prevention', '')}",
                 markup=True, color=Theme.BROWN_MAIN, font_size='14sp', size_hint_y=None, halign='left', valign='top'
             )
             prev.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))

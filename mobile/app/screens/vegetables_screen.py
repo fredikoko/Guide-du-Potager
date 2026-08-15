@@ -79,26 +79,26 @@ class VegetablesScreen(Screen):
             card = CardWidget(bg_color=Theme.CARD_BG)
 
             v_title = Label(
-                text=f"[b]🥬 {veg['name']}[/b] [i]({veg.get('scientific_name', '')})[/i]",
+                text=f"[b]◆ {veg['name']}[/b] [i]({veg.get('scientific_name', '')})[/i]",
                 markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
                 size_hint_y=None, height=35, halign='left', valign='middle'
             )
             v_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
 
             sow = Label(
-                text=f"[b]🌱 Semis :[/b] {veg.get('sowing_period', 'N/A')}",
+                text=f"[b]▸ Semis :[/b] {veg.get('sowing_period', 'N/A')}",
                 markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, height=25, halign='left'
             )
             sow.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
 
             harvest = Label(
-                text=f"[b]🧺 Récolte :[/b] {veg.get('harvest_period', 'N/A')}",
+                text=f"[b]▸ Récolte :[/b] {veg.get('harvest_period', 'N/A')}",
                 markup=True, color=Theme.BROWN_MAIN, font_size='14sp', size_hint_y=None, height=25, halign='left'
             )
             harvest.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
 
             tips = Label(
-                text=f"[b]💚 Soins & Entretien :[/b]\n{veg.get('care_tips', '')}",
+                text=f"[b]✓ Soins & Entretien :[/b]\n{veg.get('care_tips', '')}",
                 markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
             )
             tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))

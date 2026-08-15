@@ -22,9 +22,10 @@ class SearchBar(BoxLayout):
         )
 
         search_btn = Button(
-            text="🔍",
+            text="Chercher",
+            font_size='13sp',
             size_hint_x=None,
-            width=50,
+            width=80,
             background_normal='',
             background_color=Theme.PRIMARY_MAIN,
             color=Theme.TEXT_LIGHT

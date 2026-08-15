@@ -98,7 +98,7 @@ class ChapterScreen(Screen):
         # Check if premium locked, display Upgrade Button
         if data.get('is_locked'):
             upgrade_btn = Button(
-                text="⭐ Débloquer avec l'Abonnement Premium",
+                text="★ Débloquer avec l'Abonnement Premium",
                 font_size='16sp',
                 size_hint_y=None,
                 height=54,

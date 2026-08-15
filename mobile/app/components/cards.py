@@ -25,7 +25,7 @@ class CardWidget(BoxLayout):
 class PartHeaderLabel(Label):
     def __init__(self, title, is_premium=False, **kwargs):
         super().__init__(**kwargs)
-        badge = " [color=E8AB26]⭐ Premium[/color]" if is_premium else " [color=8AB86C]✓ Gratuit[/color]"
+        badge = " [color=E8AB26][★ Premium][/color]" if is_premium else " [color=8AB86C][✓ Gratuit][/color]"
         self.text = f"[b]{title}[/b]{badge}"
         self.markup = True
         self.font_size = '18sp'
@@ -42,7 +42,7 @@ class PartHeaderLabel(Label):
 class ChapterButton(Button):
     def __init__(self, title, is_premium=False, reading_time=5, **kwargs):
         super().__init__(**kwargs)
-        icon = "🔒" if is_premium else "📖"
+        icon = "[★ LOCK]" if is_premium else "▸"
         self.text = f"  {icon}  {title} ({reading_time} min)"
         self.font_size = '15sp'
         self.size_hint_y = None

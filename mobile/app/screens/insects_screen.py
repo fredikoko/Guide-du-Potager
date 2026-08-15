@@ -30,7 +30,7 @@ class InsectsScreen(Screen):
         header.bind(size=self._update_header_rect, pos=self._update_header_rect)
 
         menu_btn = Button(
-            text="☰", font_size='22sp', size_hint_x=None, width=50,
+            text="≡", font_size='26sp', size_hint_x=None, width=50,
             background_normal='', background_color=(0, 0, 0, 0), color=Theme.TEXT_LIGHT
         )
         menu_btn.bind(on_release=self.toggle_drawer)
@@ -78,30 +78,30 @@ class InsectsScreen(Screen):
         for insect in insects:
             card = CardWidget(bg_color=Theme.CARD_BG)
 
-            badge = " ⭐ Premium" if insect.get('is_premium') else ""
+            badge = " [★ Premium]" if insect.get('is_premium') else ""
             i_title = Label(
-                text=f"[b]🐛 {insect['name']}[/b][color=E8AB26]{badge}[/color]",
+                text=f"[b]◆ {insect['name']}[/b][color=E8AB26]{badge}[/color]",
                 markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
                 size_hint_y=None, height=35, halign='left', valign='middle'
             )
             i_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
 
             desc = Label(
-                text=f"[b]📝 Description :[/b] {insect.get('description', '')}",
+                text=f"[b]▸ Description :[/b] {insect.get('description', '')}",
                 markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
             )
             desc.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
             desc.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
 
             damage = Label(
-                text=f"[b]⚠️ Dégâts :[/b] {insect.get('damage', '')}",
+                text=f"[b]⚠ Dégâts :[/b] {insect.get('damage', '')}",
                 markup=True, color=(0.8, 0.3, 0.2, 1), font_size='14sp', size_hint_y=None, halign='left', valign='top'
             )
             damage.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
             damage.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
 
             sol = Label(
-                text=f"[b]🌿 Solution Bio / Traitement :[/b] {insect.get('solution', '')}",
+                text=f"[b]✓ Solution Bio / Traitement :[/b] {insect.get('solution', '')}",
                 markup=True, color=Theme.PRIMARY_MAIN, font_size='14sp', size_hint_y=None, halign='left', valign='top'
             )
             sol.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
