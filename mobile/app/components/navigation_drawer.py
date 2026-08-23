@@ -6,9 +6,9 @@ from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 
 class DrawerButton(Button):
-    def __init__(self, text, symbol="●", **kwargs):
+    def __init__(self, text, prefix="•", **kwargs):
         super().__init__(**kwargs)
-        self.text = f"  {symbol}   {text}"
+        self.text = f"  {prefix}  {text}"
         self.font_size = '15sp'
         self.size_hint_y = None
         self.height = 52
@@ -64,17 +64,17 @@ class NavigationDrawer(BoxLayout):
         menu_box.bind(minimum_height=menu_box.setter('height'))
 
         items = [
-            ("Accueil", "home", "⌂"),
-            ("Outils Maraîchers", "tools", "⚙"),
-            ("Familles Botaniques", "families", "☘"),
-            ("Maladies & Soins", "diseases", "✚"),
-            ("Insectes Nuisibles", "insects", "◆"),
-            ("Mon Profil", "profile", "👤"),
+            ("Accueil", "home", "•"),
+            ("Outils Maraîchers", "tools", "•"),
+            ("Familles Botaniques", "families", "•"),
+            ("Maladies & Soins", "diseases", "•"),
+            ("Insectes Nuisibles", "insects", "•"),
+            ("Mon Profil", "profile", "•"),
             ("Abonnement Premium", "subscription", "★"),
         ]
 
-        for title, screen_name, symbol in items:
-            btn = DrawerButton(text=title, symbol=symbol)
+        for title, screen_name, prefix in items:
+            btn = DrawerButton(text=title, prefix=prefix)
             btn.bind(on_release=lambda instance, s=screen_name: self.navigate(s))
             menu_box.add_widget(btn)
 
@@ -82,7 +82,7 @@ class NavigationDrawer(BoxLayout):
         self.add_widget(scroll)
 
         # Logout Footer
-        logout_btn = DrawerButton(text="Déconnexion", symbol="⎋")
+        logout_btn = DrawerButton(text="Déconnexion", prefix="*")
         logout_btn.background_color = Theme.BROWN_MAIN
         logout_btn.bind(on_release=lambda x: self.logout_callback())
         self.add_widget(logout_btn)

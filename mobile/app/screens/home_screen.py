@@ -30,10 +30,10 @@ class HomeScreen(Screen):
         header.bind(size=self._update_header_rect, pos=self._update_header_rect)
 
         menu_btn = Button(
-            text="≡",
-            font_size='26sp',
+            text="MENU",
+            font_size='13sp',
             size_hint_x=None,
-            width=50,
+            width=60,
             background_normal='',
             background_color=(0, 0, 0, 0),
             color=Theme.TEXT_LIGHT

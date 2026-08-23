@@ -27,6 +27,8 @@ class APIClient:
                     return True
         except Exception:
             pass
+        # Refresh failed: clear stale tokens
+        self.storage.clear()
         return False
 
     def get(self, endpoint, params=None, retry_on_401=True):
@@ -39,6 +41,7 @@ class APIClient:
                 elif response.status_code == 401 and retry_on_401:
                     if self._refresh_token():
                         return self.get(endpoint, params=params, retry_on_401=False)
+                    self.storage.clear()
                 return {'success': False, 'status_code': response.status_code, 'error': response.text}
         except Exception as e:
             return {'success': False, 'error': str(e)}
@@ -53,6 +56,7 @@ class APIClient:
                 elif response.status_code == 401 and retry_on_401 and not endpoint.startswith('auth/'):
                     if self._refresh_token():
                         return self.post(endpoint, data=data, retry_on_401=False)
+                    self.storage.clear()
                 return {
                     'success': False,
                     'status_code': response.status_code,
@@ -71,6 +75,7 @@ class APIClient:
                 elif response.status_code == 401 and retry_on_401:
                     if self._refresh_token():
                         return self.delete(endpoint, retry_on_401=False)
+                    self.storage.clear()
                 return {'success': False, 'error': response.text}
         except Exception as e:
             return {'success': False, 'error': str(e)}
