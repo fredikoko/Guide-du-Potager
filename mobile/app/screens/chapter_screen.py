@@ -8,6 +8,7 @@ from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.content_service import ContentService
 from ..utils.html_parser import HTMLParser
+from ..utils.config import Config
 
 class ChapterScreen(Screen):
     def __init__(self, **kwargs):
@@ -78,22 +79,34 @@ class ChapterScreen(Screen):
         data = res['data']
         self.title_label.text = f"[b]{data['title']}[/b]"
 
-        # Converted Markup Label
-        markup_content = self.html_parser.to_markup(data['content'])
+        # Base URL for relative media image URLs
+        base_root = Config.API_BASE_URL.replace('/api', '')
 
-        content_label = Label(
-            text=markup_content,
-            markup=True,
-            font_size='16sp',
-            color=Theme.TEXT_DARK,
-            size_hint_y=None,
-            halign='left',
-            valign='top'
-        )
-        content_label.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-        content_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+        # Parse chapter content into sequential text and embedded image blocks
+        blocks = self.html_parser.parse_blocks(data['content'], base_url=base_root)
 
-        self.body_container.add_widget(content_label)
+        for block in blocks:
+            if block['type'] == 'text':
+                content_label = Label(
+                    text=block['content'],
+                    markup=True,
+                    font_size='16sp',
+                    color=Theme.TEXT_DARK,
+                    size_hint_y=None,
+                    halign='left',
+                    valign='top'
+                )
+                content_label.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                content_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                self.body_container.add_widget(content_label)
+
+            elif block['type'] == 'image':
+                img_widget = AsyncImage(
+                    source=block['url'],
+                    size_hint_y=None,
+                    height=240
+                )
+                self.body_container.add_widget(img_widget)
 
         # Check if premium locked, display Upgrade Button
         if data.get('is_locked'):
@@ -109,13 +122,17 @@ class ChapterScreen(Screen):
             upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
             self.body_container.add_widget(upgrade_btn)
 
-        # Render chapter images if present
+        # Render extra attached chapter images if present
         for img_data in data.get('images', []):
             if img_data.get('image'):
+                img_url = img_data['image']
+                if img_url.startswith('/'):
+                    img_url = f"{base_root}{img_url}"
+
                 img_widget = AsyncImage(
-                    source=img_data['image'],
+                    source=img_url,
                     size_hint_y=None,
-                    height=220
+                    height=240
                 )
                 self.body_container.add_widget(img_widget)
                 if img_data.get('caption'):

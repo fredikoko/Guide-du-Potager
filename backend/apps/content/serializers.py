@@ -2,9 +2,19 @@ from rest_framework import serializers
 from .models import Part, Chapter, ChapterImage
 
 class ChapterImageSerializer(serializers.ModelSerializer):
+    image = serializers.SerializerMethodField()
+
     class Meta:
         model = ChapterImage
         fields = ['id', 'image', 'caption', 'order']
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
 
 class ChapterListSerializer(serializers.ModelSerializer):
     class Meta:

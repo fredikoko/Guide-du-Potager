@@ -32,3 +32,38 @@ class HTMLParser:
         # Clean up multi newlines
         text = re.sub(r'\n{3,}', '\n\n', text)
         return text.strip()
+
+    @staticmethod
+    def parse_blocks(html_content, base_url="http://127.0.0.1:8000"):
+        if not html_content:
+            return []
+
+        img_pattern = re.compile(r'<img\s+[^>]*src=["\']([^"\']+)["\'][^>]*>', re.IGNORECASE)
+        blocks = []
+        last_idx = 0
+
+        for match in img_pattern.finditer(html_content):
+            start, end = match.span()
+            text_part = html_content[last_idx:start]
+
+            if text_part.strip():
+                markup = HTMLParser.to_markup(text_part)
+                if markup.strip():
+                    blocks.append({'type': 'text', 'content': markup})
+
+            img_src = match.group(1)
+            if img_src.startswith('/'):
+                img_url = f"{base_url.rstrip('/')}{img_src}"
+            else:
+                img_url = img_src
+
+            blocks.append({'type': 'image', 'url': img_url})
+            last_idx = end
+
+        remaining = html_content[last_idx:]
+        if remaining.strip():
+            markup = HTMLParser.to_markup(remaining)
+            if markup.strip():
+                blocks.append({'type': 'text', 'content': markup})
+
+        return blocks
