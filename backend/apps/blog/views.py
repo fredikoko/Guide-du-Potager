@@ -52,7 +52,7 @@ class PostDetailView(generics.RetrieveAPIView):
         user = request.user
         is_subscribed = False
         if user and user.is_authenticated and hasattr(user, 'profile'):
-            is_subscribed = user.profile.is_subscription_active
+            is_subscribed = user.profile.subscription_active
 
         # Lock premium articles for non-subscribed users
         if instance.is_premium and not is_subscribed:
