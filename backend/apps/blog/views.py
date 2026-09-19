@@ -1,6 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from django.db.models import F, Q
 from .models import Category, Post, Comment
 from .serializers import CategorySerializer, PostListSerializer, PostDetailSerializer, CommentSerializer
@@ -35,6 +36,7 @@ class PostDetailView(generics.RetrieveAPIView):
     queryset = Post.objects.filter(is_published=True)
     serializer_class = PostDetailSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTAuthentication]
 
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -49,7 +51,7 @@ class PostDetailView(generics.RetrieveAPIView):
         # Check if user has active subscription
         user = request.user
         is_subscribed = False
-        if user.is_authenticated and hasattr(user, 'profile'):
+        if user and user.is_authenticated and hasattr(user, 'profile'):
             is_subscribed = user.profile.is_subscription_active
 
         # Lock premium articles for non-subscribed users
@@ -67,6 +69,7 @@ class PostDetailView(generics.RetrieveAPIView):
         return Response(data)
 
 class AddCommentView(APIView):
+    authentication_classes = [JWTAuthentication]
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, pk):

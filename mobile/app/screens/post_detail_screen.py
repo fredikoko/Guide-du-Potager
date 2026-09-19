@@ -196,6 +196,12 @@ class PostDetailScreen(Screen):
         )
         form_card.add_widget(self.comment_input)
 
+        self.comment_err_lbl = Label(
+            text="", color=(0.8, 0.2, 0.2, 1), font_size='13sp',
+            size_hint_y=None, height=0, halign='left'
+        )
+        form_card.add_widget(self.comment_err_lbl)
+
         send_btn = Button(
             text="Publier le commentaire", font_size='14sp', size_hint_y=None, height=44,
             background_normal='', background_color=Theme.PRIMARY_MAIN, color=Theme.TEXT_LIGHT
@@ -213,9 +219,17 @@ class PostDetailScreen(Screen):
         res = self.blog_service.add_comment(self.current_post_id, text)
         if res.get('success'):
             self.comment_input.text = ""
+            self.comment_err_lbl.height = 0
+            self.comment_err_lbl.text = ""
             self.load_post(self.current_post_id)
-        elif res.get('status_code') == 401:
-            self.manager.current = 'login'
+        else:
+            if res.get('status_code') == 401:
+                self.comment_err_lbl.text = "⚠️ Connexion requise : Veuillez vous connecter."
+                self.comment_err_lbl.height = 25
+                self.manager.current = 'login'
+            else:
+                self.comment_err_lbl.text = "⚠️ Échec d'envoi du commentaire."
+                self.comment_err_lbl.height = 25
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
