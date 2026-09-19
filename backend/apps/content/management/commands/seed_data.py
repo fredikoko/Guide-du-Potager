@@ -6,6 +6,7 @@ from apps.content.models import Part, Chapter
 from apps.glossary.models import PlantFamily, Vegetable, Tool
 from apps.pests.models import Disease, Insect
 from apps.subscriptions.models import Subscription
+from apps.blog.models import Category as BlogCategory, Post as BlogPost, Comment as BlogComment
 
 User = get_user_model()
 
@@ -340,5 +341,63 @@ class Command(BaseCommand):
             }
         )
         ins_altise.affected_vegetables.add(v_chou)
+
+        # 6. Blog & Articles d'Actualité
+        cat_conseils, _ = BlogCategory.objects.get_or_create(
+            name='Conseils de Saison',
+            defaults={'description': 'Astuces et guides pratiques pour chaque mois au potager.'}
+        )
+
+        cat_perma, _ = BlogCategory.objects.get_or_create(
+            name='Permaculture',
+            defaults={'description': 'Techniques de paillage, sol vivant et biodiversité.'}
+        )
+
+        post1, _ = BlogPost.objects.get_or_create(
+            title='5 Gestes Essentiels pour Réussir ses Semis de Printemps',
+            defaults={
+                'author': user_premium,
+                'category': cat_conseils,
+                'excerpt': 'Découvrez les règles d\'or pour éviter la fonte des semis et réussir le démarrage de vos tomates et poivrons.',
+                'content': (
+                    "<h2>Préparer le Matériel et le Terreau</h2>"
+                    "<p>Au début du printemps, la réussite des semis repose sur la température et la qualité du substrat. "
+                    "Un terreau trop tassé empêchera l'enracinement des jeunes plantules.</p>"
+                    "<h3>1. Choisir des contenants propres</h3>"
+                    "<p>Désinfecter les plaques alvéolées et godets réutilisables pour éviter l'apparition des champignons responsabilités de la fonte des semis.</p>"
+                    "<h3>2. Maintenir une humidité constante</h3>"
+                    "<p>Utiliser un vaporisateur à eau tiède plutôt qu'un arrosoir lourd qui risquerait d'enfoncer les petites graines.</p>"
+                    "<h3>3. Apporter une lumière maximale</h3>"
+                    "<p>Placer vos semis près d'une fenêtre exposée plein Sud pour éviter que les tiges ne filent vers la lumière.</p>"
+                ),
+                'is_published': True,
+                'views_count': 142
+            }
+        )
+
+        post2, _ = BlogPost.objects.get_or_create(
+            title='Le Paillage Écologique : Pourquoi et Comment Pailler son Potager ?',
+            defaults={
+                'author': user_premium,
+                'category': cat_perma,
+                'excerpt': 'Économisez jusqu\'à 70% d\'eau d\'arrosage et protégez la microfaune de votre sol grâce au paillage organique.',
+                'content': (
+                    "<h2>Les Avantages Incomparables du Paillage</h2>"
+                    "<p>Le sol nu est une anomalie dans la nature. En recouvrant vos planches de culture d'une couche de paille ou de feuilles mortes, vous créez un véritable bouclier thermique.</p>"
+                    "<ul>"
+                    "<li><b>Conservation de l'humidité :</b> Réduction drastique de l'évaporation d'eau.</li>"
+                    "<li><b>Désherbage naturel :</b> Blocage de la germination des adventices indésirables.</li>"
+                    "<li><b>Nourriture du sol :</b> Décomposition lente apportant de la matière organique aux vers de terre.</li>"
+                    "</ul>"
+                ),
+                'is_published': True,
+                'views_count': 98
+            }
+        )
+
+        BlogComment.objects.get_or_create(
+            post=post1, author=user_free,
+            defaults={'content': 'Merci pour ces excellents conseils ! Mes semis de tomates ont très bien démarré.'}
+        )
 
         self.stdout.write(self.style.SUCCESS('Base de données alimentée avec succès pour le Guide du Potager !'))

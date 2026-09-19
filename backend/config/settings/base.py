@@ -30,6 +30,7 @@ INSTALLED_APPS = [
     'apps.glossary',
     'apps.pests',
     'apps.subscriptions',
+    'apps.blog',
 ]
 
 MIDDLEWARE = [
