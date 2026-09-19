@@ -118,8 +118,7 @@ class HomeScreen(Screen):
             for chapter in part.get('chapters', []):
                 chap_btn = ChapterButton(
                     title=chapter['title'],
-                    is_premium=chapter.get('is_premium', False),
-                    reading_time=chapter.get('estimated_reading_time', 5)
+                    is_premium=chapter.get('is_premium', False)
                 )
                 chap_id = chapter['id']
                 chap_btn.bind(on_release=lambda instance, cid=chap_id: self.open_chapter(cid))

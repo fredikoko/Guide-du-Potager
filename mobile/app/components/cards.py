@@ -40,10 +40,10 @@ class PartHeaderLabel(Label):
         self.text_size = (self.width, None)
 
 class ChapterButton(Button):
-    def __init__(self, title, is_premium=False, reading_time=5, **kwargs):
+    def __init__(self, title, is_premium=False, **kwargs):
         super().__init__(**kwargs)
         prefix = "[LOCK]" if is_premium else "•"
-        self.text = f"  {prefix}  {title} ({reading_time} min)"
+        self.text = f"  {prefix}  {title}"
         self.font_size = '15sp'
         self.size_hint_y = None
         self.height = 50
