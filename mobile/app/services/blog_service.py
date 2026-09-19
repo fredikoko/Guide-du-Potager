@@ -5,10 +5,10 @@ class BlogService:
         self.api = APIClient()
 
     def get_categories(self):
-        return self.api.get('/api/blog/categories/')
+        return self.api.get('blog/categories/')
 
     def get_posts(self, category=None, search=None):
-        endpoint = '/api/blog/posts/?page_size=all'
+        endpoint = 'blog/posts/?page_size=all'
         if category:
             endpoint += f'&category={category}'
         if search:
@@ -16,7 +16,7 @@ class BlogService:
         return self.api.get(endpoint)
 
     def get_post_detail(self, post_id):
-        return self.api.get(f'/api/blog/posts/{post_id}/')
+        return self.api.get(f'blog/posts/{post_id}/')
 
     def add_comment(self, post_id, content):
-        return self.api.post(f'/api/blog/posts/{post_id}/comments/', data={'content': content})
+        return self.api.post(f'blog/posts/{post_id}/comments/', data={'content': content})

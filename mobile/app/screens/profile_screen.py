@@ -61,13 +61,12 @@ class ProfileScreen(Screen):
     def load_profile_info(self):
         self.container.clear_widgets()
 
-        user = self.auth_service.get_current_user()
-        if not user:
-            res = self.auth_service.get_profile()
-            if res.get('success'):
-                user = res.get('user', {})
-            else:
-                # Token expired or missing, redirect to login
+        res = self.auth_service.get_profile()
+        if res.get('success'):
+            user = res.get('user', {})
+        else:
+            user = self.auth_service.get_current_user()
+            if not user:
                 self.manager.current = 'login'
                 return
 
