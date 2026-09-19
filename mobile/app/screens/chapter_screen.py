@@ -122,10 +122,15 @@ class ChapterScreen(Screen):
             upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
             self.body_container.add_widget(upgrade_btn)
 
-        # Render extra attached chapter images if present
+        # Render extra attached chapter images if present (only if not already embedded in content)
+        content_html = data.get('content', '')
         for img_data in data.get('images', []):
-            if img_data.get('image'):
-                img_url = img_data['image']
+            img_url = img_data.get('image')
+            if img_url:
+                img_filename = img_url.split('?')[0].split('/')[-1]
+                if img_filename and img_filename in content_html:
+                    continue  # Skip image if already displayed inline in content
+
                 if img_url.startswith('/'):
                     img_url = f"{base_root}{img_url}"
 
