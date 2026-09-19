@@ -4,6 +4,7 @@ from apps.glossary.serializers import VegetableSerializer
 
 class DiseaseSerializer(serializers.ModelSerializer):
     affected_vegetables_details = VegetableSerializer(source='affected_vegetables', many=True, read_only=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Disease
@@ -12,8 +13,17 @@ class DiseaseSerializer(serializers.ModelSerializer):
             'affected_vegetables', 'affected_vegetables_details', 'image', 'is_premium'
         ]
 
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None
+
 class InsectSerializer(serializers.ModelSerializer):
     affected_vegetables_details = VegetableSerializer(source='affected_vegetables', many=True, read_only=True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Insect
@@ -21,3 +31,11 @@ class InsectSerializer(serializers.ModelSerializer):
             'id', 'name', 'description', 'damage', 'solution',
             'affected_vegetables', 'affected_vegetables_details', 'image', 'is_premium'
         ]
+
+    def get_image(self, obj):
+        request = self.context.get('request')
+        if obj.image:
+            if request:
+                return request.build_absolute_uri(obj.image.url)
+            return obj.image.url
+        return None

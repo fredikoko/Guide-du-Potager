@@ -3,12 +3,15 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
+from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.pest_service import PestService
 from ..components.cards import CardWidget
 from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
+from ..components.detail_popup import DetailPopup
+from ..utils.config import Config
 
 class InsectsScreen(Screen):
     def __init__(self, **kwargs):
@@ -30,7 +33,7 @@ class InsectsScreen(Screen):
         header.bind(size=self._update_header_rect, pos=self._update_header_rect)
 
         menu_btn = Button(
-            text="≡", font_size='26sp', size_hint_x=None, width=50,
+            text="MENU", font_size='13sp', size_hint_x=None, width=60,
             background_normal='', background_color=(0, 0, 0, 0), color=Theme.TEXT_LIGHT
         )
         menu_btn.bind(on_release=self.toggle_drawer)
@@ -74,7 +77,9 @@ class InsectsScreen(Screen):
             self.container.add_widget(err)
             return
 
+        base_root = Config.API_BASE_URL.replace('/api', '')
         insects = res.get('data', [])
+
         for insect in insects:
             card = CardWidget(bg_color=Theme.CARD_BG)
 
@@ -85,34 +90,60 @@ class InsectsScreen(Screen):
                 size_hint_y=None, height=35, halign='left', valign='middle'
             )
             i_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-
-            desc = Label(
-                text=f"[b]Description :[/b] {insect.get('description', '')}",
-                markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
-            )
-            desc.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-            desc.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-
-            damage = Label(
-                text=f"[b]Dégâts :[/b] {insect.get('damage', '')}",
-                markup=True, color=(0.8, 0.3, 0.2, 1), font_size='14sp', size_hint_y=None, halign='left', valign='top'
-            )
-            damage.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-            damage.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-
-            sol = Label(
-                text=f"[b]Solution Bio / Traitement :[/b] {insect.get('solution', '')}",
-                markup=True, color=Theme.PRIMARY_MAIN, font_size='14sp', size_hint_y=None, halign='left', valign='top'
-            )
-            sol.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-            sol.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-
             card.add_widget(i_title)
-            card.add_widget(desc)
-            card.add_widget(damage)
-            card.add_widget(sol)
+
+            # Insect image in list
+            img_url = insect.get('image')
+            if img_url:
+                if img_url.startswith('/'):
+                    img_url = f"{base_root}{img_url}"
+                img_widget = AsyncImage(
+                    source=img_url,
+                    size_hint_y=None,
+                    height=140
+                )
+                card.add_widget(img_widget)
+
+            iid = insect['id']
+            detail_btn = Button(
+                text="Voir les détails →",
+                font_size='14sp',
+                size_hint_y=None,
+                height=42,
+                background_normal='',
+                background_color=Theme.PRIMARY_MAIN,
+                color=Theme.TEXT_LIGHT
+            )
+            detail_btn.bind(on_release=lambda instance, insect_id=iid, i_url=img_url: self.open_insect_detail(insect_id, i_url))
+            card.add_widget(detail_btn)
 
             self.container.add_widget(card)
+
+    def open_insect_detail(self, insect_id, fallback_img=None):
+        res = self.pest_service.get_insect_detail(insect_id)
+        if not res.get('success'):
+            return
+
+        data = res['data']
+        base_root = Config.API_BASE_URL.replace('/api', '')
+        img_url = data.get('image') or fallback_img
+        if img_url and img_url.startswith('/'):
+            img_url = f"{base_root}{img_url}"
+
+        fields = [
+            ("Description", data.get('description', ''), Theme.TEXT_DARK),
+            ("Dégâts constates", data.get('damage', ''), (0.8, 0.3, 0.2, 1)),
+            ("Solution Bio / Traitement", data.get('solution', ''), Theme.PRIMARY_MAIN),
+        ]
+
+        popup = DetailPopup(
+            title_text=data['name'],
+            image_url=img_url,
+            fields=fields,
+            is_locked=data.get('is_locked', False),
+            upgrade_callback=lambda: setattr(self.manager, 'current', 'subscription')
+        )
+        popup.open()
 
     def toggle_drawer(self, instance):
         if not self.drawer:
