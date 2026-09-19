@@ -17,7 +17,7 @@ class ContentService:
         self.cache = CacheService()
 
     def get_parts(self):
-        res = self.api.get('content/parts/')
+        res = self.api.get('content/parts/?page_size=all')
         if res.get('success'):
             self.cache.set_cache('parts', res['data'])
             return {'success': True, 'data': res['data']}

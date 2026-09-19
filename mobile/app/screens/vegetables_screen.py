@@ -75,6 +75,8 @@ class VegetablesScreen(Screen):
             return
 
         vegetables = res.get('data', [])
+        if isinstance(vegetables, dict) and 'results' in vegetables:
+            vegetables = vegetables['results']
         for veg in vegetables:
             card = CardWidget(bg_color=Theme.CARD_BG)
 

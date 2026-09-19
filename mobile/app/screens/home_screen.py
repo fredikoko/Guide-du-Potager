@@ -91,6 +91,8 @@ class HomeScreen(Screen):
             return
 
         parts = res.get('data', [])
+        if isinstance(parts, dict) and 'results' in parts:
+            parts = parts['results']
 
         for part in parts:
             part_card = CardWidget(bg_color=Theme.CARD_BG)

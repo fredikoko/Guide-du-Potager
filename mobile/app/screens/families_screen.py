@@ -65,6 +65,8 @@ class FamiliesScreen(Screen):
             return
 
         families = res.get('data', [])
+        if isinstance(families, dict) and 'results' in families:
+            families = families['results']
         for family in families:
             card = CardWidget(bg_color=Theme.CARD_BG)
 

@@ -5,7 +5,7 @@ class GlossaryService:
         self.api = APIClient()
 
     def get_tools(self, category=None, search=None):
-        params = {}
+        params = {'page_size': 'all'}
         if category:
             params['category'] = category
         if search:
@@ -13,10 +13,10 @@ class GlossaryService:
         return self.api.get('glossary/tools/', params=params)
 
     def get_families(self):
-        return self.api.get('glossary/families/')
+        return self.api.get('glossary/families/', params={'page_size': 'all'})
 
     def get_vegetables(self, family_id=None, search=None):
-        params = {}
+        params = {'page_size': 'all'}
         if family_id:
             params['family'] = family_id
         if search:
