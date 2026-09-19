@@ -28,6 +28,7 @@ class Post(models.Model):
     excerpt = models.TextField(help_text="Extrait court affiché dans la liste des articles")
     content = models.TextField(help_text="Contenu HTML de l'article")
     cover_image = models.ImageField(upload_to='blog/', blank=True, null=True)
+    is_premium = models.BooleanField(default=False, help_text="Définir si cet article est réservé aux abonnés Premium")
     is_published = models.BooleanField(default=True)
     views_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -45,6 +46,20 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
+class PostImage(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='blog/images/')
+    caption = models.CharField(max_length=200, blank=True)
+    order = models.IntegerField(default=0)
+
+    class Meta:
+        verbose_name = "Image d'article"
+        verbose_name_plural = "Images d'article"
+        ordering = ['order']
+
+    def __str__(self):
+        return f"Image pour {self.post.title} ({self.caption or self.id})"
 
 class Comment(models.Model):
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='comments')

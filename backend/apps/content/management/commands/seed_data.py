@@ -390,6 +390,7 @@ class Command(BaseCommand):
                     "<li><b>Nourriture du sol :</b> Décomposition lente apportant de la matière organique aux vers de terre.</li>"
                     "</ul>"
                 ),
+                'is_premium': True,
                 'is_published': True,
                 'views_count': 98
             }

@@ -38,11 +38,33 @@ class PostDetailView(generics.RetrieveAPIView):
 
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
+
         # Increment view count
         Post.objects.filter(pk=instance.pk).update(views_count=F('views_count') + 1)
         instance.refresh_from_db()
+
         serializer = self.get_serializer(instance)
-        return Response(serializer.data)
+        data = serializer.data
+
+        # Check if user has active subscription
+        user = request.user
+        is_subscribed = False
+        if user.is_authenticated and hasattr(user, 'profile'):
+            is_subscribed = user.profile.is_subscription_active
+
+        # Lock premium articles for non-subscribed users
+        if instance.is_premium and not is_subscribed:
+            data['is_locked'] = True
+            data['content'] = (
+                f"<p><i>{instance.excerpt}</i></p>"
+                "<hr/>"
+                "<div style='background-color: #fff3cd; padding: 15px; border-radius: 6px; text-align: center; color: #856404;'>"
+                "<b>🔒 Article Réservé aux Membres Premium</b><br/>"
+                "Abonnez-vous dès aujourd'hui pour débloquer cet article exclusif, l'intégralité du guide et toutes les fiches d'experts !"
+                "</div>"
+            )
+
+        return Response(data)
 
 class AddCommentView(APIView):
     permission_classes = [permissions.IsAuthenticated]

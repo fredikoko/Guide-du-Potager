@@ -77,10 +77,11 @@ class PostDetailScreen(Screen):
         author = data.get('author_name') or 'Rédaction'
         date_str = (data.get('created_at') or '')[:10]
         views = data.get('views_count', 0)
+        badge = " [PREMIUM]" if data.get('is_premium') else ""
 
         meta_card = CardWidget(bg_color=Theme.PRIMARY_DARK)
         meta_card.add_widget(Label(
-            text=f"[b]{data['title']}[/b]", markup=True, font_size='19sp',
+            text=f"[b]{data['title']}[/b][color=E8AB26]{badge}[/color]", markup=True, font_size='19sp',
             color=Theme.TEXT_LIGHT, size_hint_y=None, height=40, halign='left'
         ))
         meta_card.add_widget(Label(
@@ -116,6 +117,41 @@ class PostDetailScreen(Screen):
                     source=block['url'], size_hint_y=None, height=240
                 )
                 self.body_container.add_widget(img_widget)
+
+        # Check if premium locked, display Upgrade Button
+        if data.get('is_locked'):
+            upgrade_btn = Button(
+                text="★ Débloquer avec l'Abonnement Premium",
+                font_size='16sp',
+                size_hint_y=None,
+                height=54,
+                background_normal='',
+                background_color=Theme.GOLD_PREMIUM,
+                color=Theme.TEXT_LIGHT
+            )
+            upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
+            self.body_container.add_widget(upgrade_btn)
+
+        # Render attached article images if present
+        for img_data in data.get('images', []):
+            if img_data.get('image'):
+                img_url = img_data['image']
+                if img_url.startswith('/'):
+                    img_url = f"{base_root}{img_url}"
+
+                img_widget = AsyncImage(
+                    source=img_url,
+                    size_hint_y=None,
+                    height=240
+                )
+                self.body_container.add_widget(img_widget)
+                if img_data.get('caption'):
+                    cap_label = Label(
+                        text=f"[i]{img_data['caption']}[/i]",
+                        markup=True,
+                        color=Theme.TEXT_MUTED, font_size='13sp', size_hint_y=None, height=25
+                    )
+                    self.body_container.add_widget(cap_label)
 
         # Comments Section Header
         comments = data.get('comments', [])
