@@ -16,6 +16,7 @@ class LocalStorage:
         return {}
 
     def save(self, key, value):
+        self.data = self._load()
         self.data[key] = value
         try:
             with open(self.filepath, 'w', encoding='utf-8') as f:

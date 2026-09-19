@@ -1,4 +1,4 @@
-from rest_framework import status, generics, permissions
+from rest_framework import status, generics, permissions, serializers
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
@@ -13,7 +13,23 @@ from .serializers import (
 User = get_user_model()
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    username = serializers.CharField(required=False)
+    email = serializers.CharField(required=False)
+
     def validate(self, attrs):
+        user_input = attrs.get('email') or attrs.get('username') or self.initial_data.get('email') or self.initial_data.get('username')
+        if not user_input:
+            raise serializers.ValidationError({'email': 'Email ou nom d\'utilisateur obligatoire.'})
+
+        if '@' in user_input:
+            attrs['email'] = user_input
+        else:
+            try:
+                user_obj = User.objects.get(username__iexact=user_input)
+                attrs['email'] = user_obj.email
+            except User.DoesNotExist:
+                attrs['email'] = user_input
+
         data = super().validate(attrs)
         user_serializer = UserSerializer(self.user)
         data['user'] = user_serializer.data
@@ -60,7 +76,6 @@ class PasswordResetView(APIView):
             email = serializer.validated_data['email']
             try:
                 user = User.objects.get(email=email)
-                # In production, send reset email here.
                 return Response({'message': f'Un email de réinitialisation a été envoyé à {email}.'}, status=status.HTTP_200_OK)
             except User.DoesNotExist:
                 return Response({'message': 'Si cet email existe, un message a été envoyé.'}, status=status.HTTP_200_OK)
@@ -87,7 +102,7 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         if 'username' in request.data:
             user.username = request.data['username']
             user.save()
-        
+
         profile = user.profile
         if 'phone_number' in profile_data:
             profile.phone_number = profile_data['phone_number']
@@ -110,9 +125,8 @@ class UserHistoryView(APIView):
         item = request.data.get('item')
         if item:
             history = profile.history or []
-            # Keep unique items, newest first
             history = [h for h in history if h.get('id') != item.get('id') or h.get('type') != item.get('type')]
             history.insert(0, item)
-            profile.history = history[:50]  # Store last 50 items
+            profile.history = history[:50]
             profile.save()
         return Response({'history': profile.history})
