@@ -214,6 +214,8 @@ class PostDetailScreen(Screen):
         if res.get('success'):
             self.comment_input.text = ""
             self.load_post(self.current_post_id)
+        elif res.get('status_code') == 401:
+            self.manager.current = 'login'
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
