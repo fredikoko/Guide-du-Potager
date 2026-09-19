@@ -99,15 +99,26 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         user = self.get_object()
         profile_data = request.data.get('profile', {})
-        if 'username' in request.data:
+
+        if 'username' in request.data and request.data['username']:
             user.username = request.data['username']
-            user.save()
+        if 'first_name' in request.data:
+            user.first_name = request.data['first_name']
+        if 'last_name' in request.data:
+            user.last_name = request.data['last_name']
+        user.save()
 
         profile = user.profile
         if 'phone_number' in profile_data:
             profile.phone_number = profile_data['phone_number']
+        elif 'phone_number' in request.data:
+            profile.phone_number = request.data['phone_number']
+
         if 'preferences' in profile_data:
             profile.preferences = profile_data['preferences']
+        elif 'preferences' in request.data:
+            profile.preferences = request.data['preferences']
+
         profile.save()
 
         serializer = self.get_serializer(user)
