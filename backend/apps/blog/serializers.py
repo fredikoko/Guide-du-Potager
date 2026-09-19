@@ -48,6 +48,11 @@ class PostListSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.cover_image.url)
             return obj.cover_image.url
+        first_img = obj.images.first()
+        if first_img and first_img.image:
+            if request:
+                return request.build_absolute_uri(first_img.image.url)
+            return first_img.image.url
         return None
 
 class PostDetailSerializer(serializers.ModelSerializer):
@@ -72,4 +77,9 @@ class PostDetailSerializer(serializers.ModelSerializer):
             if request:
                 return request.build_absolute_uri(obj.cover_image.url)
             return obj.cover_image.url
+        first_img = obj.images.first()
+        if first_img and first_img.image:
+            if request:
+                return request.build_absolute_uri(first_img.image.url)
+            return first_img.image.url
         return None

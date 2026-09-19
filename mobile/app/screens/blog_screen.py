@@ -139,27 +139,7 @@ class BlogScreen(Screen):
         for post in posts:
             card = CardWidget(bg_color=Theme.CARD_BG)
 
-            # Category badge & Meta
-            cat_name = post.get('category_name') or 'Général'
-            date_str = (post.get('created_at') or '')[:10]
-            views = post.get('views_count', 0)
-
-            meta_lbl = Label(
-                text=f"[color=E8AB26][b][{cat_name}][/b][/color]  •  {date_str}  •  Vues: {views}",
-                markup=True, font_size='12sp', color=Theme.TEXT_MUTED,
-                size_hint_y=None, height=22, halign='left'
-            )
-            meta_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-            card.add_widget(meta_lbl)
-
-            p_title = Label(
-                text=f"[b]{post['title']}[/b]",
-                markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
-                size_hint_y=None, height=35, halign='left', valign='middle'
-            )
-            p_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-            card.add_widget(p_title)
-
+            # Main Cover Image at top of card
             cover = post.get('cover_image')
             if cover:
                 if cover.startswith('/'):
@@ -167,18 +147,45 @@ class BlogScreen(Screen):
                 img_widget = AsyncImage(
                     source=cover,
                     size_hint_y=None,
-                    height=140
+                    height=160
                 )
                 card.add_widget(img_widget)
 
-            excerpt_lbl = Label(
-                text=post.get('excerpt', ''),
-                color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, halign='left', valign='top'
+            # Article Title & Premium Badge
+            badge = " [PREMIUM]" if post.get('is_premium') else ""
+            p_title = Label(
+                text=f"[b]{post['title']}[/b][color=E8AB26]{badge}[/color]",
+                markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
+                size_hint_y=None, height=38, halign='left', valign='middle'
             )
-            excerpt_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-            excerpt_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-            card.add_widget(excerpt_lbl)
+            p_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            card.add_widget(p_title)
 
+            # Category badge & Meta
+            cat_name = post.get('category_name') or 'Général'
+            date_str = (post.get('created_at') or '')[:10]
+            views = post.get('views_count', 0)
+
+            meta_lbl = Label(
+                text=f"[color=855E42][b][{cat_name}][/b][/color]  •  {date_str}  •  Vues: {views}",
+                markup=True, font_size='12sp', color=Theme.TEXT_MUTED,
+                size_hint_y=None, height=22, halign='left'
+            )
+            meta_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            card.add_widget(meta_lbl)
+
+            # Excerpt text
+            excerpt_text = post.get('excerpt', '')
+            if excerpt_text:
+                excerpt_lbl = Label(
+                    text=excerpt_text,
+                    color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, halign='left', valign='top'
+                )
+                excerpt_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                excerpt_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(excerpt_lbl)
+
+            # Read Article Button
             pid = post['id']
             read_btn = Button(
                 text="Lire l'article →",
