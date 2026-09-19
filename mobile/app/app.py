@@ -13,6 +13,7 @@ from .screens.diseases_screen import DiseasesScreen
 from .screens.insects_screen import InsectsScreen
 from .screens.profile_screen import ProfileScreen
 from .screens.subscription_screen import SubscriptionScreen
+from .screens.calendar_screen import CalendarScreen
 
 class GuidePotagerApp(App):
     sm = ObjectProperty(None)
@@ -27,6 +28,7 @@ class GuidePotagerApp(App):
         self.sm.add_widget(RegisterScreen(name='register'))
         self.sm.add_widget(HomeScreen(name='home'))
         self.sm.add_widget(ChapterScreen(name='chapter'))
+        self.sm.add_widget(CalendarScreen(name='calendar'))
         self.sm.add_widget(ToolsScreen(name='tools'))
         self.sm.add_widget(FamiliesScreen(name='families'))
         self.sm.add_widget(VegetablesScreen(name='vegetables'))

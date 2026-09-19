@@ -65,6 +65,7 @@ class NavigationDrawer(BoxLayout):
 
         items = [
             ("Accueil", "home", "•"),
+            ("Simulateur Calendrier", "calendar", "★"),
             ("Outils Maraîchers", "tools", "•"),
             ("Familles Botaniques", "families", "•"),
             ("Maladies & Soins", "diseases", "•"),

@@ -22,7 +22,8 @@ class ContentAPITestCase(TestCase):
         url = reverse('part_list')
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(len(response.data), 1)
+        results = response.data.get('results', response.data)
+        self.assertEqual(len(results), 1)
 
     def test_free_chapter_access(self):
         url = reverse('chapter_detail', kwargs={'pk': self.chapter_free.pk})
