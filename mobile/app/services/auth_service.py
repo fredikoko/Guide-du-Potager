@@ -48,7 +48,7 @@ class AuthService:
             return {'success': True, 'user': user_data}
         return {'success': False, 'error': res.get('error')}
 
-    def update_profile(self, username=None, first_name=None, last_name=None, phone_number=None):
+    def update_profile(self, username=None, first_name=None, last_name=None, phone_number=None, **kwargs):
         payload = {}
         if username:
             payload['username'] = username
@@ -58,6 +58,10 @@ class AuthService:
             payload['last_name'] = last_name
         if phone_number is not None:
             payload['phone_number'] = phone_number
+
+        for k, v in kwargs.items():
+            if v is not None:
+                payload[k] = v
 
         res = self.api.put('users/profile/', payload)
         if res.get('success'):

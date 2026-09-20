@@ -69,6 +69,44 @@ class APIClient:
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
+    def put(self, endpoint, data=None, retry_on_401=True):
+        url = self._build_url(endpoint)
+        try:
+            with httpx.Client(timeout=Config.TIMEOUT) as client:
+                response = client.put(url, headers=self._get_headers(), json=data or {})
+                if response.status_code in [200, 201]:
+                    return {'success': True, 'data': response.json()}
+                elif response.status_code == 401 and retry_on_401 and not endpoint.lstrip('/').startswith('auth/'):
+                    if self._refresh_token():
+                        return self.put(endpoint, data=data, retry_on_401=False)
+                    self.storage.clear()
+                return {
+                    'success': False,
+                    'status_code': response.status_code,
+                    'error': response.json() if 'json' in response.headers.get('content-type', '') else response.text
+                }
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
+    def patch(self, endpoint, data=None, retry_on_401=True):
+        url = self._build_url(endpoint)
+        try:
+            with httpx.Client(timeout=Config.TIMEOUT) as client:
+                response = client.patch(url, headers=self._get_headers(), json=data or {})
+                if response.status_code in [200, 201]:
+                    return {'success': True, 'data': response.json()}
+                elif response.status_code == 401 and retry_on_401 and not endpoint.lstrip('/').startswith('auth/'):
+                    if self._refresh_token():
+                        return self.patch(endpoint, data=data, retry_on_401=False)
+                    self.storage.clear()
+                return {
+                    'success': False,
+                    'status_code': response.status_code,
+                    'error': response.json() if 'json' in response.headers.get('content-type', '') else response.text
+                }
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
     def delete(self, endpoint, retry_on_401=True):
         url = self._build_url(endpoint)
         try:

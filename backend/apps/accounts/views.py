@@ -119,6 +119,21 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         elif 'preferences' in request.data:
             profile.preferences = request.data['preferences']
 
+        if 'country' in profile_data:
+            profile.country = profile_data['country']
+        elif 'country' in request.data:
+            profile.country = request.data['country']
+
+        if 'climate_zone' in profile_data:
+            profile.climate_zone = profile_data['climate_zone']
+        elif 'climate_zone' in request.data:
+            profile.climate_zone = request.data['climate_zone']
+
+        if 'garden_type' in profile_data:
+            profile.garden_type = profile_data['garden_type']
+        elif 'garden_type' in request.data:
+            profile.garden_type = request.data['garden_type']
+
         profile.save()
 
         serializer = self.get_serializer(user)
