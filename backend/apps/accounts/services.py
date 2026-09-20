@@ -1,4 +1,4 @@
-import random
+import secrets
 from datetime import timedelta
 from django.utils import timezone
 from django.core.mail import send_mail
@@ -7,8 +7,8 @@ from django.core.exceptions import ValidationError
 from .models import EmailVerificationCode
 
 def generate_numeric_code(length=6):
-    """Génère un code numérique aléatoire à N chiffres (par défaut 6)."""
-    return "".join(random.choices("0123456789", k=length))
+    """Génère un code numérique aléatoire cryptographiquement sécurisé à N chiffres (par défaut 6)."""
+    return "".join(secrets.choice("0123456789") for _ in range(length))
 
 def send_verification_email(email, purpose='registration', user=None):
     """
@@ -49,6 +49,17 @@ def send_verification_email(email, purpose='registration', user=None):
             f"À très bientôt pour cultiver avec succès !\n"
             f"L'équipe du Guide du Potager Tropical"
         )
+    elif purpose == 'password_reset':
+        subject = "Réinitialisation de votre mot de passe - Guide du Potager Tropical"
+        message = (
+            f"Bonjour,\n\n"
+            f"Une demande de réinitialisation de mot de passe a été effectuée pour votre compte.\n\n"
+            f"Voici votre code de sécurité à 6 chiffres pour définir un nouveau mot de passe :\n\n"
+            f"    👉  {code}  👈\n\n"
+            f"Ce code est valable pendant 15 minutes.\n"
+            f"Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet e-mail en toute sécurité.\n\n"
+            f"L'équipe du Guide du Potager Tropical"
+        )
     else:  # email_change
         subject = "Confirmation de votre nouvelle adresse e-mail - Guide du Potager Tropical"
         message = (
@@ -76,7 +87,7 @@ def send_verification_email(email, purpose='registration', user=None):
 def verify_email_code(email, code, purpose='registration', user=None):
     """
     Vérifie la validité d'un code de confirmation.
-    Lève une ValidationError si le code est incorrect, expiré ou déjà utilisé.
+    Lève une ValidationError si le code est incorrect, expiré, déjà utilisé ou trop de tentatives.
     """
     if not code or not isinstance(code, str):
         raise ValidationError("Le code de confirmation est obligatoire.")
@@ -86,7 +97,6 @@ def verify_email_code(email, code, purpose='registration', user=None):
 
     qs = EmailVerificationCode.objects.filter(
         email__iexact=email_clean,
-        code=code_clean,
         purpose=purpose,
         is_used=False
     ).order_by('-created_at')
@@ -107,7 +117,24 @@ def verify_email_code(email, code, purpose='registration', user=None):
         record.save(update_fields=['is_used'])
         raise ValidationError("Ce code de confirmation a expiré. Veuillez en demander un nouveau.")
 
-    # Consommer le code
+    # Protection contre le bruteforce (5 tentatives max par code)
+    if record.failed_attempts >= 5:
+        record.is_used = True
+        record.save(update_fields=['is_used'])
+        raise ValidationError("Nombre maximal de tentatives dépassé. Ce code a été invalidé. Veuillez en demander un nouveau.")
+
+    if record.code != code_clean:
+        record.failed_attempts += 1
+        record.save(update_fields=['failed_attempts'])
+        remaining = 5 - record.failed_attempts
+        if remaining > 0:
+            raise ValidationError(f"Code de confirmation incorrect ({remaining} essai(s) restant(s)).")
+        else:
+            record.is_used = True
+            record.save(update_fields=['is_used'])
+            raise ValidationError("Nombre maximal de tentatives dépassé. Ce code a été invalidé. Veuillez en demander un nouveau.")
+
+    # Consommer le code validé
     record.is_used = True
     record.save(update_fields=['is_used'])
     return True

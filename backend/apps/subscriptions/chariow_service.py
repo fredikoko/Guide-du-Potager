@@ -24,6 +24,10 @@ class ChariowService:
 
     @staticmethod
     def get_product_id_for_plan(plan_type):
+        from .models import SubscriptionPlan
+        plan = SubscriptionPlan.objects.filter(plan_type=plan_type, is_active=True).first()
+        if plan and plan.chariow_product_id:
+            return plan.chariow_product_id
         if plan_type == 'yearly':
             return getattr(settings, 'CHARIOW_PRODUCT_YEARLY_ID', '')
         return getattr(settings, 'CHARIOW_PRODUCT_MONTHLY_ID', '')

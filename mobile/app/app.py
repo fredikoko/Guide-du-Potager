@@ -16,6 +16,9 @@ from .screens.subscription_screen import SubscriptionScreen
 from .screens.calendar_screen import CalendarScreen
 from .screens.blog_screen import BlogScreen
 from .screens.post_detail_screen import PostDetailScreen
+from .screens.about_screen import AboutScreen
+
+from kivy.core.window import Window
 
 class GuidePotagerTropicalApp(App):
     sm = ObjectProperty(None)
@@ -40,6 +43,7 @@ class GuidePotagerTropicalApp(App):
         self.sm.add_widget(InsectsScreen(name='insects'))
         self.sm.add_widget(ProfileScreen(name='profile'))
         self.sm.add_widget(SubscriptionScreen(name='subscription'))
+        self.sm.add_widget(AboutScreen(name='about'))
 
         # Check authentication on app startup
         if self.auth_service.is_authenticated():
@@ -47,7 +51,31 @@ class GuidePotagerTropicalApp(App):
         else:
             self.sm.current = 'login'
 
+        # Interception du bouton Retour matériel Android (Code 27)
+        Window.bind(on_keyboard=self._on_keyboard)
+
         return self.sm
+
+    def _on_keyboard(self, window, key, *args):
+        # 27 correspond à la touche 'Retour' sous Android et Échap sur Desktop
+        if key == 27:
+            if self.sm and self.sm.current not in ['home', 'login']:
+                if self.sm.current == 'register':
+                    self.sm.current = 'login'
+                elif self.sm.current == 'post_detail':
+                    self.sm.current = 'blog'
+                elif self.sm.current == 'vegetables':
+                    veg_screen = self.sm.get_screen('vegetables')
+                    if getattr(veg_screen, 'current_family_id', None) is not None:
+                        veg_screen.current_family_id = None
+                        veg_screen.current_family_name = None
+                        self.sm.current = 'families'
+                    else:
+                        self.sm.current = 'home'
+                else:
+                    self.sm.current = 'home'
+                return True  # Événement consommé, empêche la fermeture de l'application
+        return False
 
 # Alias de compatibilité
 GuidePotagerApp = GuidePotagerTropicalApp

@@ -24,6 +24,9 @@ class Disease(models.Model):
     image = models.ImageField(upload_to='diseases/', null=True, blank=True)
     is_premium = models.BooleanField(default=True)
 
+    class Meta:
+        ordering = ['id']
+
     def __str__(self):
         return self.name
 
@@ -54,6 +57,9 @@ class Insect(models.Model):
     affected_vegetables = models.ManyToManyField(Vegetable, related_name='insects', blank=True)
     image = models.ImageField(upload_to='insects/', null=True, blank=True)
     is_premium = models.BooleanField(default=True)
+
+    class Meta:
+        ordering = ['id']
 
     def __str__(self):
         return self.name

@@ -64,33 +64,56 @@ class SubscriptionScreen(Screen):
             color=Theme.GOLD_PREMIUM, size_hint_y=None, height=35, halign='left'
         ))
         features_text = (
-            "• Accès intégral aux Parties 2 et 3\n"
-            "• Fiches complètes des Maladies et Insectes\n"
-            "• Traitements Bio et Solutions préventives\n"
+            "• Accès intégral aux chapitres avancés (Parties 2 et 3)\n"
+            "• Articles exclusifs du Blog & analyses maraîchères d'experts\n"
+            "• Fiches complètes des Maladies et Insectes ravageurs\n"
+            "• Traitements Bio, Recettes locales & Biocontrôle\n"
             "• Guide des Outils Maraîchers de précision"
         )
         banner_card.add_widget(Label(
-            text=features_text, color=Theme.TEXT_LIGHT, font_size='14sp', size_hint_y=None, height=90, halign='left'
+            text=features_text, color=Theme.TEXT_LIGHT, font_size='14sp', size_hint_y=None, height=115, halign='left'
         ))
         self.container.add_widget(banner_card)
 
-        # Plan Selection
+        # Plan Selection (Chargement dynamique des prix configurés dans l'admin Django)
         plan_card = CardWidget(bg_color=Theme.CARD_BG)
         plan_card.add_widget(Label(
             text="[b]1. Choisir votre formule :[/b]", markup=True, font_size='16sp',
             color=Theme.PRIMARY_DARK, size_hint_y=None, height=30, halign='left'
         ))
 
-        plans_layout = BoxLayout(orientation='horizontal', spacing=10, size_hint_y=None, height=50)
+        # Récupération des prix enregistrés dans l'administration
+        monthly_text = "Mensuel\n2 500 XOF (~4€)"
+        yearly_text = "Annuel (-30%)\n20 000 XOF (~30€)"
+
+        plans_res = self.sub_service.get_plans()
+        if plans_res.get('success'):
+            plans = plans_res.get('data', [])
+            if isinstance(plans, dict) and 'results' in plans:
+                plans = plans['results']
+
+            for p in plans:
+                btn_txt = p.get('display_button_text')
+                if not btn_txt:
+                    badge = f" ({p.get('discount_badge')})" if p.get('discount_badge') else ""
+                    approx = f" ({p.get('approx_eur')})" if p.get('approx_eur') else ""
+                    btn_txt = f"{p.get('name', '')}{badge}\n{p.get('formatted_price', p.get('price'))} {p.get('currency', 'XOF')}{approx}"
+
+                if p.get('plan_type') == 'monthly':
+                    monthly_text = btn_txt
+                elif p.get('plan_type') == 'yearly':
+                    yearly_text = btn_txt
+
+        plans_layout = BoxLayout(orientation='horizontal', spacing=10, size_hint_y=None, height=52)
 
         self.monthly_btn = Button(
-            text="Mensuel\n2 500 XOF (~4€)", font_size='13sp', halign='center',
+            text=monthly_text, font_size='13sp', halign='center',
             background_normal='', background_color=Theme.PRIMARY_MAIN, color=Theme.TEXT_LIGHT
         )
         self.monthly_btn.bind(on_release=lambda x: self.select_plan('monthly'))
 
         self.yearly_btn = Button(
-            text="Annuel (-30%)\n20 000 XOF (~30€)", font_size='13sp', halign='center',
+            text=yearly_text, font_size='13sp', halign='center',
             background_normal='', background_color=Theme.CARD_BG, color=Theme.TEXT_DARK
         )
         self.yearly_btn.bind(on_release=lambda x: self.select_plan('yearly'))

@@ -42,6 +42,9 @@ class Tool(models.Model):
     category = models.CharField(max_length=50, choices=TOOL_CATEGORIES, default='travail_du_sol')
     is_premium = models.BooleanField(default=False)
 
+    class Meta:
+        ordering = ['id']
+
     def __str__(self):
         return self.name
 
@@ -54,6 +57,7 @@ class PlantFamily(models.Model):
 
     class Meta:
         verbose_name_plural = "Plant Families"
+        ordering = ['name']
 
     def __str__(self):
         return self.name
@@ -104,6 +108,9 @@ class Vegetable(models.Model):
 
     image = models.ImageField(upload_to='vegetables/', null=True, blank=True)
     is_premium = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['name']
 
     def __str__(self):
         return self.name

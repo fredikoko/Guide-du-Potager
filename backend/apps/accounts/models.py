@@ -30,6 +30,8 @@ GARDEN_TYPE_CHOICES = (
     ('perirubain', 'Exploitation agro-écologique périurbaine'),
 )
 
+from django.utils import timezone
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     subscription_active = models.BooleanField(default=False)
@@ -41,6 +43,15 @@ class UserProfile(models.Model):
     history = models.JSONField(default=list, blank=True)
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     phone_number = models.CharField(max_length=20, blank=True)
+
+    @property
+    def is_premium(self):
+        """Vérifie dynamiquement la validité de l'abonnement Premium sans se fier uniquement au flag."""
+        if not self.subscription_active:
+            return False
+        if self.subscription_end_date and self.subscription_end_date <= timezone.now():
+            return False
+        return True
 
     def __str__(self):
         return f"Profile of {self.user.email} ({self.get_climate_zone_display()})"
@@ -56,6 +67,7 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
 VERIFICATION_PURPOSE_CHOICES = (
     ('registration', 'Confirmation d\'inscription'),
     ('email_change', 'Changement d\'adresse email'),
+    ('password_reset', 'Réinitialisation de mot de passe'),
 )
 
 class EmailVerificationCode(models.Model):
@@ -63,6 +75,7 @@ class EmailVerificationCode(models.Model):
     email = models.EmailField(db_index=True, verbose_name="Adresse email destinataire")
     code = models.CharField(max_length=6, verbose_name="Code à 6 chiffres")
     purpose = models.CharField(max_length=25, choices=VERIFICATION_PURPOSE_CHOICES, default='registration')
+    failed_attempts = models.PositiveIntegerField(default=0, verbose_name="Tentatives échouées")
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField()
     is_used = models.BooleanField(default=False)

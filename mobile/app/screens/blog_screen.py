@@ -57,8 +57,8 @@ class BlogScreen(Screen):
         layout.add_widget(search_box)
 
         # Category Horizontal Selector
-        cat_scroll = ScrollView(size_hint_y=None, height=45, do_scroll_y=False)
-        self.cat_box = BoxLayout(size_hint_x=None, height=40, padding=[10, 5, 10, 5], spacing=8)
+        cat_scroll = ScrollView(size_hint_y=None, height=48, do_scroll_y=False)
+        self.cat_box = BoxLayout(size_hint_x=None, height=42, padding=[10, 3, 10, 3], spacing=8)
         self.cat_box.bind(minimum_width=self.cat_box.setter('width'))
         cat_scroll.add_widget(self.cat_box)
         layout.add_widget(cat_scroll)
@@ -88,24 +88,41 @@ class BlogScreen(Screen):
 
         self.categories = cats
 
-        # "Toutes" Button
+        # Bouton "Toutes" (avec largeur dynamique)
         all_btn = Button(
-            text="Toutes", font_size='13sp', size_hint_x=None, width=80,
+            text="Toutes",
+            font_size='13sp',
+            size_hint=(None, None),
+            height=36,
             background_normal='',
             background_color=Theme.BROWN_MAIN if self.selected_category_id is None else Theme.CARD_BG,
-            color=Theme.TEXT_LIGHT if self.selected_category_id is None else Theme.TEXT_DARK
+            color=Theme.TEXT_LIGHT if self.selected_category_id is None else Theme.TEXT_DARK,
+            halign='center',
+            valign='middle'
         )
+        all_btn.bind(texture_size=lambda instance, val: setattr(instance, 'width', max(70, val[0] + 24)) if val[0] > 0 else None)
+        all_btn.width = 75
         all_btn.bind(on_release=lambda x: self.select_category(None))
         self.cat_box.add_widget(all_btn)
 
+        # Boutons des Catégories avec largeur automatique adaptée à chaque libellé
         for c in cats:
             c_id = c['id']
+            cat_name = c['name']
             btn = Button(
-                text=c['name'], font_size='13sp', size_hint_x=None, width=130,
+                text=cat_name,
+                font_size='13sp',
+                size_hint=(None, None),
+                height=36,
                 background_normal='',
                 background_color=Theme.BROWN_MAIN if self.selected_category_id == c_id else Theme.CARD_BG,
-                color=Theme.TEXT_LIGHT if self.selected_category_id == c_id else Theme.TEXT_DARK
+                color=Theme.TEXT_LIGHT if self.selected_category_id == c_id else Theme.TEXT_DARK,
+                halign='center',
+                valign='middle'
             )
+            # Adapte dynamiquement la largeur du bouton au rendu textuel réel + marges intérieures
+            btn.bind(texture_size=lambda instance, val: setattr(instance, 'width', max(80, val[0] + 28)) if val[0] > 0 else None)
+            btn.width = max(80, len(cat_name) * 9 + 28)
             btn.bind(on_release=lambda instance, category_id=c_id: self.select_category(category_id))
             self.cat_box.add_widget(btn)
 

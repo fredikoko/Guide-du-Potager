@@ -1,11 +1,13 @@
 from django.urls import path
 from .views import (
     SubscriptionStatusView,
+    SubscriptionPlanListView,
     ChariowCheckoutView,
     ChariowWebhookView
 )
 
 urlpatterns = [
+    path('plans/', SubscriptionPlanListView.as_view(), name='subscription_plans'),
     path('status/', SubscriptionStatusView.as_view(), name='subscription_status'),
     path('checkout/', ChariowCheckoutView.as_view(), name='subscription_checkout'),
     path('webhook/', ChariowWebhookView.as_view(), name='subscription_webhook'),

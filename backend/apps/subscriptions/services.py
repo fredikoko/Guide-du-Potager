@@ -1,18 +1,24 @@
 import uuid
 from datetime import timedelta
 from django.utils import timezone
-from .models import Subscription, Payment
+from .models import Subscription, Payment, SubscriptionPlan
 
 class SubscriptionService:
     @staticmethod
     def calculate_end_date(plan_type):
         now = timezone.now()
+        plan = SubscriptionPlan.objects.filter(plan_type=plan_type, is_active=True).first()
+        if plan and plan.duration_days:
+            return now + timedelta(days=plan.duration_days)
         if plan_type == 'yearly':
             return now + timedelta(days=365)
         return now + timedelta(days=30)
 
     @staticmethod
     def get_plan_amount(plan_type):
+        plan = SubscriptionPlan.objects.filter(plan_type=plan_type, is_active=True).first()
+        if plan:
+            return float(plan.price)
         if plan_type == 'yearly':
             return 20000.00  # XOF
         return 2500.00  # XOF

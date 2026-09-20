@@ -1,5 +1,17 @@
 from rest_framework import serializers
-from .models import Subscription, Payment
+from .models import Subscription, Payment, SubscriptionPlan
+
+class SubscriptionPlanSerializer(serializers.ModelSerializer):
+    formatted_price = serializers.CharField(read_only=True)
+    display_button_text = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = SubscriptionPlan
+        fields = [
+            'id', 'plan_type', 'name', 'price', 'currency',
+            'approx_eur', 'discount_badge', 'duration_days',
+            'formatted_price', 'display_button_text', 'is_active', 'order'
+        ]
 
 class SubscriptionSerializer(serializers.ModelSerializer):
     class Meta:

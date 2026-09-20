@@ -109,12 +109,14 @@ class NavigationDrawer(FloatLayout):
             ("Accueil", "home", "•"),
             ("Blog & Actualités", "blog", "★"),
             ("Simulateur Calendrier", "calendar", "•"),
-            ("Outils Maraîchers", "tools", "•"),
+            ("Fiches Légumes", "vegetables", "•"),
             ("Familles Botaniques", "families", "•"),
+            ("Outils Maraîchers", "tools", "•"),
             ("Maladies & Soins", "diseases", "•"),
             ("Insectes Nuisibles", "insects", "•"),
             ("Mon Profil", "profile", "•"),
             ("Abonnement Premium", "subscription", "★"),
+            ("À Propos", "about", "ℹ"),
         ]
 
         for title, screen_name, prefix in items:

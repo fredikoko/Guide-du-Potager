@@ -16,7 +16,7 @@ class PostListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        queryset = Post.objects.filter(is_published=True)
+        queryset = Post.objects.filter(is_published=True).select_related('category', 'author').prefetch_related('images')
         category_id = self.request.query_params.get('category')
         search = self.request.query_params.get('search')
 
@@ -33,7 +33,7 @@ class PostListView(generics.ListAPIView):
         return queryset
 
 class PostDetailView(generics.RetrieveAPIView):
-    queryset = Post.objects.filter(is_published=True)
+    queryset = Post.objects.filter(is_published=True).select_related('category', 'author').prefetch_related('images', 'comments__author')
     serializer_class = PostDetailSerializer
     permission_classes = [permissions.AllowAny]
     authentication_classes = [JWTAuthentication]
@@ -52,7 +52,7 @@ class PostDetailView(generics.RetrieveAPIView):
         user = request.user
         is_subscribed = False
         if user and user.is_authenticated and hasattr(user, 'profile'):
-            is_subscribed = user.profile.subscription_active
+            is_subscribed = user.profile.is_premium
 
         # Lock premium articles for non-subscribed users
         if instance.is_premium and not is_subscribed:

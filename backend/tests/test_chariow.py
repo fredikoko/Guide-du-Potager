@@ -172,3 +172,26 @@ class ChariowIntegrationTestCase(TestCase):
 
         # Check only 1 active subscription exists
         self.assertEqual(Subscription.objects.filter(user=self.user, status='active').count(), 1)
+
+    def test_subscription_plans_endpoint_and_custom_admin_price(self):
+        from apps.subscriptions.models import SubscriptionPlan
+        plans_url = reverse('subscription_plans')
+        res = self.client.get(plans_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        plans = res.data.get('results', res.data)
+        self.assertEqual(len(plans), 2)
+
+        # Modifier le prix depuis l'admin (en DB)
+        plan_monthly = SubscriptionPlan.objects.get(plan_type='monthly')
+        plan_monthly.price = 3000.00
+        plan_monthly.approx_eur = '~4.50€'
+        plan_monthly.save()
+
+        # Vérifier que l'API renvoie immédiatement le nouveau prix
+        res2 = self.client.get(plans_url)
+        self.assertEqual(res2.status_code, status.HTTP_200_OK)
+        plans2 = res2.data.get('results', res2.data)
+        monthly_data = next(p for p in plans2 if p['plan_type'] == 'monthly')
+        self.assertEqual(float(monthly_data['price']), 3000.00)
+        self.assertIn('3 000', monthly_data['formatted_price'])
+        self.assertIn('~4.50€', monthly_data['display_button_text'])

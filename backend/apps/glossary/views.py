@@ -23,17 +23,17 @@ class ToolDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.AllowAny]
 
 class PlantFamilyListView(generics.ListAPIView):
-    queryset = PlantFamily.objects.all()
+    queryset = PlantFamily.objects.prefetch_related('vegetables__family')
     serializer_class = PlantFamilySerializer
     permission_classes = [permissions.AllowAny]
 
 class PlantFamilyDetailView(generics.RetrieveAPIView):
-    queryset = PlantFamily.objects.all()
+    queryset = PlantFamily.objects.prefetch_related('vegetables__family')
     serializer_class = PlantFamilySerializer
     permission_classes = [permissions.AllowAny]
 
 class VegetableListView(generics.ListAPIView):
-    queryset = Vegetable.objects.all()
+    queryset = Vegetable.objects.select_related('family')
     serializer_class = VegetableSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -48,6 +48,6 @@ class VegetableListView(generics.ListAPIView):
         return queryset
 
 class VegetableDetailView(generics.RetrieveAPIView):
-    queryset = Vegetable.objects.all()
+    queryset = Vegetable.objects.select_related('family')
     serializer_class = VegetableSerializer
     permission_classes = [permissions.AllowAny]

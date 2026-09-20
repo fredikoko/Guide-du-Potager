@@ -23,7 +23,7 @@ class DiseaseDetailView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         user = request.user
-        has_access = not instance.is_premium or (user and user.is_authenticated and hasattr(user, 'profile') and user.profile.subscription_active)
+        has_access = not instance.is_premium or (user and user.is_authenticated and hasattr(user, 'profile') and user.profile.is_premium)
 
         serializer = self.get_serializer(instance)
         data = serializer.data
@@ -58,7 +58,7 @@ class InsectDetailView(generics.RetrieveAPIView):
     def retrieve(self, request, *args, **kwargs):
         instance = self.get_object()
         user = request.user
-        has_access = not instance.is_premium or (user and user.is_authenticated and hasattr(user, 'profile') and user.profile.subscription_active)
+        has_access = not instance.is_premium or (user and user.is_authenticated and hasattr(user, 'profile') and user.profile.is_premium)
 
         serializer = self.get_serializer(instance)
         data = serializer.data

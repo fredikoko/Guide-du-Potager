@@ -67,6 +67,9 @@ class FamiliesScreen(Screen):
         families = res.get('data', [])
         if isinstance(families, dict) and 'results' in families:
             families = families['results']
+
+        families = sorted(families, key=lambda f: f.get('name', '').lower())
+
         for family in families:
             card = CardWidget(bg_color=Theme.CARD_BG)
 

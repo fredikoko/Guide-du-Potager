@@ -23,6 +23,7 @@ class CalendarScreen(Screen):
         self.drawer = None
         self.selected_month = "Mars"
         self.selected_action = "semis"  # "semis" or "recolte"
+        self.cached_vegetables = None
 
         with self.canvas.before:
             Color(*Theme.BG_CREAM)
@@ -102,7 +103,28 @@ class CalendarScreen(Screen):
         self.add_widget(layout)
 
     def on_enter(self):
-        self.load_calendar_results()
+        if self.cached_vegetables is None:
+            self.refresh_vegetables()
+        else:
+            self.render_calendar_results()
+
+    def refresh_vegetables(self):
+        self.results_container.clear_widgets()
+        loading = Label(text="Chargement du calendrier...", color=Theme.TEXT_MUTED, font_size='15sp', size_hint_y=None, height=50)
+        self.results_container.add_widget(loading)
+
+        res = self.glossary_service.get_vegetables()
+        if not res.get('success'):
+            self.results_container.clear_widgets()
+            err = Label(text="⚠️ Impossible de charger les données du calendrier.", color=Theme.TEXT_MUTED, font_size='15sp', size_hint_y=None, height=50)
+            self.results_container.add_widget(err)
+            return
+
+        vegs = res.get('data', [])
+        if isinstance(vegs, dict) and 'results' in vegs:
+            vegs = vegs['results']
+        self.cached_vegetables = vegs
+        self.render_calendar_results()
 
     def select_action(self, action):
         self.selected_action = action
@@ -117,7 +139,7 @@ class CalendarScreen(Screen):
             self.semis_btn.background_color = (0.9, 0.9, 0.9, 1)
             self.semis_btn.color = Theme.TEXT_DARK
 
-        self.load_calendar_results()
+        self.render_calendar_results()
 
     def select_month(self, month_name):
         self.selected_month = month_name
@@ -129,23 +151,16 @@ class CalendarScreen(Screen):
                 btn.background_color = Theme.CARD_BG
                 btn.color = Theme.TEXT_DARK
 
-        self.load_calendar_results()
+        self.render_calendar_results()
 
-    def load_calendar_results(self):
+    def render_calendar_results(self):
         self.results_container.clear_widgets()
-        res = self.glossary_service.get_vegetables()
-
-        if not res.get('success'):
-            err = Label(text="⚠️ Impossible de charger les données du calendrier.", color=Theme.TEXT_MUTED, font_size='15sp', size_hint_y=None, height=50)
-            self.results_container.add_widget(err)
+        if self.cached_vegetables is None:
+            self.refresh_vegetables()
             return
 
         base_root = Config.API_BASE_URL.replace('/api', '')
-        vegetables = res.get('data', [])
-
-        # DRF pagination wrapper check
-        if isinstance(vegetables, dict) and 'results' in vegetables:
-            vegetables = vegetables['results']
+        vegetables = self.cached_vegetables
 
         matching_vegs = []
         target_month_lower = self.selected_month.lower()

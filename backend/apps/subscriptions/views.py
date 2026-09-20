@@ -1,14 +1,46 @@
-from rest_framework import status, permissions
+from rest_framework import status, permissions, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import Subscription, Payment
+from .models import Subscription, Payment, SubscriptionPlan
 from .serializers import (
     SubscriptionSerializer, PaymentSerializer,
-    ChariowCheckoutRequestSerializer
+    ChariowCheckoutRequestSerializer, SubscriptionPlanSerializer
 )
 from .services import SubscriptionService
 from .chariow_service import ChariowService
+
+class SubscriptionPlanListView(generics.ListAPIView):
+    """
+    Retourne la liste des formules d'abonnement actives configurées depuis l'administration Django.
+    """
+    serializer_class = SubscriptionPlanSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_queryset(self):
+        # Auto-initialisation si la table est vide pour un déploiement immédiat
+        if not SubscriptionPlan.objects.exists():
+            SubscriptionPlan.objects.create(
+                plan_type='monthly',
+                name='Mensuel',
+                price=2500.00,
+                currency='XOF',
+                approx_eur='~4€',
+                discount_badge='',
+                duration_days=30,
+                order=1
+            )
+            SubscriptionPlan.objects.create(
+                plan_type='yearly',
+                name='Annuel',
+                price=20000.00,
+                currency='XOF',
+                approx_eur='~30€',
+                discount_badge='-30%',
+                duration_days=365,
+                order=2
+            )
+        return SubscriptionPlan.objects.filter(is_active=True).order_by('order', 'price')
 
 class SubscriptionStatusView(APIView):
     permission_classes = [permissions.IsAuthenticated]

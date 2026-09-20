@@ -75,3 +75,14 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
+
+class PasswordResetConfirmSerializer(serializers.Serializer):
+    email = serializers.EmailField(required=True)
+    code = serializers.CharField(required=True, min_length=6, max_length=6)
+    new_password = serializers.CharField(required=True, min_length=6, write_only=True)
+    new_password_confirm = serializers.CharField(required=True, min_length=6, write_only=True)
+
+    def validate(self, attrs):
+        if attrs['new_password'] != attrs['new_password_confirm']:
+            raise serializers.ValidationError({'new_password_confirm': "Les deux mots de passe ne correspondent pas."})
+        return attrs

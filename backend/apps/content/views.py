@@ -4,22 +4,22 @@ from .models import Part, Chapter
 from .serializers import PartSerializer, ChapterListSerializer, ChapterDetailSerializer
 
 class PartListView(generics.ListAPIView):
-    queryset = Part.objects.all()
+    queryset = Part.objects.prefetch_related('chapters')
     serializer_class = PartSerializer
     permission_classes = [permissions.AllowAny]
 
 class PartDetailView(generics.RetrieveAPIView):
-    queryset = Part.objects.all()
+    queryset = Part.objects.prefetch_related('chapters')
     serializer_class = PartSerializer
     permission_classes = [permissions.AllowAny]
 
 class ChapterListView(generics.ListAPIView):
-    queryset = Chapter.objects.all()
+    queryset = Chapter.objects.select_related('part')
     serializer_class = ChapterListSerializer
     permission_classes = [permissions.AllowAny]
 
 class ChapterDetailView(generics.RetrieveAPIView):
-    queryset = Chapter.objects.all()
+    queryset = Chapter.objects.select_related('part').prefetch_related('images')
     serializer_class = ChapterDetailSerializer
     permission_classes = [permissions.AllowAny]
 
@@ -33,7 +33,7 @@ class ChapterDetailView(generics.RetrieveAPIView):
 
         if not is_locked:
             has_access = True
-        elif user and user.is_authenticated and hasattr(user, 'profile') and user.profile.subscription_active:
+        elif user and user.is_authenticated and hasattr(user, 'profile') and user.profile.is_premium:
             has_access = True
 
         serializer = self.get_serializer(chapter)

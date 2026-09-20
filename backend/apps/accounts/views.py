@@ -11,7 +11,7 @@ from .validators import validate_server_email
 from .services import send_verification_email, verify_email_code
 from .serializers import (
     RegisterSerializer, UserSerializer, UserProfileSerializer,
-    ChangePasswordSerializer, PasswordResetSerializer
+    ChangePasswordSerializer, PasswordResetSerializer, PasswordResetConfirmSerializer
 )
 
 User = get_user_model()
@@ -157,18 +157,63 @@ class ChangePasswordView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class PasswordResetView(APIView):
+    """
+    Demande de réinitialisation de mot de passe par code OTP.
+    Protège contre l'énumération d'adresses email en renvoyant toujours une réponse identique.
+    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         serializer = PasswordResetSerializer(data=request.data)
-        if serializer.is_valid():
-            email = serializer.validated_data['email']
-            try:
-                user = User.objects.get(email=email)
-                return Response({'message': f'Un email de réinitialisation a été envoyé à {email}.'}, status=status.HTTP_200_OK)
-            except User.DoesNotExist:
-                return Response({'message': 'Si cet email existe, un message a été envoyé.'}, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data['email'].strip().lower()
+        try:
+            user = User.objects.get(email__iexact=email)
+            send_verification_email(email, purpose='password_reset', user=user)
+        except User.DoesNotExist:
+            pass  # Ne pas révéler l'inexistence du compte (anti-énumération)
+        except Exception as e:
+            return Response({'error': f"Échec de l'envoi de l'e-mail : {str(e)}"}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+        return Response({
+            'message': 'Si cette adresse email est associée à un compte, un code de réinitialisation à 6 chiffres vous a été envoyé.',
+            'email': email
+        }, status=status.HTTP_200_OK)
+
+class PasswordResetConfirmView(APIView):
+    """
+    Validation du code de réinitialisation et définition du nouveau mot de passe.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = PasswordResetConfirmSerializer(data=request.data)
+        if not serializer.is_valid():
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+        email = serializer.validated_data['email'].strip().lower()
+        code = serializer.validated_data['code'].strip()
+        new_password = serializer.validated_data['new_password']
+
+        try:
+            user = User.objects.get(email__iexact=email)
+        except User.DoesNotExist:
+            return Response({'error': "Code de confirmation invalide ou compte introuvable."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            verify_email_code(email, code, purpose='password_reset', user=user)
+        except DjangoValidationError as e:
+            err_msg = e.message if hasattr(e, 'message') else str(e)
+            return Response({'error': err_msg}, status=status.HTTP_400_BAD_REQUEST)
+
+        user.set_password(new_password)
+        user.save()
+
+        return Response({
+            'message': "Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter."
+        }, status=status.HTTP_200_OK)
 
 class AccountDeleteView(APIView):
     permission_classes = [permissions.IsAuthenticated]

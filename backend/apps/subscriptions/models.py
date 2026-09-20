@@ -16,6 +16,43 @@ PAYMENT_METHODS = (
     ('chariow', 'Chariow (Mobile Money & Carte)'),
 )
 
+class SubscriptionPlan(models.Model):
+    PLAN_TYPE_CHOICES = (
+        ('monthly', 'Mensuel'),
+        ('yearly', 'Annuel'),
+    )
+
+    plan_type = models.CharField(max_length=20, choices=PLAN_TYPE_CHOICES, unique=True, verbose_name="Type de formule")
+    name = models.CharField(max_length=100, verbose_name="Nom affiché", help_text="Ex: Mensuel, Annuel")
+    price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Prix")
+    currency = models.CharField(max_length=10, default='XOF', verbose_name="Devise")
+    approx_eur = models.CharField(max_length=50, blank=True, default="", verbose_name="Équivalence indicative (ex: ~4€)")
+    discount_badge = models.CharField(max_length=50, blank=True, default="", verbose_name="Badge promotionnel (ex: -30%)")
+    duration_days = models.PositiveIntegerField(default=30, verbose_name="Durée en jours")
+    chariow_product_id = models.CharField(max_length=100, blank=True, verbose_name="ID Produit Chariow (optionnel)")
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+    order = models.PositiveIntegerField(default=1, verbose_name="Ordre d'affichage")
+
+    class Meta:
+        ordering = ['order', 'price']
+        verbose_name = "Formule d'abonnement"
+        verbose_name_plural = "Formules d'abonnement"
+
+    def __str__(self):
+        formatted_price = f"{self.price:,.0f}".replace(",", " ")
+        badge = f" ({self.discount_badge})" if self.discount_badge else ""
+        return f"{self.name}{badge} - {formatted_price} {self.currency}"
+
+    @property
+    def formatted_price(self):
+        return f"{self.price:,.0f}".replace(",", " ")
+
+    @property
+    def display_button_text(self):
+        badge = f" ({self.discount_badge})" if self.discount_badge else ""
+        approx = f" ({self.approx_eur})" if self.approx_eur else ""
+        return f"{self.name}{badge}\n{self.formatted_price} {self.currency}{approx}"
+
 class Subscription(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='subscriptions')
     plan_type = models.CharField(max_length=20, choices=PLAN_CHOICES)

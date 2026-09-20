@@ -5,7 +5,7 @@ from datetime import timedelta
 from apps.content.models import Part, Chapter
 from apps.glossary.models import PlantFamily, Vegetable, Tool
 from apps.pests.models import Disease, Insect
-from apps.subscriptions.models import Subscription
+from apps.subscriptions.models import Subscription, SubscriptionPlan
 from apps.blog.models import Category as BlogCategory, Post as BlogPost, Comment as BlogComment
 
 User = get_user_model()
@@ -15,6 +15,34 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('Création des données de test...'))
+
+        # 0. Formules d'Abonnement administrables
+        plan_monthly, _ = SubscriptionPlan.objects.get_or_create(
+            plan_type='monthly',
+            defaults={
+                'name': 'Mensuel',
+                'price': 2500.00,
+                'currency': 'XOF',
+                'approx_eur': '~4€',
+                'discount_badge': '',
+                'duration_days': 30,
+                'order': 1,
+                'is_active': True
+            }
+        )
+        plan_yearly, _ = SubscriptionPlan.objects.get_or_create(
+            plan_type='yearly',
+            defaults={
+                'name': 'Annuel',
+                'price': 20000.00,
+                'currency': 'XOF',
+                'approx_eur': '~30€',
+                'discount_badge': '-30%',
+                'duration_days': 365,
+                'order': 2,
+                'is_active': True
+            }
+        )
 
         # 1. Création des Utilisateurs
         user_free, created = User.objects.get_or_create(

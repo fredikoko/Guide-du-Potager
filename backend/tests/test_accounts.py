@@ -102,3 +102,70 @@ class AccountsAPITestCase(TestCase):
         )
         res_dup = self.client.put(profile_url, {'email': 'autre@potager.com'})
         self.assertEqual(res_dup.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_password_reset_flow(self):
+        from apps.accounts.models import EmailVerificationCode
+        user = User.objects.create_user(
+            email='reset_target@potager.fr',
+            username='reset_user',
+            password='OldPassword123!'
+        )
+
+        reset_req_url = reverse('auth_password_reset')
+        # 1. Request password reset (anti-enumeration message)
+        res = self.client.post(reset_req_url, {'email': 'reset_target@potager.fr'})
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('Si cette adresse email', res.data['message'])
+
+        code_rec = EmailVerificationCode.objects.filter(
+            email='reset_target@potager.fr',
+            purpose='password_reset',
+            is_used=False
+        ).first()
+        self.assertIsNotNone(code_rec)
+
+        # 2. Confirm password reset with bad code
+        confirm_url = reverse('auth_password_reset_confirm')
+        res_bad = self.client.post(confirm_url, {
+            'email': 'reset_target@potager.fr',
+            'code': '000000',
+            'new_password': 'NewPassword123!',
+            'new_password_confirm': 'NewPassword123!'
+        })
+        self.assertEqual(res_bad.status_code, status.HTTP_400_BAD_REQUEST)
+
+        # 3. Confirm password reset with valid code
+        res_good = self.client.post(confirm_url, {
+            'email': 'reset_target@potager.fr',
+            'code': code_rec.code,
+            'new_password': 'NewPassword123!',
+            'new_password_confirm': 'NewPassword123!'
+        })
+        self.assertEqual(res_good.status_code, status.HTTP_200_OK)
+
+        # 4. Login succeeds with new password
+        user.refresh_from_db()
+        self.assertTrue(user.check_password('NewPassword123!'))
+
+    def test_otp_max_failed_attempts(self):
+        from apps.accounts.models import EmailVerificationCode
+        from apps.accounts.services import send_verification_email, verify_email_code
+        from django.core.exceptions import ValidationError
+
+        email = 'brute_force@potager.fr'
+        send_verification_email(email, purpose='registration')
+
+        code_rec = EmailVerificationCode.objects.get(email=email, purpose='registration', is_used=False)
+
+        # 5 consecutive bad guesses
+        for i in range(4):
+            with self.assertRaises(ValidationError):
+                verify_email_code(email, f"99999{i}", purpose='registration')
+
+        # 5th attempt invalidates code
+        with self.assertRaises(ValidationError) as cm:
+            verify_email_code(email, "999999", purpose='registration')
+        self.assertIn("Nombre maximal", str(cm.exception))
+
+        code_rec.refresh_from_db()
+        self.assertTrue(code_rec.is_used)

@@ -66,12 +66,37 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'config.wsgi.application'
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+if os.environ.get('DATABASE_URL'):
+    import urllib.parse as urlparse
+    url = urlparse.urlparse(os.environ.get('DATABASE_URL'))
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': url.path[1:],
+            'USER': url.username,
+            'PASSWORD': url.password,
+            'HOST': url.hostname,
+            'PORT': url.port or 5432,
+        }
     }
-}
+elif os.environ.get('POSTGRES_DB'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('POSTGRES_DB'),
+            'USER': os.environ.get('POSTGRES_USER', 'postgres'),
+            'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
+            'HOST': os.environ.get('POSTGRES_HOST', 'db'),
+            'PORT': int(os.environ.get('POSTGRES_PORT', 5432)),
+        }
+    }
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
@@ -105,6 +130,14 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'apps.content.pagination.FlexiblePageNumberPagination',
     'PAGE_SIZE': 15,
     'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle',
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '120/minute',
+        'user': '300/minute',
+    },
 }
 
 SPECTACULAR_SETTINGS = {
