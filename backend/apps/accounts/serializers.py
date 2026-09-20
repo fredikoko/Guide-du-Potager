@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import UserProfile
+from .validators import validate_server_email
 
 User = get_user_model()
 
@@ -23,6 +25,15 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['id', 'email', 'username', 'first_name', 'last_name', 'created_at', 'profile']
+        extra_kwargs = {
+            'email': {'required': False}
+        }
+
+    def validate_email(self, value):
+        try:
+            return validate_server_email(value, user=self.instance)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message if hasattr(e, 'message') else str(e))
 
 class RegisterSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, min_length=6)
@@ -32,6 +43,12 @@ class RegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ['email', 'username', 'password', 'password_confirm', 'phone_number']
+
+    def validate_email(self, value):
+        try:
+            return validate_server_email(value)
+        except DjangoValidationError as e:
+            raise serializers.ValidationError(e.message if hasattr(e, 'message') else str(e))
 
     def validate(self, attrs):
         if attrs['password'] != attrs['password_confirm']:

@@ -85,11 +85,15 @@ class ProfileScreen(Screen):
         last_name_text = user.get('last_name', '') if isinstance(user, dict) else ''
         phone_text = profile.get('phone_number', '') if isinstance(profile, dict) else ''
 
-        # Email (Lecture seule)
+        # Email (Modifiable)
         card_user.add_widget(Label(
-            text=f"[b]Adresse E-mail :[/b] {email_text}", markup=True, font_size='14sp',
-            color=Theme.TEXT_MUTED, size_hint_y=None, height=28, halign='left'
+            text="[b]Adresse E-mail :[/b]", markup=True, font_size='14sp',
+            color=Theme.TEXT_DARK, size_hint_y=None, height=24, halign='left'
         ))
+        self.email_input = TextInput(
+            text=email_text, multiline=False, font_size='14sp', size_hint_y=None, height=42
+        )
+        card_user.add_widget(self.email_input)
 
         # Username
         card_user.add_widget(Label(
@@ -229,17 +233,19 @@ class ProfileScreen(Screen):
         self.container.add_widget(card_actions)
 
     def save_profile_changes(self, instance):
+        email = self.email_input.text.strip()
         username = self.username_input.text.strip()
         first_name = self.first_name_input.text.strip()
         last_name = self.last_name_input.text.strip()
         phone_number = self.phone_input.text.strip()
 
-        if not username:
-            self.profile_msg_lbl.text = "[color=B32626]⚠️ Le nom d'utilisateur est obligatoire.[/color]"
+        if not email or not username:
+            self.profile_msg_lbl.text = "[color=B32626]⚠️ L'email et le nom d'utilisateur sont obligatoires.[/color]"
             self.profile_msg_lbl.height = 25
             return
 
         res = self.auth_service.update_profile(
+            email=email,
             username=username,
             first_name=first_name,
             last_name=last_name,
@@ -247,12 +253,20 @@ class ProfileScreen(Screen):
         )
 
         if res.get('success'):
-            self.profile_msg_lbl.text = "[color=1E592E]✅ Profil mis à jour avec succès ![/color]"
+            self.profile_msg_lbl.text = "[color=1E592E]✅ Profil et email mis à jour avec succès ![/color]"
             self.profile_msg_lbl.height = 25
         else:
             err = res.get('error', 'Erreur de mise à jour.')
+            if isinstance(err, dict):
+                messages = []
+                for k, v in err.items():
+                    if isinstance(v, list):
+                        messages.append(f"{v[0]}")
+                    else:
+                        messages.append(f"{v}")
+                err = " ".join(messages)
             self.profile_msg_lbl.text = f"[color=B32626]⚠️ {err}[/color]"
-            self.profile_msg_lbl.height = 25
+            self.profile_msg_lbl.height = 32
 
     def change_user_password(self, instance):
         old_pass = self.old_pass_input.text.strip()

@@ -91,8 +91,17 @@ class RegisterScreen(Screen):
             if login_res['success']:
                 self.manager.current = 'home'
         else:
+            err = res.get('error', 'Erreur d\'inscription.')
+            if isinstance(err, dict):
+                messages = []
+                for k, v in err.items():
+                    if isinstance(v, list):
+                        messages.append(f"{v[0]}")
+                    else:
+                        messages.append(f"{v}")
+                err = " ".join(messages)
             self.status_label.color = (0.8, 0.2, 0.2, 1)
-            self.status_label.text = str(res.get('error', 'Erreur d\'inscription.'))
+            self.status_label.text = str(err)
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos

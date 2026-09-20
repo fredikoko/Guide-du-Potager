@@ -48,8 +48,10 @@ class AuthService:
             return {'success': True, 'user': user_data}
         return {'success': False, 'error': res.get('error')}
 
-    def update_profile(self, username=None, first_name=None, last_name=None, phone_number=None, **kwargs):
+    def update_profile(self, email=None, username=None, first_name=None, last_name=None, phone_number=None, **kwargs):
         payload = {}
+        if email is not None:
+            payload['email'] = email
         if username:
             payload['username'] = username
         if first_name is not None:
@@ -69,6 +71,9 @@ class AuthService:
             self.storage.save('current_user', user_data)
             return {'success': True, 'user': user_data}
         return {'success': False, 'error': res.get('error', 'Échec de mise à jour du profil.')}
+
+    def validate_email(self, email, mode='register'):
+        return self.api.post('auth/validate-email/', {'email': email, 'mode': mode})
 
     def change_password(self, old_password, new_password):
         res = self.api.post('auth/change-password/', {

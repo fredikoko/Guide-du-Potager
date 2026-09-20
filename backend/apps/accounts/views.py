@@ -4,7 +4,9 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError as DjangoValidationError
 from .models import UserProfile
+from .validators import validate_server_email
 from .serializers import (
     RegisterSerializer, UserSerializer, UserProfileSerializer,
     ChangePasswordSerializer, PasswordResetSerializer
@@ -89,6 +91,32 @@ class AccountDeleteView(APIView):
         user.delete()
         return Response({'message': 'Compte supprimé avec succès.'}, status=status.HTTP_204_NO_CONTENT)
 
+class ValidateEmailView(APIView):
+    """
+    Vérifie la validité et la disponibilité d'une adresse email côté serveur.
+    Accepte {"email": "...", "mode": "register" | "update"}.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        email = request.data.get('email', '')
+        mode = request.data.get('mode', 'register')
+        user_to_exclude = request.user if (mode == 'update' and request.user and request.user.is_authenticated) else None
+
+        try:
+            valid_email = validate_server_email(email, user=user_to_exclude)
+            return Response({
+                'valid': True,
+                'email': valid_email,
+                'message': 'Adresse email valide et disponible.'
+            }, status=status.HTTP_200_OK)
+        except DjangoValidationError as e:
+            err_msg = e.message if hasattr(e, 'message') else str(e)
+            return Response({
+                'valid': False,
+                'error': err_msg
+            }, status=status.HTTP_400_BAD_REQUEST)
+
 class UserProfileView(generics.RetrieveUpdateAPIView):
     serializer_class = UserSerializer
     permission_classes = [permissions.IsAuthenticated]
@@ -99,6 +127,16 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def update(self, request, *args, **kwargs):
         user = self.get_object()
         profile_data = request.data.get('profile', {})
+
+        if 'email' in request.data and request.data['email']:
+            new_email = request.data['email'].strip()
+            if new_email.lower() != user.email.lower():
+                try:
+                    validated_email = validate_server_email(new_email, user=user)
+                    user.email = validated_email
+                except DjangoValidationError as e:
+                    err_msg = e.message if hasattr(e, 'message') else str(e)
+                    return Response({'error': err_msg, 'email': [err_msg]}, status=status.HTTP_400_BAD_REQUEST)
 
         if 'username' in request.data and request.data['username']:
             user.username = request.data['username']
