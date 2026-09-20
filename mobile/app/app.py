@@ -17,11 +17,11 @@ from .screens.calendar_screen import CalendarScreen
 from .screens.blog_screen import BlogScreen
 from .screens.post_detail_screen import PostDetailScreen
 
-class GuidePotagerApp(App):
+class GuidePotagerTropicalApp(App):
     sm = ObjectProperty(None)
 
     def build(self):
-        self.title = "Guide du Potager"
+        self.title = "Guide du Potager Tropical"
         self.auth_service = AuthService()
         self.sm = ScreenManager(transition=FadeTransition())
 
@@ -48,3 +48,6 @@ class GuidePotagerApp(App):
             self.sm.current = 'login'
 
         return self.sm
+
+# Alias de compatibilité
+GuidePotagerApp = GuidePotagerTropicalApp

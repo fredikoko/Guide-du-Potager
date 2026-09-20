@@ -42,9 +42,9 @@ class NavigationDrawer(BoxLayout):
         header.bind(size=self._update_header_rect, pos=self._update_header_rect)
 
         app_title = Label(
-            text="[b]Guide du Potager[/b]",
+            text="[b]Guide du Potager Tropical[/b]",
             markup=True,
-            font_size='20sp',
+            font_size='18sp',
             color=Theme.TEXT_LIGHT,
             halign='left'
         )

@@ -41,9 +41,9 @@ class HomeScreen(Screen):
         menu_btn.bind(on_release=self.toggle_drawer)
 
         app_title = Label(
-            text="[b]Guide du Potager[/b]",
+            text="[b]Guide du Potager Tropical[/b]",
             markup=True,
-            font_size='20sp',
+            font_size='18sp',
             color=Theme.TEXT_LIGHT,
             halign='left',
             valign='middle'

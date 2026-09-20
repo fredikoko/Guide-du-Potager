@@ -1,6 +1,6 @@
-# Guide du Potager 🌿
+# Guide du Potager Tropical 🌿
 
-Application mobile éducative et interactive sur le jardinage potager et le maraîchage biologique (Kivy), communicant avec un backend Django REST API (Django REST Framework + JWT).
+Application mobile éducative et interactive sur le jardinage potager et le maraîchage biologique en milieu tropical (Kivy), communicant avec un backend Django REST API (Django REST Framework + JWT).
 
 ---
 
@@ -90,7 +90,7 @@ python backend/manage.py test tests
 ## 📁 Structure du Projet
 
 ```text
-Guide du potager/
+Guide du potager tropical/
 ├── backend/                  # API REST Django
 │   ├── apps/
 │   │   ├── accounts/         # Utilisateurs & Authentification JWT
@@ -98,7 +98,7 @@ Guide du potager/
 │   │   ├── blog/             # Articles, Catégories, Images & Commentaires
 │   │   ├── glossary/         # Outils, Familles & Légumes
 │   │   ├── pests/            # Maladies & Insectes
-│   │   └── subscriptions/    # Abonnements & Paiements (Mobile & Stripe)
+│   │   └── subscriptions/    # Abonnements & Passerelle de Paiement Sécurisée Chariow
 │   ├── config/               # Settings (base, dev, prod), URLs & Swagger OpenAPI
 │   ├── tests/                # Suite de tests unitaires
 │   ├── manage.py

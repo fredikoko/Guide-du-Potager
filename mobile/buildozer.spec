@@ -1,7 +1,7 @@
 [app]
-title = Guide du Potager
-package.name = guidedupotager
-package.domain = org.guidedupotager
+title = Guide du Potager Tropical
+package.name = guidedupotagertropical
+package.domain = org.guidedupotagertropical
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas,json
 version = 1.0.0

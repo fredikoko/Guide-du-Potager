@@ -1,5 +1,5 @@
 """
-Guide du Potager - Natural Design System Palette (Kivy RGBA normalized 0.0 - 1.0)
+Guide du Potager Tropical - Natural Design System Palette (Kivy RGBA normalized 0.0 - 1.0)
 """
 
 class Theme:

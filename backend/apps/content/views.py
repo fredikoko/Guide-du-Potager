@@ -44,7 +44,7 @@ class ChapterDetailView(generics.RetrieveAPIView):
             data['is_locked'] = True
             data['content'] = (
                 f"<h1>🔒 {chapter.title} (Premium)</h1>"
-                "<p>Ce chapitre est réservé aux abonnés Premium du Guide du Potager.</p>"
+                "<p>Ce chapitre est réservé aux abonnés Premium du Guide du Potager Tropical.</p>"
                 "<p>Abonnez-vous pour débloquer l'accès complet à tous les chapitres, outils avancés, et fiches maladies & insectes !</p>"
             )
             data['images'] = []

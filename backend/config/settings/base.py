@@ -108,8 +108,8 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    'TITLE': 'Guide du Potager API',
-    'DESCRIPTION': 'API RESTful pour l\'application mobile Guide du Potager (Botanique & Maraîchage Bio).',
+    'TITLE': 'Guide du Potager Tropical API',
+    'DESCRIPTION': 'API RESTful pour l\'application mobile Guide du Potager Tropical (Botanique & Maraîchage Bio).',
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }

@@ -11,7 +11,7 @@ from apps.blog.models import Category as BlogCategory, Post as BlogPost, Comment
 User = get_user_model()
 
 class Command(BaseCommand):
-    help = 'Alimente la base de données avec des données éducatives complètes pour le Guide du Potager'
+    help = 'Alimente la base de données avec des données éducatives complètes pour le Guide du Potager Tropical'
 
     def handle(self, *args, **options):
         self.stdout.write(self.style.SUCCESS('Création des données de test...'))
@@ -401,4 +401,4 @@ class Command(BaseCommand):
             defaults={'content': 'Merci pour ces excellents conseils ! Mes semis de tomates ont très bien démarré.'}
         )
 
-        self.stdout.write(self.style.SUCCESS('Base de données alimentée avec succès pour le Guide du Potager !'))
+        self.stdout.write(self.style.SUCCESS('Base de données alimentée avec succès pour le Guide du Potager Tropical !'))

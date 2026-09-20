@@ -21,9 +21,9 @@ class LoginScreen(Screen):
 
         # Title / Header
         title = Label(
-            text="[b]Guide du Potager[/b]",
+            text="[b]Guide du Potager Tropical[/b]",
             markup=True,
-            font_size='28sp',
+            font_size='26sp',
             color=Theme.PRIMARY_DARK,
             size_hint_y=None,
             height=60
