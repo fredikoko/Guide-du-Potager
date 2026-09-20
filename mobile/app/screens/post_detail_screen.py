@@ -80,14 +80,33 @@ class PostDetailScreen(Screen):
         badge = " [PREMIUM]" if data.get('is_premium') else ""
 
         meta_card = CardWidget(bg_color=Theme.PRIMARY_DARK)
-        meta_card.add_widget(Label(
-            text=f"[b]{data['title']}[/b][color=E8AB26]{badge}[/color]", markup=True, font_size='19sp',
-            color=Theme.TEXT_LIGHT, size_hint_y=None, height=40, halign='left'
-        ))
-        meta_card.add_widget(Label(
+
+        meta_title = Label(
+            text=f"[b]{data['title']}[/b][color=E8AB26]{badge}[/color]",
+            markup=True,
+            font_size='18sp',
+            color=Theme.TEXT_LIGHT,
+            size_hint_y=None,
+            halign='left',
+            valign='top'
+        )
+        meta_title.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+        meta_title.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+        meta_card.add_widget(meta_title)
+
+        meta_info = Label(
             text=f"[color=E8AB26][b][{cat_name}][/b][/color]  •  Par {author}  •  {date_str}  •  Vues: {views}",
-            markup=True, font_size='13sp', color=Theme.PRIMARY_LIGHT, size_hint_y=None, height=25, halign='left'
-        ))
+            markup=True,
+            font_size='13sp',
+            color=Theme.PRIMARY_LIGHT,
+            size_hint_y=None,
+            halign='left',
+            valign='top'
+        )
+        meta_info.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+        meta_info.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+        meta_card.add_widget(meta_info)
+
         self.body_container.add_widget(meta_card)
 
         # Cover Image
@@ -173,9 +192,10 @@ class PostDetailScreen(Screen):
             c_card = CardWidget(bg_color=Theme.CARD_BG)
             c_meta = Label(
                 text=f"[b]{c['author_name']}[/b]  •  {(c.get('created_at') or '')[:10]}",
-                markup=True, font_size='13sp', color=Theme.BROWN_MAIN, size_hint_y=None, height=25, halign='left'
+                markup=True, font_size='13sp', color=Theme.BROWN_MAIN, size_hint_y=None, halign='left', valign='top'
             )
             c_meta.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            c_meta.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
 
             c_text = Label(
                 text=c['content'], font_size='14sp', color=Theme.TEXT_DARK,

@@ -156,9 +156,10 @@ class BlogScreen(Screen):
             p_title = Label(
                 text=f"[b]{post['title']}[/b][color=E8AB26]{badge}[/color]",
                 markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
-                size_hint_y=None, height=38, halign='left', valign='middle'
+                size_hint_y=None, halign='left', valign='top'
             )
             p_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            p_title.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
             card.add_widget(p_title)
 
             # Category badge & Meta
@@ -169,9 +170,10 @@ class BlogScreen(Screen):
             meta_lbl = Label(
                 text=f"[color=855E42][b][{cat_name}][/b][/color]  •  {date_str}  •  Vues: {views}",
                 markup=True, font_size='12sp', color=Theme.TEXT_MUTED,
-                size_hint_y=None, height=22, halign='left'
+                size_hint_y=None, halign='left', valign='top'
             )
             meta_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            meta_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
             card.add_widget(meta_lbl)
 
             # Excerpt text
