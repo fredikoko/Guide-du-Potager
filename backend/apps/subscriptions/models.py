@@ -13,10 +13,6 @@ STATUS_CHOICES = (
 )
 
 PAYMENT_METHODS = (
-    ('stripe', 'Carte Bancaire / Stripe'),
-    ('orange_money', 'Orange Money (Afrique de l\'Ouest)'),
-    ('wave', 'Wave (Afrique de l\'Ouest)'),
-    ('mtn_money', 'MTN Mobile Money'),
     ('chariow', 'Chariow (Mobile Money & Carte)'),
 )
 
@@ -34,7 +30,7 @@ class Subscription(models.Model):
 class Payment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='payments')
     subscription = models.ForeignKey(Subscription, on_delete=models.SET_NULL, null=True, blank=True)
-    payment_method = models.CharField(max_length=30, choices=PAYMENT_METHODS)
+    payment_method = models.CharField(max_length=30, choices=PAYMENT_METHODS, default='chariow')
     amount = models.DecimalField(max_digits=10, decimal_places=2)
     currency = models.CharField(max_length=10, default='XOF')
     status = models.CharField(max_length=20, default='pending')  # pending, completed, failed

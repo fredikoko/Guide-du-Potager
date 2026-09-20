@@ -2,7 +2,6 @@ from kivy.uix.screenmanager import Screen
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
-from kivy.uix.textinput import TextInput
 from kivy.uix.button import Button
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
@@ -14,7 +13,6 @@ class SubscriptionScreen(Screen):
         super().__init__(**kwargs)
         self.sub_service = SubscriptionService()
         self.selected_plan = 'monthly'
-        self.selected_method = 'chariow'
 
         with self.canvas.before:
             Color(*Theme.BG_CREAM)
@@ -102,49 +100,29 @@ class SubscriptionScreen(Screen):
         plan_card.add_widget(plans_layout)
         self.container.add_widget(plan_card)
 
-        # Payment Method Selection (Mobile Payment Afrique de l'Ouest & Stripe)
+        # Payment Card (Chariow Exclusive)
         pay_card = CardWidget(bg_color=Theme.CARD_BG)
         pay_card.add_widget(Label(
-            text="[b]2. Moyen de paiement :[/b]", markup=True, font_size='16sp',
+            text="[b]2. Paiement sécurisé avec Chariow :[/b]", markup=True, font_size='16sp',
             color=Theme.PRIMARY_DARK, size_hint_y=None, height=30, halign='left'
         ))
 
-        methods = [
-            ("Chariow (Wave, Orange, MTN, Carte)", "chariow"),
-            ("Orange Money (Direct)", "orange_money"),
-            ("Wave (Direct)", "wave"),
-            ("MTN Money (Direct)", "mtn_money"),
-            ("Carte Bancaire / Stripe", "stripe"),
-        ]
-
-        self.method_buttons = {}
-        for title, key in methods:
-            btn = Button(
-                text=title, font_size='14sp', size_hint_y=None, height=44,
-                background_normal='',
-                background_color=Theme.PRIMARY_MAIN if key == self.selected_method else (0.9, 0.9, 0.9, 1),
-                color=Theme.TEXT_LIGHT if key == self.selected_method else Theme.TEXT_DARK
-            )
-            btn.bind(on_release=lambda instance, k=key: self.select_method(k))
-            self.method_buttons[key] = btn
-            pay_card.add_widget(btn)
-
-        # Phone input for direct mobile payment (hidden for Chariow and Stripe)
-        self.phone_input = TextInput(
-            hint_text="Numéro de téléphone mobile payment (ex: 771234567)",
-            multiline=False, font_size='15sp', size_hint_y=None, height=48,
-            background_normal='', background_color=(1, 1, 1, 1), foreground_color=Theme.TEXT_DARK,
-            padding=[10, 12, 10, 12], opacity=0, disabled=True
+        info_text = (
+            "Réglez en toute sécurité via la passerelle officielle Chariow :\n"
+            "• Mobile Money (Afrique de l'Ouest & Centrale) : Wave, Orange Money, MTN MoMo, Moov\n"
+            "• Carte bancaire internationale (Visa, Mastercard)"
         )
-        pay_card.add_widget(self.phone_input)
+        pay_card.add_widget(Label(
+            text=info_text, font_size='13sp', color=Theme.TEXT_DARK, size_hint_y=None, height=65, halign='left'
+        ))
 
         self.status_msg = Label(
-            text="", color=(0.8, 0.2, 0.2, 1), font_size='14sp', size_hint_y=None, height=40
+            text="", color=(0.8, 0.2, 0.2, 1), font_size='14sp', size_hint_y=None, height=45
         )
         pay_card.add_widget(self.status_msg)
 
         confirm_btn = Button(
-            text="Confirmer et Payer le Premium", font_size='16sp', size_hint_y=None, height=52,
+            text="Payer avec Chariow (Sécurisé)", font_size='16sp', size_hint_y=None, height=52,
             background_normal='', background_color=Theme.GOLD_PREMIUM, color=Theme.TEXT_LIGHT
         )
         confirm_btn.bind(on_release=self.process_payment)
@@ -173,66 +151,23 @@ class SubscriptionScreen(Screen):
             self.monthly_btn.background_color = (0.9, 0.9, 0.9, 1)
             self.monthly_btn.color = Theme.TEXT_DARK
 
-    def select_method(self, method):
-        self.selected_method = method
-        for k, btn in self.method_buttons.items():
-            if k == method:
-                btn.background_color = Theme.PRIMARY_MAIN
-                btn.color = Theme.TEXT_LIGHT
-            else:
-                btn.background_color = (0.9, 0.9, 0.9, 1)
-                btn.color = Theme.TEXT_DARK
-
-        if method in ('stripe', 'chariow'):
-            self.phone_input.opacity = 0
-            self.phone_input.disabled = True
-        else:
-            self.phone_input.opacity = 1
-            self.phone_input.disabled = False
-
     def process_payment(self, instance):
-        if self.selected_method == 'chariow':
-            res = self.sub_service.initiate_chariow_checkout(self.selected_plan)
-            if res.get('success') and res.get('checkout_url'):
-                import webbrowser
-                webbrowser.open(res['checkout_url'])
-                self.status_msg.color = (0.2, 0.7, 0.3, 1)
-                self.status_msg.text = "Lien Chariow ouvert. Une fois réglé, cliquez ci-dessous."
-                self.refresh_btn.opacity = 1
-                self.refresh_btn.disabled = False
-            elif res.get('step') == 'completed':
-                self.status_msg.color = (0.2, 0.7, 0.3, 1)
-                self.status_msg.text = "🎉 Abonnement activé avec succès !"
-                from ..services.auth_service import AuthService
-                AuthService().get_profile()
-            else:
-                self.status_msg.color = (0.8, 0.2, 0.2, 1)
-                self.status_msg.text = str(res.get('error', 'Erreur d\'initialisation Chariow.'))
-        elif self.selected_method != 'stripe':
-            phone = self.phone_input.text.strip()
-            if not phone:
-                self.status_msg.color = (0.8, 0.2, 0.2, 1)
-                self.status_msg.text = "Veuillez entrer votre numéro de téléphone."
-                return
-            res = self.sub_service.pay_mobile(self.selected_plan, self.selected_method, phone)
-            if res.get('success'):
-                self.status_msg.color = (0.2, 0.7, 0.3, 1)
-                self.status_msg.text = "🎉 Paiement confirmé ! Votre abonnement est actif."
-                from ..services.auth_service import AuthService
-                AuthService().get_profile()
-            else:
-                self.status_msg.color = (0.8, 0.2, 0.2, 1)
-                self.status_msg.text = str(res.get('error', 'Échec du traitement du paiement.'))
+        res = self.sub_service.initiate_chariow_checkout(self.selected_plan)
+        if res.get('success') and res.get('checkout_url'):
+            import webbrowser
+            webbrowser.open(res['checkout_url'])
+            self.status_msg.color = (0.2, 0.7, 0.3, 1)
+            self.status_msg.text = "Lien de paiement Chariow ouvert.\nUne fois validé, cliquez ci-dessous pour actualiser votre profil."
+            self.refresh_btn.opacity = 1
+            self.refresh_btn.disabled = False
+        elif res.get('step') == 'completed':
+            self.status_msg.color = (0.2, 0.7, 0.3, 1)
+            self.status_msg.text = "🎉 Abonnement activé avec succès !"
+            from ..services.auth_service import AuthService
+            AuthService().get_profile()
         else:
-            res = self.sub_service.pay_stripe(self.selected_plan)
-            if res.get('success'):
-                self.status_msg.color = (0.2, 0.7, 0.3, 1)
-                self.status_msg.text = "🎉 Paiement confirmé ! Votre abonnement est actif."
-                from ..services.auth_service import AuthService
-                AuthService().get_profile()
-            else:
-                self.status_msg.color = (0.8, 0.2, 0.2, 1)
-                self.status_msg.text = str(res.get('error', 'Échec du traitement du paiement.'))
+            self.status_msg.color = (0.8, 0.2, 0.2, 1)
+            self.status_msg.text = str(res.get('error', 'Erreur d\'initialisation Chariow.'))
 
     def refresh_status(self, instance):
         from ..services.auth_service import AuthService
@@ -240,7 +175,7 @@ class SubscriptionScreen(Screen):
         status_res = self.sub_service.get_status()
         if status_res.get('subscription_active'):
             self.status_msg.color = (0.2, 0.7, 0.3, 1)
-            self.status_msg.text = "🎉 Votre abonnement Premium est maintenant actif !"
+            self.status_msg.text = "🎉 Félicitations ! Votre abonnement Premium est maintenant actif !"
             self.refresh_btn.opacity = 0
             self.refresh_btn.disabled = True
         else:

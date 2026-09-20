@@ -5,10 +5,9 @@ from django.utils import timezone
 from .models import Subscription, Payment
 from .serializers import (
     SubscriptionSerializer, PaymentSerializer,
-    MobilePaymentRequestSerializer, StripePaymentRequestSerializer,
     ChariowCheckoutRequestSerializer
 )
-from .services import SubscriptionService, MobilePaymentService
+from .services import SubscriptionService
 from .chariow_service import ChariowService
 
 class SubscriptionStatusView(APIView):
@@ -34,51 +33,6 @@ class SubscriptionStatusView(APIView):
             'subscription_end_date': profile.subscription_end_date,
             'active_subscription': sub_data
         })
-
-class CreateSubscriptionView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        serializer = StripePaymentRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            plan_type = serializer.validated_data['plan_type']
-            tx_id = f"STRIPE-{timezone.now().strftime('%Y%m%d%H%M%S')}"
-
-            subscription, payment = SubscriptionService.activate_subscription(
-                user=request.user,
-                plan_type=plan_type,
-                payment_method='stripe',
-                transaction_id=tx_id
-            )
-
-            return Response({
-                'message': 'Abonnement activé avec succès !',
-                'subscription': SubscriptionSerializer(subscription).data,
-                'payment': PaymentSerializer(payment).data
-            }, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class MobilePaymentView(APIView):
-    permission_classes = [permissions.IsAuthenticated]
-
-    def post(self, request):
-        serializer = MobilePaymentRequestSerializer(data=request.data)
-        if serializer.is_valid():
-            result = MobilePaymentService.process_mobile_payment(
-                user=request.user,
-                plan_type=serializer.validated_data['plan_type'],
-                provider=serializer.validated_data['payment_method'],
-                phone_number=serializer.validated_data['phone_number']
-            )
-            return Response(result, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class StripeWebhookView(APIView):
-    permission_classes = [permissions.AllowAny]
-
-    def post(self, request):
-        # Webhook handler endpoint for production Stripe events
-        return Response({'received': True}, status=status.HTTP_200_OK)
 
 class ChariowCheckoutView(APIView):
     """

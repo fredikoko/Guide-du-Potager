@@ -18,7 +18,7 @@ class SubscriptionService:
         return 2500.00  # XOF
 
     @classmethod
-    def activate_subscription(cls, user, plan_type, payment_method, transaction_id, phone_number=''):
+    def activate_subscription(cls, user, plan_type, payment_method='chariow', transaction_id='', phone_number=''):
         amount = cls.get_plan_amount(plan_type)
         end_date = cls.calculate_end_date(plan_type)
 
@@ -53,31 +53,3 @@ class SubscriptionService:
         profile.save()
 
         return subscription, payment
-
-class MobilePaymentService:
-    """
-    Simulation / Wrapper for Orange Money, Wave & MTN Mobile Money API integrations.
-    """
-    @staticmethod
-    def process_mobile_payment(user, plan_type, provider, phone_number):
-        amount = SubscriptionService.get_plan_amount(plan_type)
-        tx_id = f"{provider.upper()[:2]}-{uuid.uuid4().hex[:8].upper()}"
-
-        # In production, call provider REST API (Orange Money WebPay API / Wave Checkout API)
-        # Here we simulate immediate successful confirmation:
-        subscription, payment = SubscriptionService.activate_subscription(
-            user=user,
-            plan_type=plan_type,
-            payment_method=provider,
-            transaction_id=tx_id,
-            phone_number=phone_number
-        )
-
-        return {
-            'success': True,
-            'message': f"Paiement {provider.replace('_', ' ').title()} réussi !",
-            'transaction_id': tx_id,
-            'amount': amount,
-            'currency': 'XOF',
-            'subscription_end_date': subscription.end_date
-        }

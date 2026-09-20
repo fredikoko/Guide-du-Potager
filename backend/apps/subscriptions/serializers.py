@@ -11,15 +11,6 @@ class PaymentSerializer(serializers.ModelSerializer):
         model = Payment
         fields = ['id', 'payment_method', 'amount', 'currency', 'status', 'transaction_id', 'phone_number', 'created_at']
 
-class MobilePaymentRequestSerializer(serializers.Serializer):
-    plan_type = serializers.ChoiceField(choices=['monthly', 'yearly'])
-    payment_method = serializers.ChoiceField(choices=['orange_money', 'wave', 'mtn_money'])
-    phone_number = serializers.CharField(max_length=20)
-
-class StripePaymentRequestSerializer(serializers.Serializer):
-    plan_type = serializers.ChoiceField(choices=['monthly', 'yearly'])
-    payment_method_id = serializers.CharField(max_length=200, required=False)
-
 class ChariowCheckoutRequestSerializer(serializers.Serializer):
     plan_type = serializers.ChoiceField(choices=['monthly', 'yearly'])
     redirect_url = serializers.URLField(required=False, allow_blank=True)
