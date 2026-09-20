@@ -17,6 +17,7 @@ PAYMENT_METHODS = (
     ('orange_money', 'Orange Money (Afrique de l\'Ouest)'),
     ('wave', 'Wave (Afrique de l\'Ouest)'),
     ('mtn_money', 'MTN Mobile Money'),
+    ('chariow', 'Chariow (Mobile Money & Carte)'),
 )
 
 class Subscription(models.Model):
@@ -39,6 +40,7 @@ class Payment(models.Model):
     status = models.CharField(max_length=20, default='pending')  # pending, completed, failed
     transaction_id = models.CharField(max_length=100, unique=True)
     phone_number = models.CharField(max_length=20, blank=True)
+    pulse_delivery_id = models.CharField(max_length=100, blank=True, null=True, unique=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

@@ -14,7 +14,7 @@ class SubscriptionScreen(Screen):
         super().__init__(**kwargs)
         self.sub_service = SubscriptionService()
         self.selected_plan = 'monthly'
-        self.selected_method = 'orange_money'
+        self.selected_method = 'chariow'
 
         with self.canvas.before:
             Color(*Theme.BG_CREAM)
@@ -110,9 +110,10 @@ class SubscriptionScreen(Screen):
         ))
 
         methods = [
-            ("Orange Money", "orange_money"),
-            ("Wave", "wave"),
-            ("MTN Money", "mtn_money"),
+            ("Chariow (Wave, Orange, MTN, Carte)", "chariow"),
+            ("Orange Money (Direct)", "orange_money"),
+            ("Wave (Direct)", "wave"),
+            ("MTN Money (Direct)", "mtn_money"),
             ("Carte Bancaire / Stripe", "stripe"),
         ]
 
@@ -128,16 +129,17 @@ class SubscriptionScreen(Screen):
             self.method_buttons[key] = btn
             pay_card.add_widget(btn)
 
-        # Phone input for mobile payment
+        # Phone input for direct mobile payment (hidden for Chariow and Stripe)
         self.phone_input = TextInput(
             hint_text="Numéro de téléphone mobile payment (ex: 771234567)",
             multiline=False, font_size='15sp', size_hint_y=None, height=48,
-            background_normal='', background_color=(1, 1, 1, 1), foreground_color=Theme.TEXT_DARK, padding=[10, 12, 10, 12]
+            background_normal='', background_color=(1, 1, 1, 1), foreground_color=Theme.TEXT_DARK,
+            padding=[10, 12, 10, 12], opacity=0, disabled=True
         )
         pay_card.add_widget(self.phone_input)
 
         self.status_msg = Label(
-            text="", color=(0.8, 0.2, 0.2, 1), font_size='14sp', size_hint_y=None, height=30
+            text="", color=(0.8, 0.2, 0.2, 1), font_size='14sp', size_hint_y=None, height=40
         )
         pay_card.add_widget(self.status_msg)
 
@@ -147,6 +149,14 @@ class SubscriptionScreen(Screen):
         )
         confirm_btn.bind(on_release=self.process_payment)
         pay_card.add_widget(confirm_btn)
+
+        self.refresh_btn = Button(
+            text="🔄 Actualiser mon statut d'abonnement", font_size='14sp', size_hint_y=None, height=44,
+            background_normal='', background_color=Theme.PRIMARY_MAIN, color=Theme.TEXT_LIGHT,
+            opacity=0, disabled=True
+        )
+        self.refresh_btn.bind(on_release=self.refresh_status)
+        pay_card.add_widget(self.refresh_btn)
 
         self.container.add_widget(pay_card)
 
@@ -173,7 +183,7 @@ class SubscriptionScreen(Screen):
                 btn.background_color = (0.9, 0.9, 0.9, 1)
                 btn.color = Theme.TEXT_DARK
 
-        if method == 'stripe':
+        if method in ('stripe', 'chariow'):
             self.phone_input.opacity = 0
             self.phone_input.disabled = True
         else:
@@ -181,24 +191,61 @@ class SubscriptionScreen(Screen):
             self.phone_input.disabled = False
 
     def process_payment(self, instance):
-        if self.selected_method != 'stripe':
+        if self.selected_method == 'chariow':
+            res = self.sub_service.initiate_chariow_checkout(self.selected_plan)
+            if res.get('success') and res.get('checkout_url'):
+                import webbrowser
+                webbrowser.open(res['checkout_url'])
+                self.status_msg.color = (0.2, 0.7, 0.3, 1)
+                self.status_msg.text = "Lien Chariow ouvert. Une fois réglé, cliquez ci-dessous."
+                self.refresh_btn.opacity = 1
+                self.refresh_btn.disabled = False
+            elif res.get('step') == 'completed':
+                self.status_msg.color = (0.2, 0.7, 0.3, 1)
+                self.status_msg.text = "🎉 Abonnement activé avec succès !"
+                from ..services.auth_service import AuthService
+                AuthService().get_profile()
+            else:
+                self.status_msg.color = (0.8, 0.2, 0.2, 1)
+                self.status_msg.text = str(res.get('error', 'Erreur d\'initialisation Chariow.'))
+        elif self.selected_method != 'stripe':
             phone = self.phone_input.text.strip()
             if not phone:
                 self.status_msg.color = (0.8, 0.2, 0.2, 1)
                 self.status_msg.text = "Veuillez entrer votre numéro de téléphone."
                 return
             res = self.sub_service.pay_mobile(self.selected_plan, self.selected_method, phone)
+            if res.get('success'):
+                self.status_msg.color = (0.2, 0.7, 0.3, 1)
+                self.status_msg.text = "🎉 Paiement confirmé ! Votre abonnement est actif."
+                from ..services.auth_service import AuthService
+                AuthService().get_profile()
+            else:
+                self.status_msg.color = (0.8, 0.2, 0.2, 1)
+                self.status_msg.text = str(res.get('error', 'Échec du traitement du paiement.'))
         else:
             res = self.sub_service.pay_stripe(self.selected_plan)
+            if res.get('success'):
+                self.status_msg.color = (0.2, 0.7, 0.3, 1)
+                self.status_msg.text = "🎉 Paiement confirmé ! Votre abonnement est actif."
+                from ..services.auth_service import AuthService
+                AuthService().get_profile()
+            else:
+                self.status_msg.color = (0.8, 0.2, 0.2, 1)
+                self.status_msg.text = str(res.get('error', 'Échec du traitement du paiement.'))
 
-        if res.get('success'):
+    def refresh_status(self, instance):
+        from ..services.auth_service import AuthService
+        AuthService().get_profile()
+        status_res = self.sub_service.get_status()
+        if status_res.get('subscription_active'):
             self.status_msg.color = (0.2, 0.7, 0.3, 1)
-            self.status_msg.text = "🎉 Paiement confirmé ! Votre abonnement est actif."
-            from ..services.auth_service import AuthService
-            AuthService().get_profile()  # Refresh local profile state
+            self.status_msg.text = "🎉 Votre abonnement Premium est maintenant actif !"
+            self.refresh_btn.opacity = 0
+            self.refresh_btn.disabled = True
         else:
-            self.status_msg.color = (0.8, 0.2, 0.2, 1)
-            self.status_msg.text = str(res.get('error', 'Échec du traitement du paiement.'))
+            self.status_msg.color = (0.8, 0.5, 0.1, 1)
+            self.status_msg.text = "Paiement non détecté. Patientez quelques secondes et réessayez."
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos

@@ -6,6 +6,13 @@ __pycache__/
 # C extensions
 *.so
 
+# Environment Variables & Secrets
+.env
+.env.*
+!.env.example
+*.env
+local_settings.py
+
 # Virtual Environments
 .env/
 env/
@@ -17,17 +24,20 @@ venv.bak/
 */.env/
 */env/
 */venv/
+*/.venv/
 
-# Django files
+# Django files & Databases
 *.log
-local_settings.py
 db.sqlite3
+*.sqlite3
 db.sqlite3-journal
-media/
-staticfiles/
 backend/db.sqlite3
-backend/media/
-backend/staticfiles/
+media/
+backend/media/*
+!backend/media/.gitkeep
+staticfiles/
+backend/staticfiles/*
+!backend/staticfiles/.gitkeep
 
 # Mobile / Kivy / Buildozer
 .buildozer/
@@ -36,6 +46,11 @@ mobile/app_data.json
 *.apk
 *.aab
 
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
 # Editor & OS artifacts
 .vscode/
 .idea/
@@ -43,3 +58,4 @@ mobile/app_data.json
 *.swo
 .DS_Store
 Thumbs.db
+desktop.ini

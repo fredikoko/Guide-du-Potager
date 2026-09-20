@@ -18,3 +18,9 @@ class SubscriptionService:
     def pay_stripe(self, plan_type):
         data = {'plan_type': plan_type}
         return self.api.post('subscriptions/create/', data)
+
+    def initiate_chariow_checkout(self, plan_type, redirect_url=None):
+        data = {'plan_type': plan_type}
+        if redirect_url:
+            data['redirect_url'] = redirect_url
+        return self.api.post('subscriptions/chariow/checkout/', data)

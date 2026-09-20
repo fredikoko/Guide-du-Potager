@@ -1,8 +1,10 @@
 import os
 from pathlib import Path
 from datetime import timedelta
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
+load_dotenv(BASE_DIR / '.env')
 
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-guide-du-potager-super-secret-key-2026')
 
@@ -121,3 +123,10 @@ SIMPLE_JWT = {
 }
 
 CORS_ALLOW_ALL_ORIGINS = True
+ 
+# Chariow Payment Configuration
+CHARIOW_API_KEY = os.environ.get('CHARIOW_API_KEY', '')
+CHARIOW_WEBHOOK_SECRET = os.environ.get('CHARIOW_WEBHOOK_SECRET', '')
+CHARIOW_BASE_URL = os.environ.get('CHARIOW_BASE_URL', 'https://api.chariow.com/v1').rstrip('/')
+CHARIOW_PRODUCT_MONTHLY_ID = os.environ.get('CHARIOW_PRODUCT_MONTHLY_ID', '')
+CHARIOW_PRODUCT_YEARLY_ID = os.environ.get('CHARIOW_PRODUCT_YEARLY_ID', '')
