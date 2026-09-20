@@ -105,20 +105,30 @@ class FamiliesScreen(Screen):
         veg_screen.load_vegetables(family_id=family_id, family_name=family_name)
         self.manager.current = 'vegetables'
 
-    def toggle_drawer(self, instance):
+    def toggle_drawer(self, instance=None):
         if not self.drawer:
-            self.drawer = NavigationDrawer(screen_manager=self.manager, logout_callback=self.handle_logout)
+            self.drawer = NavigationDrawer(
+                screen_manager=self.manager,
+                logout_callback=self.handle_logout,
+                close_callback=self.close_drawer
+            )
             self.add_widget(self.drawer)
         else:
-            self.remove_widget(self.drawer)
+            self.close_drawer()
+
+    def close_drawer(self):
+        if self.drawer:
+            if self.drawer.parent:
+                self.drawer.parent.remove_widget(self.drawer)
             self.drawer = None
+
+    def on_leave(self):
+        self.close_drawer()
 
     def handle_logout(self):
         from ..services.auth_service import AuthService
         AuthService().logout()
-        if self.drawer:
-            self.remove_widget(self.drawer)
-            self.drawer = None
+        self.close_drawer()
         self.manager.current = 'login'
 
     def _update_rect(self, instance, value):
