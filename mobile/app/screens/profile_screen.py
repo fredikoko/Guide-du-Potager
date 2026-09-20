@@ -10,6 +10,7 @@ from ..services.auth_service import AuthService
 from ..services.subscription_service import SubscriptionService
 from ..components.cards import CardWidget
 from ..components.navigation_drawer import NavigationDrawer
+from ..components.otp_popup import OTPVerificationPopup
 
 class ProfileScreen(Screen):
     def __init__(self, **kwargs):
@@ -253,8 +254,14 @@ class ProfileScreen(Screen):
         )
 
         if res.get('success'):
-            self.profile_msg_lbl.text = "[color=1E592E]✅ Profil et email mis à jour avec succès ![/color]"
-            self.profile_msg_lbl.height = 25
+            if res.get('email_change_pending'):
+                pending_email = res.get('pending_email', email)
+                self.profile_msg_lbl.text = f"[color=1E592E]Code de confirmation envoyé à {pending_email}.[/color]"
+                self.profile_msg_lbl.height = 25
+                self.open_email_otp_popup(pending_email)
+            else:
+                self.profile_msg_lbl.text = "[color=1E592E]✅ Profil mis à jour avec succès ![/color]"
+                self.profile_msg_lbl.height = 25
         else:
             err = res.get('error', 'Erreur de mise à jour.')
             if isinstance(err, dict):
@@ -267,6 +274,38 @@ class ProfileScreen(Screen):
                 err = " ".join(messages)
             self.profile_msg_lbl.text = f"[color=B32626]⚠️ {err}[/color]"
             self.profile_msg_lbl.height = 32
+
+    def open_email_otp_popup(self, new_email):
+        popup = OTPVerificationPopup(
+            email=new_email,
+            on_confirm_callback=self.on_email_change_confirm,
+            on_resend_callback=self.on_email_change_resend,
+            title_text="Validation du nouvel email",
+            purpose="email_change"
+        )
+        popup.open()
+
+    def on_email_change_confirm(self, code, popup):
+        res = self.auth_service.confirm_email_change(popup.email, code)
+        if res.get('success'):
+            popup.dismiss()
+            self.email_input.text = popup.email
+            self.profile_msg_lbl.text = "[color=1E592E]✅ Adresse email mise à jour avec succès ![/color]"
+            self.profile_msg_lbl.height = 25
+        else:
+            err = res.get('error', 'Code invalide ou expiré.')
+            if isinstance(err, dict):
+                first_val = list(err.values())[0]
+                err = first_val[0] if isinstance(first_val, list) else first_val
+            popup.set_error(str(err))
+
+    def on_email_change_resend(self, email, purpose, popup):
+        res = self.auth_service.resend_verification_code(email, purpose=purpose)
+        if res.get('success'):
+            popup.set_success("Nouveau code envoyé.")
+        else:
+            err = res.get('error', "Impossible de renvoyer le code.")
+            popup.set_error(str(err))
 
     def change_user_password(self, instance):
         old_pass = self.old_pass_input.text.strip()

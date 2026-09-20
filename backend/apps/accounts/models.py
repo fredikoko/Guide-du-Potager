@@ -52,3 +52,27 @@ def create_or_update_user_profile(sender, instance, created, **kwargs):
     else:
         if hasattr(instance, 'profile'):
             instance.profile.save()
+
+VERIFICATION_PURPOSE_CHOICES = (
+    ('registration', 'Confirmation d\'inscription'),
+    ('email_change', 'Changement d\'adresse email'),
+)
+
+class EmailVerificationCode(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True, related_name='verification_codes')
+    email = models.EmailField(db_index=True, verbose_name="Adresse email destinataire")
+    code = models.CharField(max_length=6, verbose_name="Code à 6 chiffres")
+    purpose = models.CharField(max_length=25, choices=VERIFICATION_PURPOSE_CHOICES, default='registration')
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+    is_used = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['email', 'purpose', 'is_used']),
+        ]
+
+    def __str__(self):
+        return f"Code {self.code} ({self.purpose}) pour {self.email}"
+

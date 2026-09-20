@@ -33,8 +33,39 @@ class AuthService:
         }
         res = self.api.post('auth/register/', data)
         if res.get('success'):
-            return {'success': True, 'user': res['data'].get('user')}
+            data_res = res.get('data', {})
+            return {
+                'success': True,
+                'requires_verification': data_res.get('requires_verification', True),
+                'email': data_res.get('email', email),
+                'message': data_res.get('message', 'Code de confirmation envoyé.')
+            }
         return {'success': False, 'error': res.get('error', 'Échec d\'inscription.')}
+
+    def verify_registration(self, email, code):
+        res = self.api.post('auth/verify-registration/', {'email': email, 'code': code})
+        if res.get('success'):
+            data = res['data']
+            self.storage.save('access_token', data['access'])
+            self.storage.save('refresh_token', data['refresh'])
+            self.storage.save('current_user', data['user'])
+            return {'success': True, 'user': data['user'], 'message': data.get('message')}
+        return {'success': False, 'error': res.get('error', 'Code invalide ou expiré.')}
+
+    def resend_verification_code(self, email, purpose='registration'):
+        return self.api.post('auth/resend-code/', {'email': email, 'purpose': purpose})
+
+    def request_email_change(self, new_email):
+        return self.api.post('users/request-email-change/', {'new_email': new_email})
+
+    def confirm_email_change(self, new_email, code):
+        res = self.api.post('users/confirm-email-change/', {'new_email': new_email, 'code': code})
+        if res.get('success'):
+            data = res['data']
+            user_data = data.get('user', {})
+            self.storage.save('current_user', user_data)
+            return {'success': True, 'user': user_data, 'message': data.get('message')}
+        return {'success': False, 'error': res.get('error', 'Code invalide ou expiré.')}
 
     def logout(self):
         self.storage.clear()
@@ -67,9 +98,15 @@ class AuthService:
 
         res = self.api.put('users/profile/', payload)
         if res.get('success'):
-            user_data = res['data']
-            self.storage.save('current_user', user_data)
-            return {'success': True, 'user': user_data}
+            data = res['data']
+            self.storage.save('current_user', data)
+            return {
+                'success': True,
+                'user': data,
+                'email_change_pending': data.get('email_change_pending', False),
+                'pending_email': data.get('pending_email'),
+                'message': data.get('message')
+            }
         return {'success': False, 'error': res.get('error', 'Échec de mise à jour du profil.')}
 
     def validate_email(self, email, mode='register'):

@@ -6,6 +6,7 @@ from kivy.uix.button import Button
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.auth_service import AuthService
+from ..components.otp_popup import OTPVerificationPopup
 
 class RegisterScreen(Screen):
     def __init__(self, **kwargs):
@@ -79,17 +80,17 @@ class RegisterScreen(Screen):
         password = self.password_input.text.strip()
 
         if not email or not username or not password:
+            self.status_label.color = (0.8, 0.2, 0.2, 1)
             self.status_label.text = "Veuillez remplir les champs obligatoires."
             return
 
+        self.status_label.color = Theme.PRIMARY_DARK
+        self.status_label.text = "Création du compte et envoi du code..."
+
         res = self.auth_service.register(email, username, password, phone)
-        if res['success']:
-            self.status_label.color = (0.2, 0.7, 0.3, 1)
-            self.status_label.text = "Compte créé ! Connexion en cours..."
-            # Auto-login after registration
-            login_res = self.auth_service.login(email, password)
-            if login_res['success']:
-                self.manager.current = 'home'
+        if res.get('success'):
+            self.status_label.text = ""
+            self.open_otp_popup(email)
         else:
             err = res.get('error', 'Erreur d\'inscription.')
             if isinstance(err, dict):
@@ -102,6 +103,38 @@ class RegisterScreen(Screen):
                 err = " ".join(messages)
             self.status_label.color = (0.8, 0.2, 0.2, 1)
             self.status_label.text = str(err)
+
+    def open_otp_popup(self, email):
+        popup = OTPVerificationPopup(
+            email=email,
+            on_confirm_callback=self.on_otp_confirm,
+            on_resend_callback=self.on_otp_resend,
+            title_text="Activation de votre compte",
+            purpose="registration"
+        )
+        popup.open()
+
+    def on_otp_confirm(self, code, popup):
+        res = self.auth_service.verify_registration(popup.email, code)
+        if res.get('success'):
+            popup.dismiss()
+            self.status_label.color = (0.2, 0.7, 0.3, 1)
+            self.status_label.text = "Compte confirmé avec succès !"
+            self.manager.current = 'home'
+        else:
+            err = res.get('error', 'Code invalide ou expiré.')
+            if isinstance(err, dict):
+                first_val = list(err.values())[0]
+                err = first_val[0] if isinstance(first_val, list) else first_val
+            popup.set_error(str(err))
+
+    def on_otp_resend(self, email, purpose, popup):
+        res = self.auth_service.resend_verification_code(email, purpose=purpose)
+        if res.get('success'):
+            popup.set_success("Nouveau code envoyé avec succès.")
+        else:
+            err = res.get('error', "Impossible de renvoyer le code.")
+            popup.set_error(str(err))
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
