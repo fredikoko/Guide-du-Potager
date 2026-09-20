@@ -118,18 +118,17 @@ class Command(BaseCommand):
         Chapter.objects.get_or_create(
             part=part2, order=1,
             defaults={
-                'title': '3. Réussir ses Semis en Pépinière et sous Châssis',
+                'title': '3. Préparation des Planches & Pépinière Tropicale',
                 'is_premium': False,
-                'estimated_reading_time': 10,
+                'estimated_reading_time': 6,
                 'content': (
-                    "<h3>Matériel nécessaire pour les semis</h3>"
-                    "<p>Pour démarrer vos semis au sortir de l'hiver, préparez un terreau spécial semis, des plaques alvéolées ou godets réutilisables, et maintenez une température entre 18°C et 22°C.</p>"
-                    "<h4>Étapes clés :</h4>"
+                    "<h3>Confection de la Pépinière Tropicale</h3>"
+                    "<p>En climat tropical, la pépinière doit être <b>abritée du soleil ardent et des fortes averses</b> grâce à une ombrière (voile d'ombrage 50%).</p>"
+                    "<h4>Règles d'or du semis :</h4>"
                     "<ul>"
-                    "<li>Remplir les godets sans trop tasser.</li>"
-                    "<li>Déposer 2 à 3 graines par godet.</li>"
-                    "<li>Recouvrir d'une fine couche de terreau (profondeur égale à 2 fois la taille de la graine).</li>"
-                    "<li>Arroser en pluie fine avec un pulvérisateur.</li>"
+                    "<li>Utiliser un substrat drainant : 50% terreau/compost mûr + 50% sable de rivière lavé.</li>"
+                    "<li>Semer en lignes espacées de 10 cm pour faciliter l'aération et éviter la fonte des semis.</li>"
+                    "<li>Arroser au pulvérisateur ou arrosoir à pomme très fine 2 fois par jour (tôt le matin et en fin d'après-midi).</li>"
                     "</ul>"
                 )
             }
@@ -138,14 +137,14 @@ class Command(BaseCommand):
         Chapter.objects.get_or_create(
             part=part2, order=2,
             defaults={
-                'title': '4. Le Repiquage et la Plantation en Pleine Terre',
+                'title': '4. Le Repiquage et la Gestion de l\'Eau en Saison Sèche',
                 'is_premium': True,
-                'estimated_reading_time': 7,
+                'estimated_reading_time': 8,
                 'content': (
-                    "<h3>Moment opportun</h3>"
-                    "<p>En région tempérée, attendez le passage des <b>Saints de Glace (mi-mai)</b> pour planter les légumes frileux (tomates, aubergines, courgettes).</p>"
-                    "<h4>Technique d'enfoncement de la tige :</h4>"
-                    "<p>Pour les tomates, enterrez la tige jusqu'aux premières feuilles pour stimuler l'apparition de nouvelles racines adventives vigoureuses.</p>"
+                    "<h3>Le Moment Idéal pour le Repiquage</h3>"
+                    "<p>Repiquez toujours <b>en fin d'après-midi</b> pour éviter le choc thermique lié à la chaleur tropicale diurne.</p>"
+                    "<h4>Technique du paillage protecteur :</h4>"
+                    "<p>Couvrez immédiatement le sol d'une couche de 5 à 10 cm de paille sèche (herbes coupées, paille de riz). Cela réduit l'évaporation de l'eau de plus de 60% et maintient les racines au frais.</p>"
                 )
             }
         )
@@ -154,221 +153,259 @@ class Command(BaseCommand):
         Chapter.objects.get_or_create(
             part=part3, order=1,
             defaults={
-                'title': '5. Guildes Végétales & Compagnonnage Avancé',
+                'title': '5. Guildes Végétales & Compagnonnage en Climat Chaud',
                 'is_premium': True,
-                'estimated_reading_time': 12,
+                'estimated_reading_time': 10,
                 'content': (
-                    "<h3>Principes des Associations Synergiques</h3>"
-                    "<p>La combinaison stratégique des plantes améliore la santé du potager et réduit naturellement l'attaque des ravageurs.</p>"
-                    "<h4>La Guilde des 3 Sœurs (Milpa Aztec) :</h4>"
+                    "<h3>Principes des Associations Agro-écologiques Tropicales</h3>"
+                    "<p>Associer des plantes complémentaires améliore la résistance aux ravageurs tropicaux et optimise l'ombrage naturel.</p>"
+                    "<h4>L'Association Tropicale Tripartite :</h4>"
                     "<ul>"
-                    "<li><b>Maïs :</b> Sert de tuteur naturel pour les haricots grimpants.</li>"
-                    "<li><b>Haricot à rames :</b> Fixe l'azote atmosphérique dans le sol.</li>"
-                    "<li><b>Courge :</b> Ses larges feuilles recouvrent le sol et conservent l'humidité.</li>"
+                    "<li><b>Maïs ou Sorgho :</b> Procure un ombrage partiel bienvenu et sert de tuteur vertical.</li>"
+                    "<li><b>Niébé (Haricot local) :</b> Fixe l'azote de l'air et enrichit le sol sahélien ou tropical.</li>"
+                    "<li><b>Patate douce ou Courge locale :</b> Couvre le sol comme un paillis vivant retenant l'humidité.</li>"
                     "</ul>"
                 )
             }
         )
 
-        # 3. Création des Familles de Légumes & Légumes
+        # 3. Création des Familles Botaniques Tropicales
         f_solanaceae, _ = PlantFamily.objects.get_or_create(
-            name='Solanacées',
+            name='Solanacées Tropicales',
             defaults={
-                'description': 'Famille exigeante en chaleur et en nutriments (tomates, piments, aubergines).',
-                'characteristics': 'Plantes exigeantes, sensibilité aux maladies cryptogamiques (mildiou). Ne pas cultiver 2 ans de suite au même endroit.',
+                'description': 'Famille pilier des potagers tropicaux (tomates adaptées, piments forts, aubergines locales).',
+                'characteristics': 'Exigeante en compost et en arrosage régulier. Sensible au flétrissement bactérien et aux viroses transmises par les aleurodes.',
+                'is_premium': False
+            }
+        )
+
+        f_malvaceae, _ = PlantFamily.objects.get_or_create(
+            name='Malvacées Tropicales',
+            defaults={
+                'description': 'Famille reine des tropiques comprenant le Gombo (Okra) et le Bissap (Oseille de Guinée).',
+                'characteristics': 'Remarquable résistance à la chaleur et à la sécheresse. Croissance rapide et grande rusticité.',
                 'is_premium': False
             }
         )
 
         f_cucurbitaceae, _ = PlantFamily.objects.get_or_create(
-            name='Cucurbitacées',
+            name='Cucurbitacées Tropicales',
             defaults={
-                'description': 'Légumes fruits rampants ou grimpants à grandes feuilles (courgettes, potirons, concombres).',
-                'characteristics': 'Fort besoin en eau et compost mûr. Sensibles au mildiou et à l\'oïdium.',
+                'description': 'Légumes fruits rampants ou grimpants (concombre tropical, courge locale, melon).',
+                'characteristics': 'Plantes gourmandes en eau et en fumure organique bien décomposée. Sensibles aux mouches des fruits.',
                 'is_premium': False
             }
         )
 
         f_fabaceae, _ = PlantFamily.objects.get_or_create(
-            name='Fabacées (Légumineuses)',
+            name='Fabacées (Légumineuses & Niébé)',
             defaults={
-                'description': 'Plantes capables de fixer l\'azote atmosphérique dans le sol (pois, haricots, fèves).',
-                'characteristics': 'Enrichissent le sol en azote. Parfaites en rotation avant des légumes exigeants.',
+                'description': 'Légumineuses fixatrices d\'azote (Niébé / Vigna unguiculata, arachide, haricot kilomètre).',
+                'characteristics': 'Enrichissent naturellement les sols tropicaux pauvres. Parfaites en engrais vert ou rotation.',
                 'is_premium': False
             }
         )
 
-        f_brassicaceae, _ = PlantFamily.objects.get_or_create(
-            name='Brassicacées (Crucifères)',
+        # 4. Légumes Tropicaux Emblématiques
+        v_gombo, _ = Vegetable.objects.get_or_create(
+            name='Gombo (Okra)',
             defaults={
-                'description': 'Famille des choux, radis, navets et roquette.',
-                'characteristics': 'Riches en vitamines et minéraux, sensibles aux altises.',
-                'is_premium': True
+                'family': f_malvaceae,
+                'scientific_name': 'Abelmoschus esculentus',
+                'sowing_period': 'Toute l\'année avec irrigation, idéalement de Mai à Août (Hivernage)',
+                'harvest_period': '60 jours après semis, récolte tous les 2-3 jours',
+                'care_tips': 'Semer en poquets de 3 graines espacés de 50 cm. Butter légèrement les tiges. Récolter jeune pour éviter la fibrosité.',
+                'tropical_season': 'toute_annee',
+                'heat_tolerance': 'haute',
+                'water_requirement': 'modere',
+                'sun_exposure': 'plein_soleil',
+                'tropical_varieties': 'Clemson Spineless, Kirene, Indiana, Sabal F1',
+                'cycle_duration_days': 65,
+                'is_premium': False
             }
         )
 
-        # Légumes
+        v_piment, _ = Vegetable.objects.get_or_create(
+            name='Piment Habanero / Antillais',
+            defaults={
+                'family': f_solanaceae,
+                'scientific_name': 'Capsicum chinense',
+                'sowing_period': 'Octobre à Février (Pépinière puis repiquage)',
+                'harvest_period': '90 à 120 jours après repiquage, production continue sur 8-12 mois',
+                'care_tips': 'Exige un sol chaud et très bien drainé. Pailler pour limiter les nématodes. Arrosage régulier sans excès.',
+                'tropical_season': 'toute_annee',
+                'heat_tolerance': 'haute',
+                'water_requirement': 'modere',
+                'sun_exposure': 'plein_soleil',
+                'tropical_varieties': 'Scotch Bonnet, Big Sun, Piment de Cayenne, Bresse',
+                'cycle_duration_days': 110,
+                'is_premium': False
+            }
+        )
+
         v_tomate, _ = Vegetable.objects.get_or_create(
-            name='Tomate',
+            name='Tomate Tropicale',
             defaults={
                 'family': f_solanaceae,
                 'scientific_name': 'Solanum lycopersicum',
-                'sowing_period': 'Février - Mars (sous abri à 20°C)',
-                'harvest_period': 'Juillet - Octobre',
-                'care_tips': 'Pailler abondamment. Supprimer les gourmands si nécessaire. Arroser au pied sans mouiller le feuillage.',
+                'sowing_period': 'Octobre - Janvier (Saison sèche fraîche)',
+                'harvest_period': 'Janvier - Avril',
+                'care_tips': 'Privilégier impérativement des variétés hybrides tropicalisées résistantes au TYLCV et au flétrissement bactérien. Tuteurer fermement.',
+                'tropical_season': 'saison_seche_fraiche',
+                'heat_tolerance': 'moyenne',
+                'water_requirement': 'eleve',
+                'sun_exposure': 'plein_soleil',
+                'tropical_varieties': 'Mongal F1, Nadira F1, Cobra F1, Jagala F1',
+                'cycle_duration_days': 85,
                 'is_premium': False
             }
         )
 
-        v_courgette, _ = Vegetable.objects.get_or_create(
-            name='Courgette',
+        v_patate, _ = Vegetable.objects.get_or_create(
+            name='Patate Douce',
             defaults={
                 'family': f_cucurbitaceae,
-                'scientific_name': 'Cucurbita pepo',
-                'sowing_period': 'Avril (godet) - Mai (pleine terre)',
-                'harvest_period': 'Juin - Septembre',
-                'care_tips': 'Récolter régulièrement les jeunes fruits pour stimuler la floraison continuelle.',
-                'is_premium': False
-            }
-        )
-
-        v_haricot, _ = Vegetable.objects.get_or_create(
-            name='Haricot Vert',
-            defaults={
-                'family': f_fabaceae,
-                'scientific_name': 'Phaseolus vulgaris',
-                'sowing_period': 'Mai - Juillet (sol chaud > 15°C)',
-                'harvest_period': 'Juillet - Octobre',
-                'care_tips': 'Butter les pieds lorsque la plante atteint 15 cm de hauteur.',
-                'is_premium': False
-            }
-        )
-
-        v_chou, _ = Vegetable.objects.get_or_create(
-            name='Chou Cabus',
-            defaults={
-                'family': f_brassicaceae,
-                'scientific_name': 'Brassica oleracea var. capitata',
-                'sowing_period': 'Mars - Juin',
-                'harvest_period': 'Août - Décembre',
-                'care_tips': 'Utiliser un filet anti-insectes contre la piéride et les altises.',
+                'scientific_name': 'Ipomoea batatas',
+                'sowing_period': 'Juin à Septembre (Boutures en saison des pluies ou toute l\'année en billons irrigués)',
+                'harvest_period': '90 à 120 jours après bouturage',
+                'care_tips': 'Planter les boutures de tiges sur des billons surélevés pour faciliter le développement des tubercules.',
+                'tropical_season': 'toute_annee',
+                'heat_tolerance': 'haute',
+                'water_requirement': 'modere',
+                'sun_exposure': 'plein_soleil',
+                'tropical_varieties': 'Beauregard (chair orange), Boniato (chair blanche), TIB-4',
+                'cycle_duration_days': 110,
                 'is_premium': True
             }
         )
 
-        # 4. Outils de Maraîchage
+        # 5. Outils Adaptés au Maraîchage Tropical
         Tool.objects.get_or_create(
-            name='Grelinette (Aéro-bêche)',
+            name='Daba (Houe sahélienne)',
             defaults={
                 'category': 'travail_du_sol',
-                'description': 'Outil écologique à deux manches à dents verticales permettant d\'aérer le sol sans le retourner.',
-                'usage_tips': 'Enfoncer les dents verticalement, tirer légèrement vers soi sans soulever la terre pour préserver la faune du sol.',
+                'description': 'Outil traditionnel d\'Afrique de l\'Ouest à manche court et fer large recourbé, parfait pour travailler la terre avec précision.',
+                'usage_tips': 'Idéale pour confectionner les planches surélevées et les billons de drainage avant les pluies d\'hivernage.',
+                'tropical_tips': 'Permet de biner efficacement les sols sablo-limoneux sans détruire la micro-structure sous-jacente.',
                 'is_premium': False
             }
         )
 
         Tool.objects.get_or_create(
-            name='Transplantoir',
+            name='Ombrière Maraîchère (Filet d\'ombrage 50%)',
             defaults={
-                'category': 'semis_plantation',
-                'description': 'Petite pelle à main courbe essentielle pour planter les minimottes et creuser des trous de plantation.',
-                'usage_tips': 'Prendre soin de ne pas casser la motte lors de l\'extraction du godet.',
+                'category': 'protection',
+                'description': 'Structure légère en bois ou bambou recouverte d\'une toile d\'ombrage 30% à 50% filtrant le soleil zénithal tropical.',
+                'usage_tips': 'Indispensable pour protéger les jeunes pépinières et cultures sensibles (salades, jeunes tomates) des brûlures foliaires.',
+                'tropical_tips': 'Permet de baisser la température du sol de 4 à 6°C et de réduire l\'évapo-transpiration de moitié.',
                 'is_premium': False
             }
         )
 
         Tool.objects.get_or_create(
-            name='Serouette (ou Serfouette)',
+            name='Arrosoir Maraîcher à Pomme Fine',
             defaults={
                 'category': 'entretien_arrosage',
-                'description': 'Outil polyvalent doté d\'une panne (pour biner et désherber) et d\'une langue (pour tracer des sillons).',
-                'usage_tips': 'Un binage vaut deux arrosages ! Utiliser la panne pour casser la croûte supérieure du sol.',
+                'description': 'Arrosoir grande capacité (10-12L) avec pomme micro-perforée assurant une pluie très douce.',
+                'usage_tips': 'Évite de déterrer les fines graines et de tasser la surface des planches de semis.',
+                'tropical_tips': 'Arroser de préférence avant 8h le matin ou après 17h pour maximiser l\'infiltration dans le sol.',
                 'is_premium': False
             }
         )
 
         Tool.objects.get_or_create(
-            name='Séquenceur de semis de précision',
+            name='Filet Anti-Insectes 50 Mesh',
             defaults={
-                'category': 'semis_plantation',
-                'description': 'Semoir à main avec sélecteur de diamètre pour doser et espacer finement les graines potagères.',
-                'usage_tips': 'Réglage micrométrique pour les graines très fines de carottes et navets.',
+                'category': 'protection',
+                'description': 'Filet barrière physique empêchant l\'accès aux micro-ravageurs (aleurodes, altises, mouches mineuses).',
+                'usage_tips': 'Poser sur arceaux au-dessus des planches dès le repiquage pour une protection 100% sans pesticides.',
+                'tropical_tips': 'Bloque les mouches blanches (Bemisia tabaci) responsables de la redoutable virose TYLCV de la tomate.',
                 'is_premium': True
             }
         )
 
-        # 5. Maladies & Insectes Nuisibles
-        d_mildiou, _ = Disease.objects.get_or_create(
-            name='Mildiou de la Tomate et Pomme de Terre',
+        # 6. Maladies Tropicales
+        d_bacterien, _ = Disease.objects.get_or_create(
+            name='Flétrissement Bactérien Tropical',
             defaults={
-                'symptoms': 'Taches d huile brunes sur les feuilles avec duvet blanc au revers. Dessèchement rapide des tiges et fruits impropres à la consommation.',
-                'treatment': 'Supprimer immédiatement les feuilles atteintes. Pulvérisation de bicarbonate de potassium (5g/L) ou extrait fermenté de prêle.',
-                'prevention': 'Espacer les plants, installer un toit abri pluie, éviter tout arrosage du feuillage.',
+                'symptoms': 'Flétrissement brutal de la plante en pleine végétation, les feuilles restant vertes. Moelle de la tige brunie.',
+                'treatment': 'Arracher et brûler immédiatement les plants atteints (bactérie Ralstonia solanacearum dans le sol).',
+                'prevention': 'Pratiquer des rotations longues sans Solanacées (au moins 3 ans). Utiliser des variétés résistantes (Mongal F1).',
+                'favorable_season': 'Saison des pluies et températures élevées (> 30°C)',
+                'tropical_organic_treatment': 'Épandage de chaux agricole ou cendre pour neutraliser l\'acidité, rotation avec maïs ou sorgho.',
                 'is_premium': True
             }
         )
-        d_mildiou.affected_vegetables.add(v_tomate)
+        d_bacterien.affected_vegetables.add(v_tomate, v_piment)
 
-        d_oidium, _ = Disease.objects.get_or_create(
-            name='Oïdium (Maladie du blanc)',
+        d_tylcv, _ = Disease.objects.get_or_create(
+            name='Virose TYLCV (Feuilles Jaunes Cuillères)',
             defaults={
-                'symptoms': 'Feutrage blanc poudreux sur le dessus des feuilles, déformation puis jaunissement des organes atteints.',
-                'treatment': 'Pulvérisation d\'un mélange de lait de vache écrémé dilué à 10% dans l\'eau ou soufre pulvérisable.',
-                'prevention': 'Maintenir une bonne circulation de l\'air autour des plants.',
+                'symptoms': 'Nanisme du plant, feuilles déformées enroulées en cuillère vers le haut, jaunissement interveinaire, arrêt de fructification.',
+                'treatment': 'Aucun traitement curatif contre le virus. Lutter impérativement contre le vecteur (la mouche blanche).',
+                'prevention': 'Protection physique sous filet anti-insectes 50 mesh dès la pépinière. Choix de semences hybrides tolérantes.',
+                'favorable_season': 'Saison sèche chaude (pullulation maximale des aleurodes)',
+                'tropical_organic_treatment': 'Pulvérisation hebdomadaire d\'huile de neem pressée à froid (5 ml/L + savon noir comme émulsifiant).',
                 'is_premium': True
             }
         )
-        d_oidium.affected_vegetables.add(v_courgette)
+        d_tylcv.affected_vegetables.add(v_tomate)
 
-        ins_puceron, _ = Insect.objects.get_or_create(
-            name='Pucerons (Verts et Noirs)',
+        # 7. Insectes Nuisibles Tropicaux
+        ins_mouche, _ = Insect.objects.get_or_create(
+            name='Mouche Blanche / Aleurode (Bemisia tabaci)',
             defaults={
-                'description': 'Petits insectes piqueurs-suceurs se regroupant sous les jeunes pousses et les apex de tiges.',
-                'damage': 'Crispation du feuillage, crispation des pousses, miellat collant favorisant la fumagine.',
-                'solution': 'Pulvérisation de savon noir dilué (5%). Favoriser la présence des coccinelles, syrphes et chrysopes.',
+                'description': 'Minuscules insectes blancs ailés (1 mm) s\'envolant en nuée quand on secoue les feuilles.',
+                'damage': 'Affaiblissement par succion de sève et transmission des pires viroses tropicales (TYLCV, mosaïque).',
+                'solution': 'Pièges collants jaunes pour capture massive. Pulvérisation de solution de neem ou macération de piment-ail.',
+                'favorable_season': 'Saison sèche chaude (harmattan)',
+                'tropical_bio_control': 'Macération de 100g de piment fort + 100g d\'ail écrasé dans 1L d\'eau pendant 24h, dilué à 10% avec du savon noir.',
+                'prevention_tips': 'Paillage réfléchissant, bandes de maïs brise-vent autour des parcelles, filets protecteurs.',
                 'is_premium': True
             }
         )
-        ins_puceron.affected_vegetables.add(v_tomate, v_haricot, v_chou)
+        ins_mouche.affected_vegetables.add(v_tomate, v_gombo, v_piment)
 
-        ins_altise, _ = Insect.objects.get_or_create(
-            name='Altises (Puces de jardin)',
+        ins_chenille, _ = Insect.objects.get_or_create(
+            name='Chenille Défoliatrice & Ver de la Tomate',
             defaults={
-                'description': 'Petits coléoptères noirs sauteurs perforant les feuilles de petits trous ronds.',
-                'damage': 'Feuilles criblées de trous réduisant fortement la photosynthèse sur les jeunes semis.',
-                'solution': 'Maintenir le sol et le feuillage humides (les altises détestent l\'humidité). Poser un voile anti-insectes fine maille.',
+                'description': 'Chenilles voraces (Helicoverpa armigera / Spodoptera) perforant les fruits et dévorant les feuilles tendres.',
+                'damage': 'Trous profonds dans les fruits provoquant leur pourriture rapide avant maturation.',
+                'solution': 'Ramassage manuel à la tombée de la nuit. Traitement bio au Bacillus thuringiensis (Bt) ou décoction de feuilles de neem.',
+                'favorable_season': 'Saison des pluies et début de saison sèche',
+                'tropical_bio_control': 'Décoction de 500g de graines de neem séchées et broyées dans 10L d\'eau. Répulsif et perturbateur de croissance.',
+                'prevention_tips': 'Planter des tagètes (œillets d\'Inde) et du basilic en bordure des planches pour troubler l\'odorat des papillons.',
                 'is_premium': True
             }
         )
-        ins_altise.affected_vegetables.add(v_chou)
+        ins_chenille.affected_vegetables.add(v_tomate, v_gombo)
 
-        # 6. Blog & Articles d'Actualité
+        # 8. Blog & Articles d'Actualité
         cat_conseils, _ = BlogCategory.objects.get_or_create(
-            name='Conseils de Saison',
-            defaults={'description': 'Astuces et guides pratiques pour chaque mois au potager.'}
+            name='Calendrier & Saisons Tropicales',
+            defaults={'description': 'Guides pratiques pour optimiser son potager en saison sèche et en hivernage.'}
         )
 
         cat_perma, _ = BlogCategory.objects.get_or_create(
-            name='Permaculture',
-            defaults={'description': 'Techniques de paillage, sol vivant et biodiversité.'}
+            name='Agro-écologie Tropicale',
+            defaults={'description': 'Techniques de sol vivant sahélien, purin de neem, compostage tropical et paillage.'}
         )
 
         post1, _ = BlogPost.objects.get_or_create(
-            title='5 Gestes Essentiels pour Réussir ses Semis de Printemps',
+            title='Comment Réussir son Potager en Pleine Saison Sèche et Chaude',
             defaults={
                 'author': user_premium,
                 'category': cat_conseils,
-                'excerpt': 'Découvrez les règles d\'or pour éviter la fonte des semis et réussir le démarrage de vos tomates et poivrons.',
+                'excerpt': 'Protéger ses cultures maraîchères contre la chaleur accablante, le vent sec et le manque d\'eau.',
                 'content': (
-                    "<h2>Préparer le Matériel et le Terreau</h2>"
-                    "<p>Au début du printemps, la réussite des semis repose sur la température et la qualité du substrat. "
-                    "Un terreau trop tassé empêchera l'enracinement des jeunes plantules.</p>"
-                    "<h3>1. Choisir des contenants propres</h3>"
-                    "<p>Désinfecter les plaques alvéolées et godets réutilisables pour éviter l'apparition des champignons responsabilités de la fonte des semis.</p>"
-                    "<h3>2. Maintenir une humidité constante</h3>"
-                    "<p>Utiliser un vaporisateur à eau tiède plutôt qu'un arrosoir lourd qui risquerait d'enfoncer les petites graines.</p>"
-                    "<h3>3. Apporter une lumière maximale</h3>"
-                    "<p>Placer vos semis près d'une fenêtre exposée plein Sud pour éviter que les tiges ne filent vers la lumière.</p>"
+                    "<h2>Les Clés du Maraîchage en Saison Sèche Chaude</h2>"
+                    "<p>Entre mars et juin, les températures dépassent souvent les 40°C sous les tropiques. Pour continuer à récolter, quelques règles sont indispensables :</p>"
+                    "<h3>1. L'ombrière ou filet d'ombrage</h3>"
+                    "<p>Installer une ombrière filtrant 30% à 50% du rayonnement solaire direct pour réduire le stress thermique des solanacées.</p>"
+                    "<h3>2. Le goutte-à-goutte et paillage épais</h3>"
+                    "<p>Arroser tôt le matin ou après le coucher du soleil et recouvrir le sol de 10 cm de paillis pour éviter la vaporisation instantanée.</p>"
+                    "<h3>3. Privilégier les espèces adaptées</h3>"
+                    "<p>Miser sur le gombo, la patate douce, le bissap ou les variétés tropicalisées résistantes aux nématodes.</p>"
                 ),
                 'is_published': True,
                 'views_count': 142

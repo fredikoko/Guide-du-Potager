@@ -135,6 +135,10 @@ class DiseasesScreen(Screen):
             ("Traitement", data.get('treatment', ''), Theme.PRIMARY_MAIN),
             ("Prévention", data.get('prevention', ''), Theme.BROWN_MAIN),
         ]
+        if data.get('favorable_season'):
+            fields.append(("Saison de prolifération", data.get('favorable_season'), (0.85, 0.45, 0.15, 1)))
+        if data.get('tropical_organic_treatment'):
+            fields.append(("Traitement bio tropical", data.get('tropical_organic_treatment'), Theme.PRIMARY_DARK))
 
         popup = DetailPopup(
             title_text=data['name'],

@@ -155,10 +155,22 @@ class CalendarScreen(Screen):
             harvest_txt = (veg.get('harvest_period') or '').lower()
 
             if self.selected_action == 'semis':
-                if target_month_lower[:3] in sowing_txt or target_month_lower in sowing_txt:
+                if (
+                    target_month_lower[:3] in sowing_txt
+                    or target_month_lower in sowing_txt
+                    or "toute l'année" in sowing_txt
+                    or "toute l'annee" in sowing_txt
+                    or "toute l’année" in sowing_txt
+                ):
                     matching_vegs.append(veg)
             else:
-                if target_month_lower[:3] in harvest_txt or target_month_lower in harvest_txt:
+                if (
+                    target_month_lower[:3] in harvest_txt
+                    or target_month_lower in harvest_txt
+                    or "toute l'année" in harvest_txt
+                    or "toute l'annee" in harvest_txt
+                    or "toute l’année" in harvest_txt
+                ):
                     matching_vegs.append(veg)
 
         # Header Status Label
@@ -215,6 +227,19 @@ class CalendarScreen(Screen):
             )
             harvest.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
             card.add_widget(harvest)
+
+            if veg.get('tropical_season_display') or veg.get('cycle_duration_days'):
+                trop_desc = []
+                if veg.get('tropical_season_display'):
+                    trop_desc.append(f"Saison : {veg['tropical_season_display']}")
+                if veg.get('cycle_duration_days'):
+                    trop_desc.append(f"Cycle : {veg['cycle_duration_days']} j")
+                trop_lbl = Label(
+                    text=f"[b]Profil tropical :[/b] {' | '.join(trop_desc)}",
+                    markup=True, color=Theme.PRIMARY_DARK, font_size='13sp', size_hint_y=None, height=25, halign='left'
+                )
+                trop_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+                card.add_widget(trop_lbl)
 
             tips = Label(
                 text=f"[b]Conseils :[/b] {veg.get('care_tips', '')}",

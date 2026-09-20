@@ -132,9 +132,15 @@ class InsectsScreen(Screen):
 
         fields = [
             ("Description", data.get('description', ''), Theme.TEXT_DARK),
-            ("Dégâts constates", data.get('damage', ''), (0.8, 0.3, 0.2, 1)),
+            ("Dégâts constatés", data.get('damage', ''), (0.8, 0.3, 0.2, 1)),
             ("Solution Bio / Traitement", data.get('solution', ''), Theme.PRIMARY_MAIN),
         ]
+        if data.get('favorable_season'):
+            fields.append(("Saison favorable", data.get('favorable_season'), (0.85, 0.45, 0.15, 1)))
+        if data.get('tropical_bio_control'):
+            fields.append(("Lutte biologique tropicale", data.get('tropical_bio_control'), Theme.PRIMARY_DARK))
+        if data.get('prevention_tips'):
+            fields.append(("Conseils de prévention", data.get('prevention_tips'), Theme.BROWN_MAIN))
 
         popup = DetailPopup(
             title_text=data['name'],

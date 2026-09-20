@@ -135,6 +135,9 @@ class ToolsScreen(Screen):
             ("Description", tool.get('description', ''), Theme.TEXT_DARK),
             ("Conseils d'utilisation", tool.get('usage_tips', ''), Theme.PRIMARY_MAIN),
         ]
+        if tool.get('tropical_tips'):
+            fields.append(("Spécificités en climat tropical", tool.get('tropical_tips'), Theme.PRIMARY_DARK))
+
         popup = DetailPopup(
             title_text=tool['name'],
             image_url=image_url,

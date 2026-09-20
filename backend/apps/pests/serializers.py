@@ -10,6 +10,7 @@ class DiseaseSerializer(serializers.ModelSerializer):
         model = Disease
         fields = [
             'id', 'name', 'symptoms', 'treatment', 'prevention',
+            'favorable_season', 'tropical_organic_treatment',
             'affected_vegetables', 'affected_vegetables_details', 'image', 'is_premium'
         ]
 
@@ -29,6 +30,7 @@ class InsectSerializer(serializers.ModelSerializer):
         model = Insect
         fields = [
             'id', 'name', 'description', 'damage', 'solution',
+            'favorable_season', 'tropical_bio_control', 'prevention_tips',
             'affected_vegetables', 'affected_vegetables_details', 'image', 'is_premium'
         ]
 

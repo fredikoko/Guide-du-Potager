@@ -109,6 +109,33 @@ class VegetablesScreen(Screen):
             card.add_widget(v_title)
             card.add_widget(sow)
             card.add_widget(harvest)
+
+            # Caractéristiques agro-climatiques tropicales
+            trop_parts = []
+            if veg.get('tropical_season_display'):
+                trop_parts.append(f"[b]Saison :[/b] {veg['tropical_season_display']}")
+            if veg.get('heat_tolerance_display'):
+                trop_parts.append(f"[b]Chaleur :[/b] {veg['heat_tolerance_display']}")
+            if veg.get('cycle_duration_days'):
+                trop_parts.append(f"[b]Cycle :[/b] {veg['cycle_duration_days']} j")
+
+            if trop_parts:
+                trop_info = Label(
+                    text=" • ".join(trop_parts),
+                    markup=True, color=Theme.PRIMARY_DARK, font_size='13sp', size_hint_y=None, height=26, halign='left'
+                )
+                trop_info.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+                card.add_widget(trop_info)
+
+            if veg.get('tropical_varieties'):
+                vars_lbl = Label(
+                    text=f"[b]Variétés tropicales conseillées :[/b] {veg['tropical_varieties']}",
+                    markup=True, color=Theme.BROWN_MAIN, font_size='13sp', size_hint_y=None, halign='left'
+                )
+                vars_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                vars_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(vars_lbl)
+
             card.add_widget(tips)
 
             self.container.add_widget(card)
