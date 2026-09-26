@@ -1,0 +1,83 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Insectes Nuisibles & Biocontrôle - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    
+    <!-- En-tête -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+        <div class="max-w-3xl space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-amber-700">Lutte Agro-écologique</span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold text-[#1E592E]">Insectes Nuisibles & Biocontrôle</h1>
+            <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                Repérez les chenilles défoliatrices, mouches des fruits, pucerons et acariens. Préparez vos répulsifs naturels (piment, ail, huile de neem, savon noir) sans aucun pesticide chimique de synthèse.
+            </p>
+        </div>
+    </div>
+
+    <!-- Grille des Insectes -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for insect in insects %}
+        <div class="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-lg transition flex flex-col justify-between group">
+            <div>
+                <!-- Image -->
+                <div class="relative h-44 bg-gradient-to-br from-amber-50 to-orange-50 flex items-center justify-center overflow-hidden">
+                    {% if insect.image %}
+                    <img src="{{ insect.image.url }}" alt="{{ insect.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    {% else %}
+                    <i class="fa-solid fa-bug text-5xl text-amber-300"></i>
+                    {% endif %}
+
+                    {% if insect.is_premium %}
+                    <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold bg-[#47C26B] text-[#1E592E] shadow-sm flex items-center">
+                        <i class="fa-solid fa-star mr-1"></i> Exclusif
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Info -->
+                <div class="p-5 space-y-3">
+                    <span class="text-[11px] font-bold text-amber-800 uppercase tracking-wide block">
+                        {{ insect.favorable_season|default:"Saison sèche chaude & transition" }}
+                    </span>
+
+                    <h2 class="text-lg font-extrabold text-gray-900 group-hover:text-amber-800 transition leading-snug">
+                        <a href="{% url 'web:insect_detail' insect.id %}">
+                            {{ insect.name }}
+                            {% if insect.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+                        </a>
+                    </h2>
+
+                    <p class="text-xs text-gray-600 leading-relaxed line-clamp-3">
+                        {{ insect.damage }}
+                    </p>
+
+                    {% if insect.affected_vegetables.all %}
+                    <div class="pt-1 flex flex-wrap gap-1">
+                        {% for veg in insect.affected_vegetables.all|slice:":3" %}
+                        <span class="px-2 py-0.5 rounded-md text-[10px] bg-gray-100 text-gray-600">
+                            {{ veg.name }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="p-5 pt-0">
+                <a href="{% url 'web:insect_detail' insect.id %}" class="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl font-bold text-xs {% if insect.is_premium %}bg-[#47C26B]/20 text-[#1E592E] hover:bg-[#47C26B]{% else %}bg-gray-100 hover:bg-gray-200 text-gray-800{% endif %} transition">
+                    <span>Dégâts & Biocontrôle</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full bg-white rounded-2xl p-12 text-center border border-gray-200">
+            <p class="text-gray-500 font-medium">Aucun insecte répertorié.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

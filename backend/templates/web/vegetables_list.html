@@ -1,0 +1,125 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Fiches Légumes Tropicaux & Variétés - Guide du Potager{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    
+    <!-- En-tête -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+        <div class="max-w-3xl space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#3D7A42]">Encyclopédie Maraîchère</span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold text-[#1E592E]">Fiches Légumes & Variétés Tropicales</h1>
+            <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                Retrouvez toutes les caractéristiques agronomiques, cycles végétatifs et besoins en eau pour réussir vos cultures sous climat chaud et tropical.
+            </p>
+        </div>
+
+        <!-- Barre de Recherche et Filtres -->
+        <form method="get" class="mt-6 grid grid-cols-1 sm:grid-cols-12 gap-3 pt-4 border-t border-gray-100">
+            <div class="sm:col-span-5 relative">
+                <input type="text" name="q" value="{{ query }}" placeholder="Rechercher un légume (ex: Tomate, Gombo, Mongal...)"
+                    class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#3D7A42] focus:border-transparent outline-none text-sm transition">
+                <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
+            </div>
+
+            <div class="sm:col-span-4">
+                <select name="season" class="w-full px-3 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#3D7A42] focus:border-transparent outline-none text-sm bg-white transition">
+                    <option value="">Toutes les saisons tropicales</option>
+                    {% for code, label in seasons %}
+                    <option value="{{ code }}" {% if selected_season == code %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="sm:col-span-3 flex space-x-2">
+                <button type="submit" class="flex-1 px-4 py-2.5 bg-[#3D7A42] hover:bg-[#1E592E] text-white font-bold rounded-xl text-sm transition shadow-sm">
+                    Filtrer
+                </button>
+                {% if query or selected_season %}
+                <a href="{% url 'web:vegetables_list' %}" class="px-3 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl text-sm transition" title="Réinitialiser">
+                    <i class="fa-solid fa-rotate-left"></i>
+                </a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+    <!-- Grille des Légumes -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        {% for veg in vegetables %}
+        <div class="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-lg transition flex flex-col justify-between group">
+            <div>
+                <!-- Image du Légume -->
+                <div class="relative h-44 bg-gradient-to-br from-[#1E592E]/10 to-[#8AB86C]/20 overflow-hidden flex items-center justify-center">
+                    {% if veg.image %}
+                    <img src="{{ veg.image.url }}" alt="{{ veg.name }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    {% else %}
+                    <i class="fa-solid fa-carrot text-5xl text-[#3D7A42]/30"></i>
+                    {% endif %}
+                    
+                    <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-[11px] font-bold bg-[#1E592E]/90 text-white backdrop-blur-sm">
+                        {{ veg.family.name }}
+                    </span>
+                </div>
+
+                <!-- Contenu de la Carte -->
+                <div class="p-5 space-y-3">
+                    <div>
+                        <h2 class="text-lg font-extrabold text-gray-900 group-hover:text-[#1E592E] transition">
+                            <a href="{% url 'web:vegetable_detail' veg.id %}">{{ veg.name }}</a>
+                        </h2>
+                        {% if veg.scientific_name %}
+                        <p class="text-xs text-gray-400 italic">{{ veg.scientific_name }}</p>
+                        {% endif %}
+                    </div>
+
+                    <!-- Badges d'exigences agronomiques -->
+                    <div class="grid grid-cols-2 gap-2 text-[11px] pt-1">
+                        <div class="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                            <span class="text-gray-400 block">Cycle</span>
+                            <span class="font-bold text-gray-700">{{ veg.cycle_duration_days }} jours</span>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                            <span class="text-gray-400 block">Chaleur</span>
+                            <span class="font-bold text-gray-700">{{ veg.get_heat_tolerance_display|truncatechars:14 }}</span>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                            <span class="text-gray-400 block">Arrosage</span>
+                            <span class="font-bold text-gray-700">{{ veg.get_water_requirement_display|truncatechars:14 }}</span>
+                        </div>
+                        <div class="bg-gray-50 rounded-lg p-2 border border-gray-100">
+                            <span class="text-gray-400 block">Exposition</span>
+                            <span class="font-bold text-gray-700">{{ veg.get_sun_exposure_display|truncatechars:14 }}</span>
+                        </div>
+                    </div>
+
+                    {% if veg.tropical_varieties %}
+                    <p class="text-xs text-gray-500 pt-1 line-clamp-1">
+                        <strong class="text-gray-700">Variétés :</strong> {{ veg.tropical_varieties }}
+                    </p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Bouton vers la fiche technique -->
+            <div class="p-5 pt-0">
+                <a href="{% url 'web:vegetable_detail' veg.id %}" class="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl font-bold text-xs bg-[#3D7A42]/10 hover:bg-[#3D7A42] text-[#3D7A42] hover:text-white transition">
+                    <span>Fiche Technique Complète</span>
+                    <i class="fa-solid fa-arrow-right text-[10px]"></i>
+                </a>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full bg-white rounded-2xl p-12 text-center border border-gray-200">
+            <i class="fa-solid fa-seedling text-4xl text-gray-300 mb-3"></i>
+            <p class="text-gray-500 font-medium">Aucun légume ne correspond à vos critères de recherche.</p>
+            <a href="{% url 'web:vegetables_list' %}" class="inline-block mt-3 text-xs font-bold text-[#3D7A42] underline">
+                Réinitialiser les filtres
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

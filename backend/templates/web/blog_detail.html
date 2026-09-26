@@ -1,0 +1,127 @@
+{% extends 'web/base.html' %}
+
+{% block title %}{{ post.title }} - Blog - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    
+    <!-- Fil d'ariane -->
+    <nav class="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap">
+        <a href="{% url 'web:home' %}" class="hover:text-[#1E592E]">Accueil</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <a href="{% url 'web:blog_list' %}" class="hover:text-[#1E592E]">Blog</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <span class="text-[#1E592E] font-semibold">{{ post.title|truncatechars:35 }}</span>
+    </nav>
+
+    <!-- En-tête de l'Article -->
+    <header class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-4">
+        <div class="flex flex-wrap items-center justify-between gap-2 text-xs">
+            <span class="font-extrabold text-[#47C26B] text-sm">
+                [{{ post.category.name|default:'Général' }}]
+            </span>
+            <div class="flex items-center space-x-3 text-gray-400">
+                <span>Par {{ post.author.username|default:'Rédaction' }}</span>
+                <span>•</span>
+                <span>{{ post.created_at|date:"d F Y" }}</span>
+                <span>•</span>
+                <span><i class="fa-regular fa-eye mr-1"></i>{{ post.views_count }} vues</span>
+            </div>
+        </div>
+
+        <h1 class="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
+            {{ post.title }}
+            {% if post.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+        </h1>
+    </header>
+
+    <!-- Image Principale -->
+    {% if post.cover_image %}
+    <div class="rounded-2xl overflow-hidden max-h-96 shadow-md">
+        <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover">
+    </div>
+    {% endif %}
+
+    <!-- Contenu ou Paywall -->
+    <article class="bg-white rounded-2xl p-6 sm:p-10 shadow-sm border border-gray-200">
+        {% if is_locked %}
+            <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed mb-6">
+                <p class="font-semibold text-gray-800">{{ post.excerpt }}</p>
+                <div class="relative overflow-hidden max-h-24 opacity-40 select-none filter blur-[1px]">
+                    {{ post.content|striptags|truncatewords:50 }}
+                </div>
+            </div>
+
+            <!-- Paywall Vert Clair -->
+            {% include 'web/components/paywall_card.html' %}
+        {% else %}
+            <!-- Contenu Débloqué -->
+            <div class="prose prose-lg prose-green max-w-none text-gray-800 leading-relaxed space-y-5 article-content">
+                {{ post.content|safe }}
+            </div>
+
+            {% if post.images.all %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-8 border-t border-gray-100">
+                {% for img in post.images.all %}
+                <figure class="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                    <img src="{{ img.image.url }}" alt="{{ img.caption|default:post.title }}" class="w-full h-56 object-cover">
+                    {% if img.caption %}
+                    <figcaption class="p-3 text-xs text-gray-600 text-center italic">
+                        {{ img.caption }}
+                    </figcaption>
+                    {% endif %}
+                </figure>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endif %}
+    </article>
+
+    <!-- SECTION COMMENTAIRES -->
+    <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-6">
+        <h3 class="font-extrabold text-xl text-[#1E592E] flex items-center">
+            <i class="fa-regular fa-comments mr-2 text-[#47C26B]"></i>
+            Commentaires & Échanges ({{ comments.count }})
+        </h3>
+
+        <!-- Formulaire de Commentaire -->
+        {% if user.is_authenticated %}
+        <form method="post" class="space-y-3 pt-2">
+            {% csrf_token %}
+            {{ comment_form.content }}
+            <button type="submit" class="px-5 py-2.5 bg-[#3D7A42] hover:bg-[#1E592E] text-white font-bold rounded-xl text-sm transition shadow-sm">
+                Publier mon commentaire
+            </button>
+        </form>
+        {% else %}
+        <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 text-xs sm:text-sm text-gray-600 flex items-center justify-between">
+            <span>Connectez-vous pour poser vos questions au maraîcher.</span>
+            <a href="{% url 'web:login' %}?next={{ request.path }}" class="font-bold text-[#3D7A42] hover:text-[#1E592E] underline">
+                Connexion
+            </a>
+        </div>
+        {% endif %}
+
+        <!-- Liste des Commentaires -->
+        <div class="space-y-4 pt-4 border-t border-gray-100">
+            {% for comment in comments %}
+            <div class="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-1">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-bold text-gray-900 flex items-center">
+                        <i class="fa-solid fa-user-circle mr-1.5 text-[#3D7A42]"></i>
+                        {{ comment.author.username }}
+                    </span>
+                    <span class="text-gray-400">{{ comment.created_at|date:"d/m/Y H:i" }}</span>
+                </div>
+                <p class="text-xs sm:text-sm text-gray-700 leading-relaxed whitespace-pre-line">
+                    {{ comment.content }}
+                </p>
+            </div>
+            {% empty %}
+            <p class="text-xs text-gray-400 italic">Soyez le premier à commenter cet article !</p>
+            {% endfor %}
+        </div>
+    </section>
+
+</div>
+{% endblock %}

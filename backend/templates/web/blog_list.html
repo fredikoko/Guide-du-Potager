@@ -1,0 +1,109 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Blog Maraîcher & Fiches Pratiques - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    
+    <!-- En-tête -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+        <div class="max-w-3xl space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#3D7A42]">Actualités & Partages</span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold text-[#1E592E]">Blog du Potager Tropical</h1>
+            <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                Retrouvez nos retours d'expériences sur le terrain, fiches techniques en agriculture conventionnelle et agro-écologique, itinéraires culturaux, fertilisation minérale et organique, et conseils pour réussir vos récoltes en toutes saisons.
+            </p>
+        </div>
+
+        <!-- Recherche et Catégories -->
+        <div class="mt-6 pt-4 border-t border-gray-100 space-y-4">
+            <form method="get" class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <input type="text" name="q" value="{{ query }}" placeholder="Rechercher un article..."
+                        class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#3D7A42] focus:border-transparent outline-none text-sm transition">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
+                </div>
+                <button type="submit" class="px-5 py-2.5 bg-[#3D7A42] hover:bg-[#1E592E] text-white font-bold rounded-xl text-sm transition">
+                    Rechercher
+                </button>
+            </form>
+
+            <!-- Badges Catégories -->
+            <div class="flex flex-wrap gap-2 text-xs font-semibold">
+                <a href="{% url 'web:blog_list' %}"
+                   class="px-3 py-1.5 rounded-lg border transition {% if not selected_category %}bg-[#1E592E] text-white border-[#1E592E]{% else %}border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">
+                    Toutes les catégories
+                </a>
+                {% for cat in categories %}
+                <a href="{% url 'web:blog_list' %}?category={{ cat.slug }}"
+                   class="px-3 py-1.5 rounded-lg border transition {% if selected_category == cat.slug %}bg-[#1E592E] text-white border-[#1E592E]{% else %}border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">
+                    {{ cat.name }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille des Articles -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for post in posts %}
+        <article class="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-xl transition flex flex-col justify-between group">
+            <div>
+                <!-- Cover Image -->
+                <div class="relative h-48 bg-gradient-to-r from-[#1E592E] to-[#3D7A42] overflow-hidden flex items-center justify-center">
+                    {% if post.cover_image %}
+                    <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    {% else %}
+                    <i class="fa-solid fa-newspaper text-5xl text-white/30"></i>
+                    {% endif %}
+
+                    {% if post.is_premium %}
+                    <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold bg-[#47C26B] text-[#1E592E] shadow-sm flex items-center">
+                        <i class="fa-solid fa-star mr-1"></i> Exclusif
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Info -->
+                <div class="p-6 space-y-3">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-extrabold text-[#47C26B]">
+                            [{{ post.category.name|default:'Général' }}]
+                        </span>
+                        <span class="text-gray-400">
+                            {{ post.created_at|date:"d M Y" }}
+                        </span>
+                    </div>
+
+                    <h2 class="text-lg font-extrabold text-gray-900 group-hover:text-[#1E592E] transition leading-snug">
+                        <a href="{% url 'web:blog_detail' post.slug %}">
+                            {{ post.title }}
+                            {% if post.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+                        </a>
+                    </h2>
+
+                    <p class="text-xs sm:text-sm text-gray-600 leading-relaxed line-clamp-3">
+                        {{ post.excerpt|default:post.content|striptags }}
+                    </p>
+                </div>
+            </div>
+
+            <div class="p-6 pt-0 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100 mt-4">
+                <span class="flex items-center">
+                    <i class="fa-regular fa-eye mr-1"></i> {{ post.views_count }} vue{{ post.views_count|pluralize }}
+                </span>
+                <a href="{% url 'web:blog_detail' post.slug %}" class="font-bold text-[#3D7A42] hover:text-[#1E592E] flex items-center">
+                    <span>Lire l'article</span>
+                    <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                </a>
+            </div>
+        </article>
+        {% empty %}
+        <div class="col-span-full bg-white rounded-2xl p-12 text-center border border-gray-200">
+            <p class="text-gray-500 font-medium">Aucun article ne correspond à vos critères.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

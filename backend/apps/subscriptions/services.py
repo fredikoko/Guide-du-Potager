@@ -12,6 +12,8 @@ class SubscriptionService:
             return now + timedelta(days=plan.duration_days)
         if plan_type == 'yearly':
             return now + timedelta(days=365)
+        if plan_type == 'seasonal':
+            return now + timedelta(days=90)
         return now + timedelta(days=30)
 
     @staticmethod
@@ -20,7 +22,9 @@ class SubscriptionService:
         if plan:
             return float(plan.price)
         if plan_type == 'yearly':
-            return 20000.00  # XOF
+            return 15000.00  # XOF
+        if plan_type == 'seasonal':
+            return 5000.00  # XOF
         return 2500.00  # XOF
 
     @classmethod

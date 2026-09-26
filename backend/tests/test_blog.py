@@ -87,7 +87,7 @@ class BlogAPITestCase(TestCase):
         res = self.client.get(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertTrue(res.data.get('is_locked'))
-        self.assertIn("Réservé aux Membres Premium", res.data['content'])
+        self.assertIn("Réservé aux Membres", res.data['content'])
         self.assertNotIn("secret des ollas", res.data['content'])
 
     def test_premium_post_unlocked_for_premium_user(self):
@@ -114,7 +114,7 @@ class BlogAPITestCase(TestCase):
         res = self.client.get(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertTrue(res.data.get('is_locked'))
-        self.assertIn("Réservé aux Membres Premium", res.data['content'])
+        self.assertIn("Réservé aux Membres", res.data['content'])
 
     def test_add_comment_flow(self):
         url = reverse('blog_add_comment', kwargs={'pk': self.post_free.pk})

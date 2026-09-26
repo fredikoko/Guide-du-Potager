@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
 from rest_framework import status
-from apps.glossary.models import Tool, PlantFamily, Vegetable
+from apps.glossary.models import Tool, PlantFamily, Vegetable, CalendarEntry
 
 class GlossaryAPITestCase(TestCase):
     def setUp(self):
@@ -57,6 +57,20 @@ class GlossaryAPITestCase(TestCase):
             is_premium=True
         )
 
+        # Calendar Entries
+        self.cal_semis_tomate = CalendarEntry.objects.create(
+            vegetable=self.veg_tomate,
+            action="semis",
+            month=10,
+            notes="Semis sous abri ou en pépinière ombragée."
+        )
+        self.cal_recolte_aubergine = CalendarEntry.objects.create(
+            vegetable=self.veg_aubergine,
+            action="recolte",
+            month=3,
+            notes="Récolte des premiers fruits bien formés."
+        )
+
     def test_list_tools(self):
         url = reverse('tool_list')
         res = self.client.get(url)
@@ -109,3 +123,42 @@ class GlossaryAPITestCase(TestCase):
         # Vérifie l'ordre alphabétique dans la famille Solanacées : Aubergine avant Tomate
         self.assertEqual(results[0]['name'], "Aubergine Africaine (Diakhatou)")
         self.assertEqual(results[1]['name'], "Tomate Cerise Tropicale")
+
+    def test_list_calendar_entries(self):
+        url = reverse('calendar_entry_list')
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        results = res.data.get('results', res.data)
+        self.assertEqual(len(results), 2)
+
+        # Filtre par action 'semis' et mois 10 (Octobre)
+        res_semis = self.client.get(url, {'action': 'semis', 'month': 10})
+        self.assertEqual(res_semis.status_code, status.HTTP_200_OK)
+        results_semis = res_semis.data.get('results', res_semis.data)
+        self.assertEqual(len(results_semis), 1)
+        self.assertEqual(results_semis[0]['vegetable_name'], "Tomate Cerise Tropicale")
+        self.assertEqual(results_semis[0]['month'], 10)
+
+    def test_tool_detail_locked_for_unsubscribed(self):
+        url = reverse('tool_detail', kwargs={'pk': self.tool2.pk})
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertTrue(res.data.get('is_locked'))
+        self.assertIn("Contenu réservé", res.data['usage_tips'])
+
+    def test_tool_detail_unlocked_for_subscribed(self):
+        from django.contrib.auth import get_user_model
+        from django.utils import timezone
+        from datetime import timedelta
+        User = get_user_model()
+        user = User.objects.create_user(email='prem_tool@test.com', username='prem_tool', password='password123')
+        user.profile.subscription_active = True
+        user.profile.subscription_end_date = timezone.now() + timedelta(days=30)
+        user.profile.save()
+        self.client.force_authenticate(user=user)
+
+        url = reverse('tool_detail', kwargs={'pk': self.tool2.pk})
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertFalse(res.data.get('is_locked'))
+

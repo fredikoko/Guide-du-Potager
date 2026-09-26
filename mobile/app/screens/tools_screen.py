@@ -7,6 +7,7 @@ from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.glossary_service import GlossaryService
+from ..services.auth_service import AuthService
 from ..components.cards import CardWidget
 from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
@@ -55,6 +56,13 @@ class ToolsScreen(Screen):
         search_box.add_widget(search_bar)
         layout.add_widget(search_box)
 
+        # Category Horizontal Filter
+        cat_scroll = ScrollView(size_hint_y=None, height=48, do_scroll_y=False)
+        self.cat_box = BoxLayout(size_hint_x=None, height=42, padding=[10, 3, 10, 3], spacing=8)
+        self.cat_box.bind(minimum_width=self.cat_box.setter('width'))
+        cat_scroll.add_widget(self.cat_box)
+        layout.add_widget(cat_scroll)
+
         # Scrollable Tools List
         scroll = ScrollView()
         self.tools_container = BoxLayout(orientation='vertical', size_hint_y=None, padding=15, spacing=15)
@@ -64,15 +72,49 @@ class ToolsScreen(Screen):
         layout.add_widget(scroll)
         self.add_widget(layout)
 
+        self.selected_category = None
+        self.search_query = None
+
     def on_enter(self):
+        self.render_categories()
         self.load_tools()
 
-    def filter_tools(self, query):
-        self.load_tools(search=query)
+    def render_categories(self):
+        self.cat_box.clear_widgets()
+        tool_cats = [
+            (None, "Tous les outils"),
+            ("travail_sol", "Travail du Sol"),
+            ("semis_plantation", "Semis & Plantation"),
+            ("entretien", "Entretien"),
+            ("irrigation", "Irrigation"),
+            ("recolte", "Récolte"),
+        ]
+        for cat_code, cat_label in tool_cats:
+            is_active = (self.selected_category == cat_code)
+            btn = Button(
+                text=cat_label,
+                size_hint=(None, None),
+                size=(max(len(cat_label) * 8 + 24, 90), 34),
+                font_size='12sp',
+                background_normal='',
+                background_color=Theme.PRIMARY_DARK if is_active else (0.85, 0.88, 0.85, 1.0),
+                color=Theme.TEXT_LIGHT if is_active else Theme.TEXT_DARK
+            )
+            btn.bind(on_release=lambda instance, code=cat_code: self.select_category(code))
+            self.cat_box.add_widget(btn)
 
-    def load_tools(self, search=None):
+    def select_category(self, cat_code):
+        self.selected_category = cat_code
+        self.render_categories()
+        self.load_tools(category=cat_code, search=self.search_query)
+
+    def filter_tools(self, query):
+        self.search_query = query
+        self.load_tools(category=self.selected_category, search=query)
+
+    def load_tools(self, category=None, search=None):
         self.tools_container.clear_widgets()
-        res = self.glossary_service.get_tools(search=search)
+        res = self.glossary_service.get_tools(category=category, search=search)
 
         if not res.get('success'):
             err = Label(text="⚠️ Impossible de charger les outils.", color=Theme.TEXT_MUTED, font_size='16sp', size_hint_y=None, height=50)
@@ -84,11 +126,13 @@ class ToolsScreen(Screen):
 
         for tool in tools:
             card = CardWidget(bg_color=Theme.CARD_BG)
+            is_prem = bool(tool.get('is_premium'))
 
-            badge = " [PREMIUM]" if tool.get('is_premium') else ""
+            title_txt = f"[b]{tool['name']}[/b]" + (" [color=47C26B]★[/color]" if is_prem else "")
             t_title = Label(
-                text=f"[b]{tool['name']}[/b][color=E8AB26]{badge}[/color]",
-                markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
+                text=title_txt,
+                markup=True, font_size='17sp',
+                color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_DARK,
                 size_hint_y=None, height=35, halign='left', valign='middle'
             )
             t_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
@@ -121,7 +165,7 @@ class ToolsScreen(Screen):
                 size_hint_y=None,
                 height=42,
                 background_normal='',
-                background_color=Theme.PRIMARY_MAIN,
+                background_color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_MAIN,
                 color=Theme.TEXT_LIGHT
             )
             detail_btn.bind(on_release=lambda instance, t=tool_item, i_url=img_url: self.open_tool_detail(t, i_url))
@@ -130,18 +174,36 @@ class ToolsScreen(Screen):
             self.tools_container.add_widget(card)
 
     def open_tool_detail(self, tool, image_url):
-        fields = [
-            ("Catégorie", tool.get('category', '').replace('_', ' ').title(), Theme.BROWN_MAIN),
-            ("Description", tool.get('description', ''), Theme.TEXT_DARK),
-            ("Conseils d'utilisation", tool.get('usage_tips', ''), Theme.PRIMARY_MAIN),
-        ]
-        if tool.get('tropical_tips'):
-            fields.append(("Spécificités en climat tropical", tool.get('tropical_tips'), Theme.PRIMARY_DARK))
+        tool_id = tool.get('id')
+        res = self.glossary_service.get_tool_detail(tool_id) if tool_id else None
+        data = res['data'] if (res and res.get('success')) else tool
+
+        is_prem = bool(data.get('is_premium'))
+        is_sub = AuthService().is_subscribed()
+        is_locked = data.get('is_locked', False) or (is_prem and not is_sub)
+
+        category_txt = data.get('category_display') or data.get('category', '').replace('_', ' ').title()
+
+        if is_locked:
+            fields = [
+                ("Catégorie", category_txt, Theme.BROWN_MAIN),
+                ("Description", "🔒 Cette fiche outil spécialisée et ses techniques d'utilisation sont réservées aux abonnés.", Theme.TEXT_MUTED),
+            ]
+        else:
+            fields = [
+                ("Catégorie", category_txt, Theme.BROWN_MAIN),
+                ("Description", data.get('description', ''), Theme.TEXT_DARK),
+                ("Conseils d'utilisation", data.get('usage_tips', ''), Theme.PRIMARY_MAIN),
+            ]
+            if data.get('tropical_tips'):
+                fields.append(("Spécificités en climat tropical", data.get('tropical_tips'), Theme.PRIMARY_DARK))
 
         popup = DetailPopup(
-            title_text=tool['name'],
+            title_text=data['name'],
             image_url=image_url,
-            fields=fields
+            fields=fields,
+            is_locked=is_locked,
+            upgrade_callback=lambda: setattr(self.manager, 'current', 'subscription')
         )
         popup.open()
 

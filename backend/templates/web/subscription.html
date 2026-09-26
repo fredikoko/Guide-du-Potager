@@ -1,0 +1,131 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Formules d'Abonnement & Pass VIP - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-16 space-y-12">
+    
+    <!-- Bannière de Mise en Avant (Parité avec mobile SubscriptionScreen) -->
+    <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E592E] via-[#24542a] to-[#123818] text-white p-8 sm:p-12 shadow-2xl border-2 border-[#47C26B]">
+        <div class="max-w-3xl space-y-4 relative z-10">
+            <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/40 text-xs sm:text-sm font-bold">
+                <i class="fa-solid fa-star"></i>
+                <span>Accès Intégral Illimité</span>
+            </div>
+
+            <h1 class="text-3xl sm:text-5xl font-black text-white leading-tight">
+                Investissez dans vos récoltes avec le <span class="text-[#47C26B]">Pass Maraîcher</span>
+            </h1>
+
+            <p class="text-gray-200 text-sm sm:text-base leading-relaxed">
+                Rejoignez la communauté des maraîchers qui sécurisent leurs rendements, optimisent leurs fertilisations et protègent efficacement leurs cultures toute l'année.
+            </p>
+
+            <!-- Liste des avantages exclusifs -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-3 text-xs sm:text-sm text-gray-100">
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-circle-check text-[#47C26B] text-base"></i>
+                    <span>Tous les chapitres & e-books débloqués</span>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-circle-check text-[#47C26B] text-base"></i>
+                    <span>Soins phytosanitaires conventionnels & recettes bio</span>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-circle-check text-[#47C26B] text-base"></i>
+                    <span>Guide des outils de précision & astuces sahéliennes</span>
+                </div>
+                <div class="flex items-center space-x-2.5">
+                    <i class="fa-solid fa-circle-check text-[#47C26B] text-base"></i>
+                    <span>Simulateur cultural mois par mois en accès libre</span>
+                </div>
+            </div>
+
+            <div class="pt-4">
+                <p class="text-xs sm:text-sm font-bold text-[#47C26B]">
+                    💡 Rentabilisez votre pass dès votre première récolte en évitant les pertes !
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille des Formules d'Abonnement -->
+    <div class="space-y-6">
+        <div class="text-center max-w-xl mx-auto space-y-2">
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E592E]">Choisissez votre formule</h2>
+            <p class="text-xs sm:text-sm text-gray-500">Paiement ultra-sécurisé par Mobile Money (Orange, Wave, MTN, Moov) ou Carte Bancaire.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 items-stretch pt-4">
+            {% for plan in plans %}
+            <div class="relative bg-white rounded-3xl p-8 border-2 flex flex-col justify-between transition-all duration-300 hover:shadow-2xl
+                {% if plan.is_featured %}border-[#47C26B] shadow-xl ring-4 ring-[#47C26B]/20 transform md:-translate-y-2{% else %}border-gray-200 shadow-sm{% endif %}">
+                
+                {% if plan.discount_badge %}
+                <span class="absolute -top-3.5 left-1/2 transform -translate-x-1/2 px-4 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-[#47C26B] text-[#1E592E] shadow-md">
+                    {{ plan.discount_badge }}
+                </span>
+                {% endif %}
+
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-xl font-black text-gray-900 mb-1">{{ plan.name }}</h3>
+                        <p class="text-xs text-gray-500">{{ plan.description }}</p>
+                    </div>
+
+                    <div class="py-4 border-y border-gray-100">
+                        <div class="flex items-baseline space-x-2">
+                            <span class="text-3xl sm:text-4xl font-black text-[#1E592E]">
+                                {{ plan.formatted_price }}
+                            </span>
+                            <span class="text-sm font-bold text-gray-500">{{ plan.currency }}</span>
+                        </div>
+                        {% if plan.approx_eur %}
+                        <span class="text-xs text-gray-400 block mt-1">Équivalent : {{ plan.approx_eur }}</span>
+                        {% endif %}
+                        <span class="text-xs text-emerald-700 font-semibold block mt-1">Durée : {{ plan.duration_days }} jours</span>
+                    </div>
+
+                    <ul class="space-y-3 text-xs sm:text-sm text-gray-600">
+                        <li class="flex items-center space-x-2">
+                            <i class="fa-solid fa-check text-[#47C26B]"></i>
+                            <span>Accès complet au manuel & fiches</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fa-solid fa-check text-[#47C26B]"></i>
+                            <span>Fiches biopesticides & ravageurs</span>
+                        </li>
+                        <li class="flex items-center space-x-2">
+                            <i class="fa-solid fa-check text-[#47C26B]"></i>
+                            <span>Support & mises à jour incluses</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="pt-8">
+                    <a href="{% url 'web:checkout' plan.plan_type %}"
+                       class="w-full flex items-center justify-center space-x-2 py-3.5 px-6 rounded-xl font-bold text-sm transition shadow-md
+                       {% if plan.is_featured %}bg-[#47C26B] hover:bg-[#3cb85f] text-[#1E592E]{% else %}bg-[#1E592E] hover:bg-[#286a37] text-white{% endif %}">
+                        <i class="fa-solid fa-lock text-xs mr-1"></i>
+                        <span>Prendre ce pass</span>
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Moyens de paiement acceptés -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 border border-gray-200 text-center space-y-4">
+        <h4 class="text-xs sm:text-sm font-bold uppercase tracking-wider text-gray-500">Moyens de paiement acceptés via Chariow</h4>
+        <div class="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-2xl text-gray-600">
+            <span class="inline-flex items-center space-x-1 text-xs font-bold text-orange-600 border border-orange-200 px-3 py-1.5 rounded-lg bg-orange-50"><i class="fa-solid fa-mobile-screen"></i> <span>Orange Money</span></span>
+            <span class="inline-flex items-center space-x-1 text-xs font-bold text-blue-600 border border-blue-200 px-3 py-1.5 rounded-lg bg-blue-50"><i class="fa-solid fa-water"></i> <span>Wave</span></span>
+            <span class="inline-flex items-center space-x-1 text-xs font-bold text-yellow-600 border border-yellow-200 px-3 py-1.5 rounded-lg bg-yellow-50"><i class="fa-solid fa-mobile"></i> <span>MTN MoMo</span></span>
+            <span class="inline-flex items-center space-x-1 text-xs font-bold text-emerald-600 border border-emerald-200 px-3 py-1.5 rounded-lg bg-emerald-50"><i class="fa-solid fa-phone"></i> <span>Moov Money</span></span>
+            <span class="inline-flex items-center space-x-1 text-xs font-bold text-indigo-700 border border-indigo-200 px-3 py-1.5 rounded-lg bg-indigo-50"><i class="fa-solid fa-credit-card"></i> <span>Visa / Mastercard</span></span>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

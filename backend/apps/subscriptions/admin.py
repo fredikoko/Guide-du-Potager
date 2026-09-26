@@ -3,10 +3,10 @@ from .models import Subscription, Payment, SubscriptionPlan
 
 @admin.register(SubscriptionPlan)
 class SubscriptionPlanAdmin(admin.ModelAdmin):
-    list_display = ('name', 'plan_type', 'price', 'currency', 'approx_eur', 'discount_badge', 'duration_days', 'is_active', 'order')
-    list_editable = ('price', 'currency', 'approx_eur', 'discount_badge', 'is_active', 'order')
-    list_filter = ('is_active', 'plan_type')
-    search_fields = ('name', 'plan_type')
+    list_display = ('name', 'plan_type', 'price', 'currency', 'approx_eur', 'discount_badge', 'is_featured', 'duration_days', 'is_active', 'order')
+    list_editable = ('price', 'currency', 'approx_eur', 'discount_badge', 'is_featured', 'is_active', 'order')
+    list_filter = ('is_active', 'is_featured', 'plan_type')
+    search_fields = ('name', 'plan_type', 'description')
 
 @admin.register(Subscription)
 class SubscriptionAdmin(admin.ModelAdmin):

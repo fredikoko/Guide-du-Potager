@@ -1,0 +1,105 @@
+{% extends 'web/base.html' %}
+
+{% block title %}{{ chapter.title }} - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+    
+    <!-- Fil d'ariane -->
+    <nav class="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 mb-6 overflow-x-auto whitespace-nowrap">
+        <a href="{% url 'web:home' %}" class="hover:text-[#1E592E]">Accueil</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <span>Partie {{ chapter.part.order }} : {{ chapter.part.title|truncatechars:25 }}</span>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <span class="text-[#1E592E] font-semibold">{{ chapter.title|truncatechars:30 }}</span>
+    </nav>
+
+    <!-- En-tête du Chapitre -->
+    <header class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 mb-8 space-y-4">
+        <div class="flex flex-wrap items-center gap-2">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#1E592E]/10 text-[#1E592E]">
+                Partie {{ chapter.part.order }} • Chapitre {{ chapter.order }}
+            </span>
+            {% if chapter.is_premium %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/40">
+                <i class="fa-solid fa-star mr-1"></i> Contenu Exclusif
+            </span>
+            {% endif %}
+        </div>
+
+        <h1 class="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
+            {{ chapter.title }}
+            {% if chapter.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+        </h1>
+    </header>
+
+    <!-- Contenu du Chapitre ou Paywall -->
+    <article class="bg-white rounded-2xl p-6 sm:p-10 shadow-sm border border-gray-200">
+        {% if is_locked %}
+            <div class="prose prose-green max-w-none text-gray-700 leading-relaxed space-y-4 mb-6">
+                <p class="text-base sm:text-lg font-medium text-gray-600 italic">
+                    Ce chapitre approfondi fait partie du programme complet du Guide du Potager Tropical. Il présente des protocoles agronomiques de pointe pour les sols sahéliens et tropicaux.
+                </p>
+                <div class="relative overflow-hidden max-h-32 opacity-40 select-none pointer-events-none filter blur-[1px]">
+                    {{ chapter.content|striptags|truncatewords:60 }}
+                </div>
+            </div>
+
+            <!-- Carte Paywall Vert Clair -->
+            {% include 'web/components/paywall_card.html' %}
+        {% else %}
+            <!-- Lecture Complète Débloquée -->
+            <div class="prose prose-lg prose-green max-w-none text-gray-800 leading-relaxed space-y-5 article-content">
+                {{ chapter.content|safe }}
+            </div>
+
+            {% if chapter.images.all %}
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-8 border-t border-gray-100">
+                {% for img in chapter.images.all %}
+                <figure class="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
+                    <img src="{{ img.image.url }}" alt="{{ img.caption|default:chapter.title }}" class="w-full h-56 object-cover">
+                    {% if img.caption %}
+                    <figcaption class="p-3 text-xs text-gray-600 text-center italic">
+                        {{ img.caption }}
+                    </figcaption>
+                    {% endif %}
+                </figure>
+                {% endfor %}
+            </div>
+            {% endif %}
+        {% endif %}
+    </article>
+
+    <!-- Navigation Chapitre Précédent / Chapitre Suivant -->
+    <div class="mt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+        {% if prev_chapter %}
+        <a href="{% url 'web:chapter_detail' prev_chapter.id %}" class="w-full sm:w-auto flex items-center space-x-3 px-5 py-3 rounded-xl bg-white border border-gray-200 hover:border-[#3D7A42] hover:text-[#1E592E] shadow-sm transition text-sm font-semibold">
+            <i class="fa-solid fa-arrow-left text-[#3D7A42]"></i>
+            <div>
+                <span class="block text-[11px] text-gray-400 uppercase font-bold">Précédent</span>
+                <span class="block truncate max-w-[200px]">{{ prev_chapter.title }}</span>
+            </div>
+        </a>
+        {% else %}
+        <div></div>
+        {% endif %}
+
+        <a href="{% url 'web:home' %}#sommaire-guide" class="text-xs font-bold text-gray-500 hover:text-[#1E592E] px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+            <i class="fa-solid fa-list mr-1"></i> Sommaire général
+        </a>
+
+        {% if next_chapter %}
+        <a href="{% url 'web:chapter_detail' next_chapter.id %}" class="w-full sm:w-auto flex items-center justify-end space-x-3 px-5 py-3 rounded-xl bg-white border border-gray-200 hover:border-[#3D7A42] hover:text-[#1E592E] shadow-sm transition text-sm font-semibold text-right">
+            <div>
+                <span class="block text-[11px] text-gray-400 uppercase font-bold">Suivant</span>
+                <span class="block truncate max-w-[200px]">{{ next_chapter.title }}</span>
+            </div>
+            <i class="fa-solid fa-arrow-right text-[#3D7A42]"></i>
+        </a>
+        {% else %}
+        <div></div>
+        {% endif %}
+    </div>
+
+</div>
+{% endblock %}

@@ -7,11 +7,14 @@ from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..components.cards import CardWidget
 from ..components.navigation_drawer import NavigationDrawer
+from ..services.content_service import ContentService
+from ..utils.html_parser import HTMLParser
 
 class AboutScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.drawer = None
+        self.content_service = ContentService()
 
         with self.canvas.before:
             Color(*Theme.BG_CREAM)
@@ -51,40 +54,131 @@ class AboutScreen(Screen):
         layout.add_widget(header)
 
         # Scrollable Content
-        scroll = ScrollView()
-        container = BoxLayout(orientation='vertical', size_hint_y=None, padding=15, spacing=15)
-        container.bind(minimum_height=container.setter('height'))
+        self.scroll = ScrollView()
+        self.container = BoxLayout(orientation='vertical', size_hint_y=None, padding=15, spacing=15)
+        self.container.bind(minimum_height=self.container.setter('height'))
 
-        # 1. Hero Card - Mission & Présentation
+        self.scroll.add_widget(self.container)
+        layout.add_widget(self.scroll)
+        self.add_widget(layout)
+
+        # Affichage initial avec valeurs par défaut
+        self.render_content(self._get_default_data())
+
+    def on_enter(self):
+        # Rafraîchir les données depuis l'API ou le cache hors-ligne
+        self.load_data()
+
+    def load_data(self):
+        res = self.content_service.get_about()
+        if res.get('success') and res.get('data'):
+            self.render_content(res['data'])
+
+    def _get_default_data(self):
+        return {
+            'title': "Guide du Potager Tropical",
+            'subtitle': "L'application de référence pour le maraîchage tropical : pratiques conventionnelles, raisonnées & agro-écologiques.",
+            'mission_title': "Notre Mission & Approche Maraîchère",
+            'mission_text': (
+                "Le Guide du Potager Tropical accompagne les maraîchers urbains, "
+                "périurbains et ruraux vers une production performante, rentable et résiliente "
+                "face aux réalités climatiques tropicales.\n\n"
+                "Nos articles et fiches techniques intègrent l'ensemble des approches agronomiques : "
+                "les itinéraires techniques conventionnels (gestion raisonnée des engrais minéraux NPK, protection "
+                "phytosanitaire homologuée et conduite intensive) ainsi que les méthodes agro-écologiques et biologiques "
+                "(amendements organiques, biopesticides locaux au neem, santé des sols vivants et paillage protecteur). "
+                "Chaque producteur y trouve les protocoles, les dosages rigoureux et les conseils pratiques adaptés "
+                "à ses objectifs de rendement."
+            ),
+            'pillar_1_title': "Gestion de l'Eau & Irrigation",
+            'pillar_1_desc': "Goutte-à-goutte de précision, micro-aspersion, paillage protecteur et pilotage hydrique sous forte évapotranspiration.",
+            'pillar_2_title': "Nutrition des Sols & Rendements",
+            'pillar_2_desc': "Plans de fertilisation équilibrés combinant apports minéraux raisonnés (NPK, urée) et amendements organiques pour maximiser les récoltes.",
+            'pillar_3_title': "Protection Raisonnée & Biocontrôle",
+            'pillar_3_desc': "Stratégies de défense des cultures articulant traitements conventionnels homologués, barrières physiques et biopesticides locaux.",
+            'contact_title': "Assistance & Communauté",
+            'contact_text': "Pour toute question agronomique, assistance technique sur vos abonnements ou partenariat d'exploitation, notre équipe est à votre écoute :",
+            'contact_email': "contact@guidedupotager.com",
+            'contact_phone': "+221 77 000 00 00",
+            'app_version': "1.0.0"
+        }
+
+    def _create_auto_label(self, text, font_size='13sp', color=None, is_bold=False, is_markup=True):
+        if color is None:
+            color = Theme.TEXT_DARK
+        txt = f"[b]{text}[/b]" if (is_bold and not text.startswith('[b]')) else text
+        lbl = Label(
+            text=txt,
+            markup=is_markup,
+            font_size=font_size,
+            color=color,
+            size_hint_y=None,
+            halign='left',
+            valign='top'
+        )
+        lbl.bind(width=lambda s, val: setattr(s, 'text_size', (val, None)))
+        lbl.bind(texture_size=lambda s, val: setattr(s, 'height', max(val[1] + 8, 25)))
+        return lbl
+
+    def render_content(self, data):
+        self.container.clear_widgets()
+
+        # 1. Hero Card - Titre & Slogan de l'application
         hero_card = CardWidget(bg_color=Theme.PRIMARY_DARK)
-        hero_title = Label(
-            text="[b]🌿 Guide du Potager Tropical[/b]",
-            markup=True, font_size='19sp', color=Theme.GOLD_PREMIUM,
-            size_hint_y=None, height=35, halign='left'
+        hero_title = self._create_auto_label(
+            f"[b]🌿 {data.get('title', 'Guide du Potager Tropical')}[/b]",
+            font_size='19sp', color=Theme.ACCENT_EXCLUSIVE
         )
-        hero_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-
-        hero_subtitle = Label(
-            text="L'application de référence pour le maraîchage agro-écologique & biologique en climat chaud, sahélien, côtier et insulaire.",
-            font_size='14sp', color=Theme.TEXT_LIGHT,
-            size_hint_y=None, height=55, halign='left'
+        hero_subtitle = self._create_auto_label(
+            data.get('subtitle', ''),
+            font_size='14sp', color=Theme.TEXT_LIGHT
         )
-        hero_subtitle.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-
         hero_card.add_widget(hero_title)
         hero_card.add_widget(hero_subtitle)
-        container.add_widget(hero_card)
+        self.container.add_widget(hero_card)
 
-        # Section Header
-        sec_label = Label(
-            text="[b]✨ Panorama des Fonctionnalités :[/b]",
-            markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
-            size_hint_y=None, height=30, halign='left'
+        # 2. Mission Card (Éditable depuis l'admin)
+        mission_card = CardWidget(bg_color=Theme.CARD_BG)
+        mission_title = self._create_auto_label(
+            f"[b]🌱 {data.get('mission_title', 'Notre Mission')}[/b]",
+            font_size='17sp', color=Theme.PRIMARY_MAIN
         )
-        sec_label.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-        container.add_widget(sec_label)
+        mission_content_markup = HTMLParser.to_markup(data.get('mission_text', ''))
+        mission_text_lbl = self._create_auto_label(
+            mission_content_markup,
+            font_size='13sp', color=Theme.TEXT_DARK
+        )
+        mission_card.add_widget(mission_title)
+        mission_card.add_widget(mission_text_lbl)
+        self.container.add_widget(mission_card)
 
-        # Features List
+        # 3. Les 3 Piliers Agro-écologiques
+        pillars_header = self._create_auto_label(
+            "[b]🌾 Les 3 Piliers de notre Méthode :[/b]",
+            font_size='16sp', color=Theme.PRIMARY_DARK
+        )
+        self.container.add_widget(pillars_header)
+
+        pillars = [
+            ("💧 " + data.get('pillar_1_title', "Gestion de l'Eau"), data.get('pillar_1_desc', '')),
+            ("🪱 " + data.get('pillar_2_title', "Sols Vivants"), data.get('pillar_2_desc', '')),
+            ("🛡️ " + data.get('pillar_3_title', "Zéro Chimique"), data.get('pillar_3_desc', '')),
+        ]
+        for p_title, p_desc in pillars:
+            p_card = CardWidget(bg_color=Theme.CARD_BG)
+            p_lbl_title = self._create_auto_label(p_title, font_size='15sp', color=Theme.PRIMARY_MAIN, is_bold=True)
+            p_lbl_desc = self._create_auto_label(p_desc, font_size='13sp', color=Theme.TEXT_DARK)
+            p_card.add_widget(p_lbl_title)
+            p_card.add_widget(p_lbl_desc)
+            self.container.add_widget(p_card)
+
+        # 4. Panorama des Fonctionnalités
+        sec_label = self._create_auto_label(
+            "[b]✨ Panorama des Fonctionnalités :[/b]",
+            font_size='16sp', color=Theme.PRIMARY_DARK
+        )
+        self.container.add_widget(sec_label)
+
         features = [
             (
                 "📖 Guide Pédagogique & Chapitres Détaillés",
@@ -92,7 +186,7 @@ class AboutScreen(Screen):
             ),
             (
                 "📰 Module Blog, Actualités & Conseils de Saison",
-                "Restez connecté aux meilleures pratiques agro-écologiques grâce à des articles thématiques complets, des fiches techniques d'experts, des retours d'expérience et un espace d'échange en commentaires."
+                "Restez connecté aux meilleures pratiques maraîchères grâce à des articles thématiques complets : itinéraires conventionnels (engrais minéraux, produits homologués) et approches bio (biopesticides, composts)."
             ),
             (
                 "📅 Simulateur Interactif de Calendrier de Culture",
@@ -108,66 +202,75 @@ class AboutScreen(Screen):
             ),
             (
                 "🩺 Clinique des Plantes : Maladies & Insectes Nuisibles",
-                "Diagnostiquez rapidement les ravageurs et maladies tropicales courantes. Accédez à des solutions curatives bio locales : macérations de neem, piment, purins et méthodes de biocontrôle sans chimie de synthèse."
+                "Diagnostiquez rapidement les ravageurs et maladies tropicales. Accédez aux protocoles de traitement conventionnels raisonnés ainsi qu'aux biopesticides locaux et méthodes de biocontrôle."
             ),
             (
                 "📴 Mode Hors-Ligne Intégré",
                 "Consultez l'ensemble du guide, vos légumes et le simulateur directement sur votre parcelle ou au champ, même sans connexion internet ni couverture réseau."
             ),
             (
-                "💎 Formules d'Abonnement Premium Flexibles",
-                "Débloquez les chapitres d'experts, fiches de traitement et articles exclusifs. Tarification administrable et règlement sécurisé par Mobile Money (Wave, Orange Money, MTN, Moov) ou Carte bancaire."
+                "💎 Formules d'Abonnement Flexibles",
+                "Débloquez l'ensemble des chapitres d'experts, fiches de traitement et articles exclusifs. Tarification administrable et règlement sécurisé par Mobile Money (Wave, Orange Money, MTN, Moov) ou Carte bancaire."
             )
         ]
 
         for feat_title, feat_desc in features:
             f_card = CardWidget(bg_color=Theme.CARD_BG)
-            lbl_title = Label(
-                text=f"[b]{feat_title}[/b]",
-                markup=True, font_size='16sp', color=Theme.PRIMARY_MAIN,
-                size_hint_y=None, height=28, halign='left'
-            )
-            lbl_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-
-            lbl_desc = Label(
-                text=feat_desc,
-                font_size='13sp', color=Theme.TEXT_DARK,
-                size_hint_y=None, height=58, halign='left'
-            )
-            lbl_desc.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-
+            lbl_title = self._create_auto_label(feat_title, font_size='15sp', color=Theme.PRIMARY_MAIN, is_bold=True)
+            lbl_desc = self._create_auto_label(feat_desc, font_size='13sp', color=Theme.TEXT_DARK)
             f_card.add_widget(lbl_title)
             f_card.add_widget(lbl_desc)
-            container.add_widget(f_card)
+            self.container.add_widget(f_card)
 
-        # Call to Action Card
+        # 5. Carte Assistance & Contact (Éditable depuis l'admin)
+        contact_card = CardWidget(bg_color=Theme.CARD_BG)
+        contact_title = self._create_auto_label(
+            f"[b]📞 {data.get('contact_title', 'Assistance & Communauté')}[/b]",
+            font_size='16sp', color=Theme.PRIMARY_MAIN
+        )
+        contact_desc = self._create_auto_label(
+            data.get('contact_text', ''),
+            font_size='13sp', color=Theme.TEXT_DARK
+        )
+        contact_email = self._create_auto_label(
+            f"✉️ Email support : [b]{data.get('contact_email', 'contact@guidedupotager.com')}[/b]",
+            font_size='13sp', color=Theme.PRIMARY_DARK
+        )
+        contact_phone = self._create_auto_label(
+            f"💬 WhatsApp Maraîcher : [b]{data.get('contact_phone', '+221 77 000 00 00')}[/b]",
+            font_size='13sp', color=Theme.ACCENT_EXCLUSIVE
+        )
+        contact_card.add_widget(contact_title)
+        contact_card.add_widget(contact_desc)
+        contact_card.add_widget(contact_email)
+        contact_card.add_widget(contact_phone)
+        self.container.add_widget(contact_card)
+
+        # 6. Call to Action Card
         cta_card = CardWidget(bg_color=Theme.BROWN_DARK)
-        cta_lbl = Label(
-            text="[b]Prêt à développer un potager résilient et productif ?[/b]",
-            markup=True, font_size='16sp', color=Theme.TEXT_LIGHT,
-            size_hint_y=None, height=35, halign='center'
+        cta_lbl = self._create_auto_label(
+            "[b]Prêt à développer un potager résilient et productif ?[/b]",
+            font_size='15sp', color=Theme.TEXT_LIGHT, is_bold=True
         )
         cta_btn = Button(
             text="Explorer les Chapitres du Guide →",
-            font_size='15sp', size_hint_y=None, height=48,
-            background_normal='', background_color=Theme.GOLD_PREMIUM, color=Theme.TEXT_LIGHT
+            font_size='14sp', size_hint_y=None, height=46,
+            background_normal='', background_color=Theme.ACCENT_EXCLUSIVE, color=Theme.TEXT_LIGHT
         )
         cta_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'home'))
         cta_card.add_widget(cta_lbl)
         cta_card.add_widget(cta_btn)
-        container.add_widget(cta_card)
+        self.container.add_widget(cta_card)
 
-        # Footer version
+        # 7. Footer version
+        version = data.get('app_version', '1.0.0')
+        title_name = data.get('title', 'Guide du Potager Tropical')
         footer_lbl = Label(
-            text="Guide du Potager Tropical • Version 1.0.0\nDéveloppé pour les passionnés et professionnels du vivant 🌿",
+            text=f"{title_name} • Version {version}\nDéveloppé pour les passionnés et professionnels du vivant 🌿",
             font_size='12sp', color=Theme.TEXT_MUTED, halign='center',
             size_hint_y=None, height=45
         )
-        container.add_widget(footer_lbl)
-
-        scroll.add_widget(container)
-        layout.add_widget(scroll)
-        self.add_widget(layout)
+        self.container.add_widget(footer_lbl)
 
     def toggle_drawer(self, instance):
         if not self.drawer:
@@ -202,3 +305,4 @@ class AboutScreen(Screen):
     def _update_header_rect(self, instance, value):
         self.header_rect.pos = instance.pos
         self.header_rect.size = instance.size
+

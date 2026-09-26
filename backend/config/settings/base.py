@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'apps.pests',
     'apps.subscriptions',
     'apps.blog',
+    'apps.web',
 ]
 
 MIDDLEWARE = [
@@ -59,6 +60,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.web.context_processors.global_web_context',
             ],
         },
     },

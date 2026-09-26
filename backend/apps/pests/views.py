@@ -30,9 +30,11 @@ class DiseaseDetailView(generics.RetrieveAPIView):
 
         if not has_access:
             data['is_locked'] = True
-            data['symptoms'] = "🔒 Contenu Premium : Abonnez-vous pour consulter les symptômes détaillés."
-            data['treatment'] = "🔒 Contenu Premium : Abonnez-vous pour débloquer les traitements."
-            data['prevention'] = "🔒 Contenu Premium : Abonnez-vous pour accéder aux conseils de prévention."
+            data['symptoms'] = "🔒 Contenu réservé : Abonnez-vous pour consulter les symptômes détaillés."
+            data['treatment'] = "🔒 Contenu réservé : Abonnez-vous pour débloquer les traitements."
+            data['prevention'] = "🔒 Contenu réservé : Abonnez-vous pour accéder aux conseils de prévention."
+            data['tropical_organic_treatment'] = "🔒 Contenu réservé : Abonnez-vous pour accéder aux recettes de traitement bio tropical."
+            data['favorable_season'] = "🔒 Contenu réservé"
         else:
             data['is_locked'] = False
 
@@ -65,9 +67,12 @@ class InsectDetailView(generics.RetrieveAPIView):
 
         if not has_access:
             data['is_locked'] = True
-            data['description'] = "🔒 Contenu Premium : Abonnez-vous pour consulter la description complète."
-            data['damage'] = "🔒 Contenu Premium : Abonnez-vous pour voir les dégâts constatés."
-            data['solution'] = "🔒 Contenu Premium : Abonnez-vous pour accéder aux solutions bio et traitements."
+            data['description'] = "🔒 Contenu réservé : Abonnez-vous pour consulter la description complète."
+            data['damage'] = "🔒 Contenu réservé : Abonnez-vous pour voir les dégâts constatés."
+            data['solution'] = "🔒 Contenu réservé : Abonnez-vous pour accéder aux solutions bio et traitements."
+            data['tropical_bio_control'] = "🔒 Contenu réservé : Abonnez-vous pour débloquer les méthodes de biocontrôle."
+            data['prevention_tips'] = "🔒 Contenu réservé : Abonnez-vous pour accéder aux conseils de prévention."
+            data['favorable_season'] = "🔒 Contenu réservé"
         else:
             data['is_locked'] = False
 

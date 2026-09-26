@@ -77,7 +77,10 @@ class ChapterScreen(Screen):
             return
 
         data = res['data']
-        self.title_label.text = f"[b]{data['title']}[/b]"
+        is_prem = bool(data.get('is_premium'))
+        star = " [color=47C26B]★[/color]" if is_prem else ""
+        self.title_label.text = f"[b]{data['title']}[/b]{star}"
+        self.title_label.color = Theme.ACCENT_EXCLUSIVE if is_prem else Theme.TEXT_LIGHT
 
         # Base URL for relative media image URLs
         base_root = Config.API_BASE_URL.replace('/api', '')
@@ -108,15 +111,15 @@ class ChapterScreen(Screen):
                 )
                 self.body_container.add_widget(img_widget)
 
-        # Check if premium locked, display Upgrade Button
+        # Check if access locked, display Upgrade Button
         if data.get('is_locked'):
             upgrade_btn = Button(
-                text="★ Débloquer avec l'Abonnement Premium",
+                text="★ Débloquer l'accès complet",
                 font_size='16sp',
                 size_hint_y=None,
                 height=54,
                 background_normal='',
-                background_color=Theme.GOLD_PREMIUM,
+                background_color=Theme.ACCENT_EXCLUSIVE,
                 color=Theme.TEXT_LIGHT
             )
             upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))

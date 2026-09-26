@@ -179,7 +179,12 @@ class ChariowIntegrationTestCase(TestCase):
         res = self.client.get(plans_url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         plans = res.data.get('results', res.data)
-        self.assertEqual(len(plans), 2)
+        self.assertEqual(len(plans), 3)
+
+        # Vérifier la présence du plan saisonnier recommandé
+        seasonal_data = next(p for p in plans if p['plan_type'] == 'seasonal')
+        self.assertTrue(seasonal_data['is_featured'])
+        self.assertEqual(float(seasonal_data['price']), 5000.00)
 
         # Modifier le prix depuis l'admin (en DB)
         plan_monthly = SubscriptionPlan.objects.get(plan_type='monthly')

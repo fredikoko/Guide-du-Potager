@@ -1,7 +1,7 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
-from .models import Part, Chapter
-from .serializers import PartSerializer, ChapterListSerializer, ChapterDetailSerializer
+from .models import Part, Chapter, AboutPage
+from .serializers import PartSerializer, ChapterListSerializer, ChapterDetailSerializer, AboutPageSerializer
 
 class PartListView(generics.ListAPIView):
     queryset = Part.objects.prefetch_related('chapters')
@@ -43,8 +43,8 @@ class ChapterDetailView(generics.RetrieveAPIView):
             # Mask content and images for non-subscribed users accessing premium content
             data['is_locked'] = True
             data['content'] = (
-                f"<h1>🔒 {chapter.title} (Premium)</h1>"
-                "<p>Ce chapitre est réservé aux abonnés Premium du Guide du Potager Tropical.</p>"
+                f"<h1>🔒 {chapter.title}</h1>"
+                "<p>Ce chapitre est réservé aux abonnés du Guide du Potager Tropical.</p>"
                 "<p>Abonnez-vous pour débloquer l'accès complet à tous les chapitres, outils avancés, et fiches maladies & insectes !</p>"
             )
             data['images'] = []
@@ -52,3 +52,13 @@ class ChapterDetailView(generics.RetrieveAPIView):
             data['is_locked'] = False
 
         return Response(data)
+
+
+class AboutPageView(generics.RetrieveAPIView):
+    """Renvoie le contenu éditable de la page À Propos pour le web et le mobile."""
+    serializer_class = AboutPageSerializer
+    permission_classes = [permissions.AllowAny]
+
+    def get_object(self):
+        return AboutPage.get_solo()
+

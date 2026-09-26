@@ -61,7 +61,7 @@ class NavigationDrawer(FloatLayout):
 
         title_box = BoxLayout(orientation='vertical', spacing=2)
         app_title = Label(
-            text="[b]Guide du Potager[/b]\n[size=14sp]Tropical[/size]",
+            text="[b]🌿 Guide du Potager[/b]\n[size=13sp][color=47C26B]Tropical & Sahélien[/color][/size]",
             markup=True,
             font_size='16sp',
             color=Theme.TEXT_LIGHT,
@@ -71,8 +71,8 @@ class NavigationDrawer(FloatLayout):
         app_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
 
         app_subtitle = Label(
-            text="Botanique & Maraîchage Bio",
-            font_size='12sp',
+            text="Conventionnel, Raisonné & Bio",
+            font_size='11sp',
             color=Theme.PRIMARY_LIGHT,
             halign='left',
             valign='middle',
@@ -106,21 +106,23 @@ class NavigationDrawer(FloatLayout):
         menu_box.bind(minimum_height=menu_box.setter('height'))
 
         items = [
-            ("Accueil", "home", "•"),
-            ("Blog & Actualités", "blog", "★"),
-            ("Simulateur Calendrier", "calendar", "•"),
-            ("Fiches Légumes", "vegetables", "•"),
-            ("Familles Botaniques", "families", "•"),
-            ("Outils Maraîchers", "tools", "•"),
-            ("Maladies & Soins", "diseases", "•"),
-            ("Insectes Nuisibles", "insects", "•"),
-            ("Mon Profil", "profile", "•"),
-            ("Abonnement Premium", "subscription", "★"),
-            ("À Propos", "about", "ℹ"),
+            ("Accueil & Manuel", "home", "🏠"),
+            ("Simulateur Calendrier", "calendar", "📅"),
+            ("Fiches Légumes", "vegetables", "🥕"),
+            ("Familles Botaniques", "families", "🌱"),
+            ("Outils Maraîchers", "tools", "🛠️"),
+            ("Maladies & Soins", "diseases", "🩺"),
+            ("Insectes & Biocontrôle", "insects", "🐛"),
+            ("Blog & Actualités", "blog", "📰"),
+            ("Pass & Abonnement", "subscription", "⭐"),
+            ("Mon Profil", "profile", "👤"),
+            ("À Propos du Guide", "about", "ℹ️"),
         ]
 
         for title, screen_name, prefix in items:
             btn = DrawerButton(text=title, prefix=prefix)
+            if screen_name == "subscription":
+                btn.background_color = Theme.ACCENT_EXCLUSIVE
             btn.bind(on_release=lambda instance, s=screen_name: self.navigate(s))
             menu_box.add_widget(btn)
 
@@ -128,7 +130,7 @@ class NavigationDrawer(FloatLayout):
         self.panel.add_widget(scroll)
 
         # Logout Footer
-        logout_btn = DrawerButton(text="Déconnexion", prefix="*")
+        logout_btn = DrawerButton(text="Déconnexion", prefix="🚪")
         logout_btn.background_color = Theme.BROWN_MAIN
         logout_btn.bind(on_release=lambda x: self._on_logout())
         self.panel.add_widget(logout_btn)

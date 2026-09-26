@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: potager_prod_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-guide_potager_prod}
+      POSTGRES_USER: ${POSTGRES_USER:-potager_prod_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-ChangerCeMotDePasseTresSecurise2026!}
+    volumes:
+      - postgres_prod_data:/var/lib/postgresql/data
+    networks:
+      - potager_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-potager_prod_user}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: potager_prod_backend
+    restart: always
+    command: >
+      sh -c "python manage.py collectstatic --noinput &&
+             python manage.py migrate --noinput &&
+             gunicorn config.wsgi:application --bind 0.0.0.0:8000 --workers 3 --timeout 120 --access-logfile - --error-logfile -"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - media_prod_data:/app/media
+      - static_prod_data:/app/staticfiles
+    ports:
+      - "127.0.0.1:8000:8000"
+    networks:
+      - potager_network
+
+volumes:
+  postgres_prod_data:
+  media_prod_data:
+  static_prod_data:
+
+networks:
+  potager_network:
+    driver: bridge

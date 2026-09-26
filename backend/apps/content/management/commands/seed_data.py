@@ -3,7 +3,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
 from apps.content.models import Part, Chapter
-from apps.glossary.models import PlantFamily, Vegetable, Tool
+from apps.glossary.models import PlantFamily, Vegetable, Tool, CalendarEntry
 from apps.pests.models import Disease, Insect
 from apps.subscriptions.models import Subscription, SubscriptionPlan
 from apps.blog.models import Category as BlogCategory, Post as BlogPost, Comment as BlogComment
@@ -17,29 +17,48 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS('Création des données de test...'))
 
         # 0. Formules d'Abonnement administrables
-        plan_monthly, _ = SubscriptionPlan.objects.get_or_create(
+        SubscriptionPlan.objects.update_or_create(
             plan_type='monthly',
             defaults={
-                'name': 'Mensuel',
+                'name': 'Pass 1 Mois',
+                'description': 'Découverte sans engagement',
                 'price': 2500.00,
                 'currency': 'XOF',
                 'approx_eur': '~4€',
                 'discount_badge': '',
                 'duration_days': 30,
+                'is_featured': False,
                 'order': 1,
                 'is_active': True
             }
         )
-        plan_yearly, _ = SubscriptionPlan.objects.get_or_create(
+        SubscriptionPlan.objects.update_or_create(
+            plan_type='seasonal',
+            defaults={
+                'name': 'Pass Saison (3 Mois)',
+                'description': '1 cycle complet de culture maraîchère',
+                'price': 5000.00,
+                'currency': 'XOF',
+                'approx_eur': '~8€',
+                'discount_badge': '⭐ Recommandé',
+                'duration_days': 90,
+                'is_featured': True,
+                'order': 2,
+                'is_active': True
+            }
+        )
+        SubscriptionPlan.objects.update_or_create(
             plan_type='yearly',
             defaults={
-                'name': 'Annuel',
-                'price': 20000.00,
+                'name': 'Pass Annuel',
+                'description': 'Accès illimité toute l\'année',
+                'price': 15000.00,
                 'currency': 'XOF',
-                'approx_eur': '~30€',
-                'discount_badge': '-30%',
+                'approx_eur': '~23€',
+                'discount_badge': '-50%',
                 'duration_days': 365,
-                'order': 2,
+                'is_featured': False,
+                'order': 3,
                 'is_active': True
             }
         )
@@ -306,6 +325,31 @@ class Command(BaseCommand):
                 'is_premium': True
             }
         )
+
+        # 4.bis Calendrier Cultural Tropical (Semis et Récoltes par mois)
+        # Gombo : Semis Mai (5) à Août (8), Récolte Juillet (7) à Octobre (10)
+        for m in [5, 6, 7, 8]:
+            CalendarEntry.objects.get_or_create(vegetable=v_gombo, action='semis', month=m, defaults={'notes': 'Semis direct en poquets de 3 graines à 50 cm d’écart.'})
+        for m in [7, 8, 9, 10]:
+            CalendarEntry.objects.get_or_create(vegetable=v_gombo, action='recolte', month=m, defaults={'notes': 'Récolter tous les 2-3 jours quand les gousses sont encore tendres.'})
+
+        # Tomate : Semis Octobre (10) à Janvier (1), Récolte Janvier (1) à Avril (4)
+        for m in [10, 11, 12, 1]:
+            CalendarEntry.objects.get_or_create(vegetable=v_tomate, action='semis', month=m, defaults={'notes': 'Pépinière ombragée puis repiquage en fin d’après-midi.'})
+        for m in [1, 2, 3, 4]:
+            CalendarEntry.objects.get_or_create(vegetable=v_tomate, action='recolte', month=m, defaults={'notes': 'Cueillette régulière des fruits mûrs ou au stade tournant.'})
+
+        # Piment Habanero : Semis Octobre (10) à Février (2), Récolte Janvier (1) à Août (8)
+        for m in [10, 11, 12, 1, 2]:
+            CalendarEntry.objects.get_or_create(vegetable=v_piment, action='semis', month=m, defaults={'notes': 'Semis en caissettes protégées des fourmis et fortes chaleurs.'})
+        for m in [1, 2, 3, 4, 5, 6, 7, 8]:
+            CalendarEntry.objects.get_or_create(vegetable=v_piment, action='recolte', month=m, defaults={'notes': 'Récolter les piments bien colorés avec leur pédoncule.'})
+
+        # Patate douce : Boutures Juin (6) à Septembre (9), Récolte Octobre (10) à Janvier (1)
+        for m in [6, 7, 8, 9]:
+            CalendarEntry.objects.get_or_create(vegetable=v_patate, action='semis', month=m, defaults={'notes': 'Bouturage des tiges sur billons surélevés bien meubles.'})
+        for m in [10, 11, 12, 1]:
+            CalendarEntry.objects.get_or_create(vegetable=v_patate, action='recolte', month=m, defaults={'notes': 'Arrachage précautionneux des tubercules à la fourche-bêche.'})
 
         # 5. Outils Adaptés au Maraîchage Tropical
         Tool.objects.get_or_create(

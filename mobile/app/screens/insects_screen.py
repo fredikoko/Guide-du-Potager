@@ -7,6 +7,7 @@ from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.pest_service import PestService
+from ..services.auth_service import AuthService
 from ..components.cards import CardWidget
 from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
@@ -82,11 +83,13 @@ class InsectsScreen(Screen):
 
         for insect in insects:
             card = CardWidget(bg_color=Theme.CARD_BG)
+            is_prem = bool(insect.get('is_premium'))
 
-            badge = " [PREMIUM]" if insect.get('is_premium') else ""
+            title_txt = f"[b]{insect['name']}[/b]" + (" [color=47C26B]★[/color]" if is_prem else "")
             i_title = Label(
-                text=f"[b]{insect['name']}[/b][color=E8AB26]{badge}[/color]",
-                markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
+                text=title_txt,
+                markup=True, font_size='17sp',
+                color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_DARK,
                 size_hint_y=None, height=35, halign='left', valign='middle'
             )
             i_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
@@ -104,6 +107,15 @@ class InsectsScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
+            if insect.get('damage'):
+                dam_text = insect['damage'][:100] + ("..." if len(insect['damage']) > 100 else "")
+                i_desc = Label(
+                    text=dam_text,
+                    color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, height=40, halign='left', valign='top'
+                )
+                i_desc.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(i_desc)
+
             iid = insect['id']
             detail_btn = Button(
                 text="Voir les détails →",
@@ -111,7 +123,7 @@ class InsectsScreen(Screen):
                 size_hint_y=None,
                 height=42,
                 background_normal='',
-                background_color=Theme.PRIMARY_MAIN,
+                background_color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_MAIN,
                 color=Theme.TEXT_LIGHT
             )
             detail_btn.bind(on_release=lambda instance, insect_id=iid, i_url=img_url: self.open_insect_detail(insect_id, i_url))
@@ -125,28 +137,37 @@ class InsectsScreen(Screen):
             return
 
         data = res['data']
+        is_prem = bool(data.get('is_premium'))
+        is_sub = AuthService().is_subscribed()
+        is_locked = data.get('is_locked', False) or (is_prem and not is_sub)
+
         base_root = Config.API_BASE_URL.replace('/api', '')
         img_url = data.get('image') or fallback_img
         if img_url and img_url.startswith('/'):
             img_url = f"{base_root}{img_url}"
 
-        fields = [
-            ("Description", data.get('description', ''), Theme.TEXT_DARK),
-            ("Dégâts constatés", data.get('damage', ''), (0.8, 0.3, 0.2, 1)),
-            ("Solution Bio / Traitement", data.get('solution', ''), Theme.PRIMARY_MAIN),
-        ]
-        if data.get('favorable_season'):
-            fields.append(("Saison favorable", data.get('favorable_season'), (0.85, 0.45, 0.15, 1)))
-        if data.get('tropical_bio_control'):
-            fields.append(("Lutte biologique tropicale", data.get('tropical_bio_control'), Theme.PRIMARY_DARK))
-        if data.get('prevention_tips'):
-            fields.append(("Conseils de prévention", data.get('prevention_tips'), Theme.BROWN_MAIN))
+        if is_locked:
+            fields = [
+                ("Description", "🔒 La fiche d'identification complète, les solutions curatives bio et les méthodes de lutte sont réservées aux abonnés.", Theme.TEXT_MUTED),
+            ]
+        else:
+            fields = [
+                ("Description", data.get('description', ''), Theme.TEXT_DARK),
+                ("Dégâts constatés", data.get('damage', ''), (0.8, 0.3, 0.2, 1)),
+                ("Solution Bio / Traitement", data.get('solution', ''), Theme.PRIMARY_MAIN),
+            ]
+            if data.get('favorable_season'):
+                fields.append(("Saison favorable", data.get('favorable_season'), (0.85, 0.45, 0.15, 1)))
+            if data.get('tropical_bio_control'):
+                fields.append(("Lutte biologique tropicale", data.get('tropical_bio_control'), Theme.PRIMARY_DARK))
+            if data.get('prevention_tips'):
+                fields.append(("Conseils de prévention", data.get('prevention_tips'), Theme.BROWN_MAIN))
 
         popup = DetailPopup(
             title_text=data['name'],
             image_url=img_url,
             fields=fields,
-            is_locked=data.get('is_locked', False),
+            is_locked=is_locked,
             upgrade_callback=lambda: setattr(self.manager, 'current', 'subscription')
         )
         popup.open()

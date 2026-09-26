@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Part, Chapter, ChapterImage
+from .models import Part, Chapter, ChapterImage, AboutPage
 
 class ChapterImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
@@ -34,3 +34,17 @@ class PartSerializer(serializers.ModelSerializer):
     class Meta:
         model = Part
         fields = ['id', 'title', 'description', 'order', 'is_premium', 'icon', 'chapters']
+
+
+class AboutPageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AboutPage
+        fields = [
+            'id', 'title', 'subtitle', 'mission_title', 'mission_text',
+            'pillar_1_title', 'pillar_1_desc',
+            'pillar_2_title', 'pillar_2_desc',
+            'pillar_3_title', 'pillar_3_desc',
+            'contact_title', 'contact_text', 'contact_email', 'contact_phone',
+            'app_version', 'updated_at'
+        ]
+

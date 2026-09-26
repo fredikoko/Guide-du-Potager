@@ -1,7 +1,8 @@
 from django.urls import path
-from .views import PartListView, PartDetailView, ChapterListView, ChapterDetailView
+from .views import PartListView, PartDetailView, ChapterListView, ChapterDetailView, AboutPageView
 
 urlpatterns = [
+    path('about/', AboutPageView.as_view(), name='about_page'),
     path('parts/', PartListView.as_view(), name='part_list'),
     path('parts/<int:pk>/', PartDetailView.as_view(), name='part_detail'),
     path('chapters/', ChapterListView.as_view(), name='chapter_list'),

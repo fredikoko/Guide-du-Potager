@@ -13,6 +13,15 @@ class AuthService:
     def get_current_user(self):
         return self.storage.get('current_user')
 
+    def is_subscribed(self):
+        user = self.get_current_user()
+        if not user or not isinstance(user, dict):
+            return False
+        profile = user.get('profile')
+        if not profile or not isinstance(profile, dict):
+            return False
+        return bool(profile.get('subscription_active', False))
+
     def login(self, email, password):
         res = self.api.post('auth/login/', {'email': email, 'password': password})
         if res.get('success'):

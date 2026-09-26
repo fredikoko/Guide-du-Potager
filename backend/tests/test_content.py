@@ -37,4 +37,13 @@ class ContentAPITestCase(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['is_locked'])
-        self.assertIn("abonnés Premium", response.data['content'])
+        self.assertIn("abonnés", response.data['content'])
+
+    def test_about_page_api(self):
+        url = reverse('about_page')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['title'], "Guide du Potager Tropical")
+        self.assertEqual(response.data['mission_title'], "Notre Mission & Approche Maraîchère")
+        self.assertIn("contact@guidedupotager.com", response.data['contact_email'])
+

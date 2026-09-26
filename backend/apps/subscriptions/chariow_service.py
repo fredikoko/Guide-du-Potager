@@ -30,6 +30,8 @@ class ChariowService:
             return plan.chariow_product_id
         if plan_type == 'yearly':
             return getattr(settings, 'CHARIOW_PRODUCT_YEARLY_ID', '')
+        if plan_type == 'seasonal':
+            return getattr(settings, 'CHARIOW_PRODUCT_SEASONAL_ID', '')
         return getattr(settings, 'CHARIOW_PRODUCT_MONTHLY_ID', '')
 
     @classmethod

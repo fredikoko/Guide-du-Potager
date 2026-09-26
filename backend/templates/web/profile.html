@@ -1,0 +1,120 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Mon Profil Maraîcher - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    
+    <!-- En-tête du Profil -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 flex flex-col sm:flex-row items-center sm:items-start justify-between gap-6">
+        <div class="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-5 text-center sm:text-left">
+            <div class="w-20 h-20 rounded-2xl bg-gradient-to-tr from-[#1E592E] to-[#3D7A42] text-white flex items-center justify-center text-3xl font-bold shadow-md">
+                <i class="fa-solid fa-user"></i>
+            </div>
+            <div class="space-y-1">
+                <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                    <h1 class="text-2xl font-black text-gray-900">{{ user.username }}</h1>
+                    {% if is_premium %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/40">
+                        <i class="fa-solid fa-star mr-1"></i> Pass Actif
+                    </span>
+                    {% else %}
+                    <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-600">
+                        Compte Gratuit
+                    </span>
+                    {% endif %}
+                </div>
+                <p class="text-xs sm:text-sm text-gray-500">{{ user.email }}</p>
+                <p class="text-xs text-[#3D7A42] font-semibold">{{ profile.get_climate_zone_display }}</p>
+            </div>
+        </div>
+
+        <a href="{% url 'web:logout' %}" class="px-4 py-2 rounded-xl border border-gray-200 text-xs font-bold text-red-600 hover:bg-red-50 transition">
+            <i class="fa-solid fa-right-from-bracket mr-1"></i> Déconnexion
+        </a>
+    </div>
+
+    <!-- Carte Statut d'Abonnement -->
+    <div class="rounded-3xl p-6 sm:p-8 border-2 shadow-sm {% if is_premium %}bg-emerald-50/60 border-[#47C26B]{% else %}bg-white border-gray-200{% endif %}">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="space-y-2">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-id-card text-xl {% if is_premium %}text-[#47C26B]{% else %}text-gray-400{% endif %}"></i>
+                    <h2 class="text-lg font-bold text-gray-900">Statut de votre Abonnement</h2>
+                </div>
+
+                {% if is_premium %}
+                <p class="text-xs sm:text-sm text-emerald-900">
+                    Votre accès illimité est <strong>Actif</strong> jusqu'au <strong>{{ profile.subscription_end_date|date:"d F Y à H:i" }}</strong>.
+                </p>
+                {% else %}
+                <p class="text-xs sm:text-sm text-gray-600">
+                    Vous êtes actuellement sur la formule gratuite. Les fiches de biopesticides, outils et chapitres exclusifs nécessitent un pass actif.
+                </p>
+                {% endif %}
+            </div>
+
+            <a href="{% url 'web:subscription' %}" class="px-5 py-3 rounded-xl font-bold text-xs sm:text-sm shadow-md transition
+                {% if is_premium %}bg-[#3D7A42] hover:bg-[#1E592E] text-white{% else %}bg-[#47C26B] hover:bg-[#3db05f] text-[#1E592E]{% endif %}">
+                {% if is_premium %}Prolonger mon Pass{% else %}Prendre un Pass dès 2 500 F{% endif %}
+            </a>
+        </div>
+    </div>
+
+    <!-- Formulaire Modification du Profil -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-6">
+        <h2 class="text-xl font-black text-[#1E592E] border-b border-gray-100 pb-3 flex items-center">
+            <i class="fa-solid fa-sliders text-[#3D7A42] mr-2"></i>
+            Paramètres & Données du Potager
+        </h2>
+
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">
+                        {{ form.username.label }}
+                    </label>
+                    {{ form.username }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">
+                        {{ form.phone_number.label }}
+                    </label>
+                    {{ form.phone_number }}
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">
+                        {{ form.country.label }}
+                    </label>
+                    {{ form.country }}
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-700 mb-1">
+                        {{ form.climate_zone.label }}
+                    </label>
+                    {{ form.climate_zone }}
+                </div>
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    {{ form.garden_type.label }}
+                </label>
+                {{ form.garden_type }}
+            </div>
+
+            <div class="pt-2">
+                <button type="submit" class="px-6 py-3 bg-[#3D7A42] hover:bg-[#1E592E] text-white font-bold rounded-xl text-sm shadow-md transition">
+                    Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+
+</div>
+{% endblock %}

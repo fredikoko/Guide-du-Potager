@@ -10,9 +10,9 @@ from ..styles.themes import Theme
 class DetailPopup(Popup):
     def __init__(self, title_text, image_url=None, fields=[], is_locked=False, upgrade_callback=None, **kwargs):
         super().__init__(**kwargs)
-        self.title = title_text
+        self.title = f"★ {title_text}" if is_locked else title_text
         self.title_size = '18sp'
-        self.title_color = Theme.TEXT_LIGHT
+        self.title_color = Theme.ACCENT_EXCLUSIVE if is_locked else Theme.TEXT_LIGHT
         self.background_color = (0.1, 0.22, 0.13, 0.95)
         self.size_hint = (0.92, 0.88)
         self.auto_dismiss = True
@@ -37,6 +37,26 @@ class DetailPopup(Popup):
                 height=180
             )
             content_box.add_widget(img)
+
+        # Locked Banner
+        if is_locked:
+            lock_card = BoxLayout(orientation='vertical', size_hint_y=None, height=76, padding=[10, 8, 10, 8], spacing=4)
+            with lock_card.canvas.before:
+                Color(0.96, 0.92, 0.84, 1.0)
+                lock_card.rect = RoundedRectangle(size=lock_card.size, pos=lock_card.pos, radius=[6])
+            lock_card.bind(size=lambda inst, v: setattr(inst.rect, 'size', v),
+                           pos=lambda inst, v: setattr(inst.rect, 'pos', v))
+            lbl1 = Label(
+                text="[color=855E42][b]🔒 Fiche réservée aux abonnés[/b][/color]",
+                markup=True, font_size='15sp', size_hint_y=None, height=26, halign='center'
+            )
+            lbl2 = Label(
+                text="Débloquez l'accès complet aux fiches détaillées et astuces d'experts.",
+                font_size='12sp', color=Theme.TEXT_MUTED, size_hint_y=None, height=24, halign='center'
+            )
+            lock_card.add_widget(lbl1)
+            lock_card.add_widget(lbl2)
+            content_box.add_widget(lock_card)
 
         # Render detail fields (key, value, color)
         for field in fields:
@@ -73,15 +93,15 @@ class DetailPopup(Popup):
                 val_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
                 content_box.add_widget(val_lbl)
 
-        # Upgrade button if premium locked
+        # Upgrade button if access is locked
         if is_locked and upgrade_callback:
             up_btn = Button(
-                text="★ Débloquer avec l'Abonnement Premium",
+                text="★ Débloquer l'accès complet",
                 font_size='15sp',
                 size_hint_y=None,
                 height=48,
                 background_normal='',
-                background_color=Theme.GOLD_PREMIUM,
+                background_color=Theme.ACCENT_EXCLUSIVE,
                 color=Theme.TEXT_LIGHT
             )
             up_btn.bind(on_release=lambda x: (self.dismiss(), upgrade_callback()))

@@ -3,7 +3,8 @@ from django.conf import settings
 
 PLAN_CHOICES = (
     ('monthly', 'Mensuel (2 500 XOF / ~4€)'),
-    ('yearly', 'Annuel (20 000 XOF / ~30€)'),
+    ('seasonal', 'Saison Potager - 3 Mois (5 000 XOF / ~8€)'),
+    ('yearly', 'Annuel (15 000 XOF / ~23€)'),
 )
 
 STATUS_CHOICES = (
@@ -19,17 +20,20 @@ PAYMENT_METHODS = (
 class SubscriptionPlan(models.Model):
     PLAN_TYPE_CHOICES = (
         ('monthly', 'Mensuel'),
+        ('seasonal', 'Saison Potager (3 Mois)'),
         ('yearly', 'Annuel'),
     )
 
     plan_type = models.CharField(max_length=20, choices=PLAN_TYPE_CHOICES, unique=True, verbose_name="Type de formule")
     name = models.CharField(max_length=100, verbose_name="Nom affiché", help_text="Ex: Mensuel, Annuel")
+    description = models.CharField(max_length=200, blank=True, default="", verbose_name="Courte description", help_text="Ex: Idéal pour un cycle complet de culture")
     price = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Prix")
     currency = models.CharField(max_length=10, default='XOF', verbose_name="Devise")
     approx_eur = models.CharField(max_length=50, blank=True, default="", verbose_name="Équivalence indicative (ex: ~4€)")
-    discount_badge = models.CharField(max_length=50, blank=True, default="", verbose_name="Badge promotionnel (ex: -30%)")
+    discount_badge = models.CharField(max_length=50, blank=True, default="", verbose_name="Badge promotionnel (ex: -30% ou Recommandé)")
     duration_days = models.PositiveIntegerField(default=30, verbose_name="Durée en jours")
     chariow_product_id = models.CharField(max_length=100, blank=True, verbose_name="ID Produit Chariow (optionnel)")
+    is_featured = models.BooleanField(default=False, verbose_name="Formule recommandée")
     is_active = models.BooleanField(default=True, verbose_name="Actif")
     order = models.PositiveIntegerField(default=1, verbose_name="Ordre d'affichage")
 

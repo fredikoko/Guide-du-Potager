@@ -2,7 +2,8 @@ from django.urls import path
 from .views import (
     ToolListView, ToolDetailView,
     PlantFamilyListView, PlantFamilyDetailView,
-    VegetableListView, VegetableDetailView
+    VegetableListView, VegetableDetailView,
+    CalendarEntryListView
 )
 
 urlpatterns = [
@@ -12,4 +13,5 @@ urlpatterns = [
     path('families/<int:pk>/', PlantFamilyDetailView.as_view(), name='plantfamily_detail'),
     path('vegetables/', VegetableListView.as_view(), name='vegetable_list'),
     path('vegetables/<int:pk>/', VegetableDetailView.as_view(), name='vegetable_detail'),
+    path('calendar/', CalendarEntryListView.as_view(), name='calendar_entry_list'),
 ]

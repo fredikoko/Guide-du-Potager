@@ -1,0 +1,271 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Accueil & Guide Ebook - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<!-- HERO BANNER TROPICAL -->
+<div class="relative bg-gradient-to-br from-[#1E592E] via-[#245229] to-[#14421d] text-white py-12 sm:py-16 overflow-hidden border-b-4 border-[#47C26B]">
+    <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#47C26B_1px,transparent_1px)] [background-size:16px_16px] pointer-events-none"></div>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+            
+            <div class="lg:col-span-8 space-y-4 sm:space-y-6">
+                <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/40 text-xs sm:text-sm font-bold tracking-wide">
+                    <i class="fa-solid fa-seedling"></i>
+                    <span>Maraîchage Tropical : Conventionnel, Raisonné & Bio</span>
+                </div>
+
+                <h1 class="text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
+                    Votre Guide Pratique pour Réussir votre <span class="text-[#47C26B]">Potager Tropical</span>
+                </h1>
+
+                <p class="text-gray-200 text-sm sm:text-lg max-w-2xl leading-relaxed">
+                    Découvrez toutes les techniques conventionnelles et agro-écologiques adaptées à la chaleur tropicale : fertilisation raisonnée, protection des cultures, biopesticides locaux, fiches de culture et calendrier de semis.
+                </p>
+
+                <!-- Boutons d'Action Rapide -->
+                <div class="flex flex-wrap gap-3 sm:gap-4 pt-2">
+                    <a href="#sommaire-guide" class="inline-flex items-center px-5 sm:px-6 py-3 rounded-xl font-bold text-[#1E592E] bg-[#47C26B] hover:bg-[#3db05f] shadow-lg transition transform hover:-translate-y-0.5">
+                        <i class="fa-solid fa-book-open mr-2"></i>
+                        Lire le Manuel Ebook
+                    </a>
+                    <a href="{% url 'web:calendar' %}" class="inline-flex items-center px-5 sm:px-6 py-3 rounded-xl font-bold text-white bg-[#3D7A42] hover:bg-[#468c4c] shadow transition">
+                        <i class="fa-solid fa-calendar-days mr-2 text-[#8AB86C]"></i>
+                        Simulateur Cultural
+                    </a>
+                    <a href="{% url 'web:vegetables_list' %}" class="inline-flex items-center px-5 sm:px-6 py-3 rounded-xl font-medium text-white border border-white/20 hover:border-[#47C26B] hover:text-[#47C26B] transition">
+                        <i class="fa-solid fa-carrot mr-2"></i>
+                        Fiches Légumes
+                    </a>
+                </div>
+            </div>
+
+            <!-- Carte Statistique / Rappel Mobile -->
+            <div class="lg:col-span-4 bg-white/10 backdrop-blur-md rounded-2xl p-6 border border-white/15 shadow-xl space-y-4">
+                <h3 class="font-extrabold text-white text-base sm:text-lg flex items-center">
+                    <i class="fa-solid fa-compass text-[#47C26B] mr-2 text-xl"></i>
+                    Ressources Disponibles
+                </h3>
+                <div class="grid grid-cols-2 gap-3 text-center">
+                    <div class="bg-white/10 rounded-xl p-3 border border-white/10">
+                        <span class="block text-2xl font-black text-[#47C26B]">{{ parts.count }}</span>
+                        <span class="text-xs text-gray-300">Grandes Parties</span>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3 border border-white/10">
+                        <span class="block text-2xl font-black text-[#47C26B]">{{ vegetables_count }}</span>
+                        <span class="text-xs text-gray-300">Cultures & Variétés</span>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3 border border-white/10">
+                        <span class="block text-2xl font-black text-[#47C26B]">{{ calendar_count }}</span>
+                        <span class="text-xs text-gray-300">Cycles Mensuels</span>
+                    </div>
+                    <div class="bg-white/10 rounded-xl p-3 border border-white/10">
+                        <span class="block text-2xl font-black text-[#47C26B]">100%</span>
+                        <span class="text-xs text-gray-300">Bio & Recettes</span>
+                    </div>
+                </div>
+
+                {% if not is_premium %}
+                <div class="pt-2">
+                    <a href="{% url 'web:subscription' %}" class="w-full flex items-center justify-center space-x-2 py-2.5 px-4 rounded-xl bg-gradient-to-r from-[#47C26B] to-[#38a356] text-[#1E592E] font-bold text-xs sm:text-sm shadow-md hover:brightness-105 transition">
+                        <i class="fa-solid fa-star"></i>
+                        <span>Activer le Pass Illimité</span>
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-12 space-y-12">
+
+    <!-- SOMMAIRE DU MANUEL / EBOOK (Parité avec Kivy HomeScreen) -->
+    <section id="sommaire-guide" class="scroll-mt-24 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between border-b border-gray-200 pb-4">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#3D7A42]">Manuel Numérique</span>
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E592E]">Sommaire des Parties & Chapitres</h2>
+            </div>
+            <p class="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-0">
+                Les contenus signalés par <span class="font-bold text-[#47C26B]">★</span> sont réservés aux abonnés.
+            </p>
+        </div>
+
+        <div class="space-y-6">
+            {% for part in parts %}
+            <div class="bg-white rounded-2xl p-5 sm:p-7 shadow-sm border border-gray-200 hover:shadow-md transition">
+                
+                <!-- Titre de la Partie -->
+                <div class="flex items-start justify-between mb-3">
+                    <div class="space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#1E592E]/10 text-[#1E592E]">
+                                Partie {{ part.order }}
+                            </span>
+                            {% if part.is_premium %}
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-bold bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/40">
+                                ★ Exclusif
+                            </span>
+                            {% endif %}
+                        </div>
+                        <h3 class="text-lg sm:text-xl font-extrabold {% if part.is_premium %}text-[#47C26B]{% else %}text-[#1E592E]{% endif %}">
+                            {{ part.title }}
+                            {% if part.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+                        </h3>
+                    </div>
+                </div>
+
+                {% if part.description %}
+                <p class="text-xs sm:text-sm text-gray-600 mb-5 leading-relaxed">
+                    {{ part.description }}
+                </p>
+                {% endif %}
+
+                <!-- Liste des Chapitres de cette partie -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-2">
+                    {% for chapter in part.chapters.all %}
+                    <a href="{% url 'web:chapter_detail' chapter.id %}" class="group flex items-center justify-between p-3.5 sm:p-4 rounded-xl border border-gray-200 hover:border-[#47C26B] hover:bg-[#F7F5ED] transition">
+                        <div class="flex items-center space-x-3">
+                            <span class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold {% if chapter.is_premium %}bg-[#47C26B]/20 text-[#47C26B]{% else %}bg-gray-100 text-gray-700{% endif %} group-hover:scale-105 transition">
+                                {% if chapter.is_premium %}★{% else %}{{ chapter.order }}{% endif %}
+                            </span>
+                            <div>
+                                <h4 class="text-sm font-bold text-gray-800 group-hover:text-[#1E592E] transition leading-snug">
+                                    {{ chapter.title }}
+                                    {% if chapter.is_premium %}
+                                    <span class="text-[#47C26B] text-xs font-black">★</span>
+                                    {% endif %}
+                                </h4>
+                            </div>
+                        </div>
+
+                        <div class="text-gray-400 group-hover:text-[#3D7A42] transition pl-2">
+                            <i class="fa-solid fa-chevron-right text-xs"></i>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <p class="text-xs text-gray-400 col-span-2 italic">Aucun chapitre enregistré dans cette partie.</p>
+                    {% endfor %}
+                </div>
+
+            </div>
+            {% empty %}
+            <div class="text-center py-12 bg-white rounded-2xl p-6 border border-gray-200">
+                <i class="fa-solid fa-book text-4xl text-gray-300 mb-3"></i>
+                <p class="text-gray-500 font-medium">Contenu du guide en cours de chargement...</p>
+            </div>
+            {% endfor %}
+        </div>
+    </section>
+
+    <!-- RACCOURCIS VERS LES AUTRES MODULES DU POTAGER -->
+    <section class="space-y-6">
+        <div class="border-b border-gray-200 pb-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#3D7A42]">Outils & Fiches</span>
+            <h2 class="text-2xl font-extrabold text-[#1E592E]">Modules Pratiques du Maraîcher</h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            
+            <a href="{% url 'web:calendar' %}" class="group p-5 bg-white rounded-2xl border border-gray-200 hover:border-[#47C26B] hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-[#3D7A42]/10 text-[#3D7A42] flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-calendar-check"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 text-base mb-1 group-hover:text-[#1E592E]">Simulateur Cultural</h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Que semer et que récolter ce mois-ci selon la saison tropicale.</p>
+            </a>
+
+            <a href="{% url 'web:diseases_list' %}" class="group p-5 bg-white rounded-2xl border border-gray-200 hover:border-[#47C26B] hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-red-100 text-red-700 flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-shield-virus"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 text-base mb-1 group-hover:text-[#1E592E]">
+                    Maladies & Soins <span class="text-[#47C26B]">★</span>
+                </h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Identifier les attaques cryptogamiques, traitements raisonnés et soins bio au neem.</p>
+            </a>
+
+            <a href="{% url 'web:insects_list' %}" class="group p-5 bg-white rounded-2xl border border-gray-200 hover:border-[#47C26B] hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-bug"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 text-base mb-1 group-hover:text-[#1E592E]">
+                    Insectes & Biocontrôle <span class="text-[#47C26B]">★</span>
+                </h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Lutte phytosanitaire raisonnée, barrières physiques et répulsifs naturels.</p>
+            </a>
+
+            <a href="{% url 'web:tools_list' %}" class="group p-5 bg-white rounded-2xl border border-gray-200 hover:border-[#47C26B] hover:shadow-md transition">
+                <div class="w-12 h-12 rounded-xl bg-[#543826]/10 text-[#543826] flex items-center justify-center text-xl mb-3 group-hover:scale-110 transition">
+                    <i class="fa-solid fa-trowel"></i>
+                </div>
+                <h3 class="font-bold text-gray-800 text-base mb-1 group-hover:text-[#1E592E]">
+                    Outils Maraîchers <span class="text-[#47C26B]">★</span>
+                </h3>
+                <p class="text-xs text-gray-500 leading-relaxed">Grelinettes, semoirs, goutte-à-goutte et équipement de précision.</p>
+            </a>
+
+        </div>
+    </section>
+
+    <!-- DERNIERS ARTICLES DU BLOG -->
+    {% if recent_posts %}
+    <section class="space-y-6">
+        <div class="flex items-center justify-between border-b border-gray-200 pb-3">
+            <div>
+                <span class="text-xs font-bold uppercase tracking-wider text-[#3D7A42]">Actualités & Fiches Pratiques</span>
+                <h2 class="text-2xl font-extrabold text-[#1E592E]">Derniers Articles du Blog</h2>
+            </div>
+            <a href="{% url 'web:blog_list' %}" class="text-xs sm:text-sm font-bold text-[#3D7A42] hover:text-[#1E592E] flex items-center">
+                <span>Tous les articles</span>
+                <i class="fa-solid fa-arrow-right ml-1"></i>
+            </a>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {% for post in recent_posts %}
+            <article class="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-lg transition flex flex-col">
+                {% if post.cover_image %}
+                <img src="{{ post.cover_image.url }}" alt="{{ post.title }}" class="h-44 w-full object-cover">
+                {% else %}
+                <div class="h-44 bg-gradient-to-r from-[#1E592E] to-[#3D7A42] flex items-center justify-center text-white/50 text-4xl">
+                    <i class="fa-solid fa-seedling"></i>
+                </div>
+                {% endif %}
+
+                <div class="p-5 flex-1 flex flex-col justify-between space-y-3">
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="font-bold text-[#47C26B]">
+                                [{{ post.category.name|default:'Général' }}]
+                            </span>
+                            <span class="text-gray-400">
+                                {{ post.created_at|date:"d M Y" }}
+                            </span>
+                        </div>
+                        <h3 class="font-extrabold text-base text-gray-900 leading-snug hover:text-[#1E592E] transition">
+                            <a href="{% url 'web:blog_detail' post.slug %}">
+                                {{ post.title }}
+                                {% if post.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+                            </a>
+                        </h3>
+                        <p class="text-xs text-gray-600 line-clamp-2">
+                            {{ post.excerpt|default:post.content|striptags|truncatewords:20 }}
+                        </p>
+                    </div>
+
+                    <a href="{% url 'web:blog_detail' post.slug %}" class="inline-flex items-center text-xs font-bold text-[#3D7A42] hover:text-[#1E592E] pt-2">
+                        <span>Lire la suite</span>
+                        <i class="fa-solid fa-chevron-right ml-1 text-[10px]"></i>
+                    </a>
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
+</div>
+{% endblock %}

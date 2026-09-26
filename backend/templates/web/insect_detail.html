@@ -1,0 +1,133 @@
+{% extends 'web/base.html' %}
+
+{% block title %}{{ insect.name }} - Insectes Nuisibles & Biocontrôle - Guide du Potager{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    
+    <!-- Fil d'ariane -->
+    <nav class="flex items-center space-x-2 text-xs sm:text-sm text-gray-500 overflow-x-auto whitespace-nowrap">
+        <a href="{% url 'web:home' %}" class="hover:text-[#1E592E]">Accueil</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <a href="{% url 'web:insects_list' %}" class="hover:text-[#1E592E]">Insectes Nuisibles</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <span class="text-[#1E592E] font-semibold">{{ insect.name }}</span>
+    </nav>
+
+    <div class="bg-white rounded-2xl p-6 sm:p-10 shadow-sm border border-gray-200 space-y-6">
+        
+        <!-- Header -->
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800">
+                Période de pullulation : {{ insect.favorable_season }}
+            </span>
+            {% if insect.is_premium %}
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/40">
+                <i class="fa-solid fa-star mr-1"></i> Fiche Exclusive
+            </span>
+            {% endif %}
+        </div>
+
+        <h1 class="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
+            {{ insect.name }}
+            {% if insect.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+        </h1>
+
+        {% if insect.image %}
+        <div class="rounded-2xl overflow-hidden max-h-80 bg-gray-50 border border-gray-100 flex items-center justify-center">
+            <img src="{{ insect.image.url }}" alt="{{ insect.name }}" class="w-full h-full object-cover">
+        </div>
+        {% endif %}
+
+        {% if is_locked %}
+            <div class="space-y-4 text-gray-700 leading-relaxed">
+                <div>
+                    <h3 class="font-bold text-gray-900 mb-1">Dégâts causés :</h3>
+                    <p class="text-sm">{{ insect.damage|truncatewords:35 }}</p>
+                </div>
+            </div>
+
+            <!-- Paywall Vert Clair -->
+            {% include 'web/components/paywall_card.html' %}
+        {% else %}
+            <!-- Contenu Débloqué -->
+            <div class="space-y-6 text-gray-800 text-sm sm:text-base leading-relaxed">
+                <div>
+                    <h3 class="text-lg font-bold text-gray-900 mb-2 flex items-center">
+                        <i class="fa-solid fa-circle-info mr-2 text-[#3D7A42]"></i>
+                        Description & Identification
+                    </h3>
+                    <div class="article-content prose prose-green max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
+                        {{ insect.description|safe }}
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-2xl bg-amber-50 border border-amber-200">
+                    <h3 class="text-base font-bold text-amber-900 mb-2 flex items-center">
+                        <i class="fa-solid fa-triangle-exclamation mr-2"></i>
+                        Dégâts Caractéristiques sur les Cultures
+                    </h3>
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-amber-950 whitespace-pre-line">
+                        {{ insect.damage|safe }}
+                    </div>
+                </div>
+
+                <div>
+                    <h3 class="text-base font-bold text-gray-900 mb-2">
+                        Solutions Curatives Générales
+                    </h3>
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-700 whitespace-pre-line">
+                        {{ insect.solution|safe }}
+                    </div>
+                </div>
+
+                {% if insect.tropical_bio_control %}
+                <div class="p-6 rounded-2xl bg-emerald-50 border border-emerald-200 shadow-sm">
+                    <h3 class="text-base sm:text-lg font-extrabold text-[#1E592E] mb-2 flex items-center">
+                        <i class="fa-solid fa-flask-vial mr-2 text-[#47C26B]"></i>
+                        Biocontrôle & Répulsifs Naturels Locaux
+                    </h3>
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-emerald-950 leading-relaxed whitespace-pre-line">
+                        {{ insect.tropical_bio_control|safe }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if insect.prevention_tips %}
+                <div class="p-5 rounded-2xl bg-gray-50 border border-gray-100">
+                    <h3 class="text-base font-bold text-gray-900 mb-2 flex items-center">
+                        <i class="fa-solid fa-shield mr-2 text-[#3D7A42]"></i>
+                        Prévention Physique & Barrières Agro-écologiques
+                    </h3>
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-700 whitespace-pre-line">
+                        {{ insect.prevention_tips|safe }}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if insect.affected_vegetables.all %}
+                <div class="pt-4 border-t border-gray-100">
+                    <span class="text-xs font-bold text-gray-400 block mb-2">Légumes ciblés par ce ravageur :</span>
+                    <div class="flex flex-wrap gap-2">
+                        {% for veg in insect.affected_vegetables.all %}
+                        <a href="{% url 'web:vegetable_detail' veg.id %}" class="px-3 py-1 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold transition">
+                            {{ veg.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        {% endif %}
+
+        <div class="pt-6 border-t border-gray-100">
+            <a href="{% url 'web:insects_list' %}" class="inline-flex items-center text-xs sm:text-sm font-bold text-[#3D7A42] hover:text-[#1E592E]">
+                <i class="fa-solid fa-arrow-left mr-2"></i>
+                Retour aux insectes nuisibles
+            </a>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

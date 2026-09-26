@@ -1,0 +1,56 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Connexion - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-md mx-auto px-4 py-12 sm:py-16">
+    <div class="bg-white rounded-3xl p-8 shadow-xl border border-gray-200 space-y-6">
+        
+        <!-- Logo & Titre -->
+        <div class="text-center space-y-2">
+            <div class="w-12 h-12 rounded-2xl bg-[#47C26B]/20 text-[#1E592E] flex items-center justify-center mx-auto text-2xl font-bold">
+                <i class="fa-solid fa-leaf text-[#47C26B]"></i>
+            </div>
+            <h1 class="text-2xl font-black text-[#1E592E]">Espace Maraîcher</h1>
+            <p class="text-xs sm:text-sm text-gray-500">Connectez-vous pour retrouver vos fiches et votre pass.</p>
+        </div>
+
+        <!-- Formulaire -->
+        <form method="post" class="space-y-4">
+            {% csrf_token %}
+            
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    {{ form.login.label }}
+                </label>
+                {{ form.login }}
+                {% if form.login.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.login.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <div>
+                <label class="block text-xs font-bold text-gray-700 mb-1">
+                    {{ form.password.label }}
+                </label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                <p class="text-xs text-red-600 mt-1">{{ form.password.errors.0 }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="w-full py-3.5 px-4 bg-[#3D7A42] hover:bg-[#1E592E] text-white font-bold rounded-xl text-sm shadow-md transition transform hover:-translate-y-0.5">
+                Se Connecter
+            </button>
+        </form>
+
+        <div class="text-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+            <span>Vous n'avez pas encore de compte ?</span>
+            <a href="{% url 'web:register' %}" class="font-bold text-[#3D7A42] hover:text-[#1E592E] ml-1 underline">
+                Créer un compte maraîcher
+            </a>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

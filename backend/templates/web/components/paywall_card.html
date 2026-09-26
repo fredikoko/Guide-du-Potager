@@ -1,0 +1,52 @@
+<div class="my-8 relative overflow-hidden rounded-2xl border-2 border-[#47C26B] bg-gradient-to-br from-[#1E592E] via-[#244E28] to-[#173F20] text-white p-6 sm:p-10 shadow-xl">
+    <!-- Background Botanical Motif -->
+    <div class="absolute -right-12 -bottom-12 opacity-10 text-white pointer-events-none text-9xl">
+        <i class="fa-solid fa-seedling"></i>
+    </div>
+
+    <div class="max-w-2xl relative z-10">
+        <div class="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-[#47C26B]/20 text-[#47C26B] text-xs sm:text-sm font-semibold mb-4 border border-[#47C26B]/40">
+            <i class="fa-solid fa-star"></i>
+            <span>Contenu Exclusif & Fiches Détaillées</span>
+        </div>
+
+        <h3 class="text-xl sm:text-3xl font-extrabold text-white mb-3">
+            Débloquez ce guide avec votre Pass Potager
+        </h3>
+
+        <p class="text-gray-200 text-sm sm:text-base leading-relaxed mb-6">
+            Cette fiche technique contient des protocoles avancés, des recettes locales 100% bio et des astuces agronomiques de précision pour maximiser vos rendements et protéger votre potager tropical.
+        </p>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-8 text-xs sm:text-sm text-gray-200">
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-circle-check text-[#47C26B]"></i>
+                <span>Tous les chapitres & e-books débloqués</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-circle-check text-[#47C26B]"></i>
+                <span>Recettes de biopesticides & soins bio</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-circle-check text-[#47C26B]"></i>
+                <span>Simulateur cultural mois par mois</span>
+            </div>
+            <div class="flex items-center space-x-2">
+                <i class="fa-solid fa-circle-check text-[#47C26B]"></i>
+                <span>Accès illimité mobile & web</span>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center space-y-3 sm:space-y-0 sm:space-x-4">
+            <a href="{% url 'web:subscription' %}" class="inline-flex items-center justify-center px-6 py-3.5 rounded-xl font-bold text-[#1E592E] bg-[#47C26B] hover:bg-[#3db05f] shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition">
+                <i class="fa-solid fa-unlock-keyhole mr-2"></i>
+                Choisir ma formule d'accès (dès 2 500 F)
+            </a>
+            {% if not user.is_authenticated %}
+            <a href="{% url 'web:login' %}?next={{ request.path }}" class="inline-flex items-center justify-center px-5 py-3.5 rounded-xl font-medium text-white hover:text-[#47C26B] border border-white/20 hover:border-[#47C26B] transition">
+                Déjà abonné ? Me connecter
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>

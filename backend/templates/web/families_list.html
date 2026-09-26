@@ -1,0 +1,75 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Familles Botaniques & Rotations - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    
+    <!-- En-tête -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+        <div class="max-w-3xl space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#3D7A42]">Agronomie & Associations</span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold text-[#1E592E]">Familles Botaniques & Rotations</h1>
+            <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+                Comprendre les familles végétales est la clé pour réussir la rotation des cultures, éviter l'épuisement des sols sahéliens et casser le cycle des maladies cryptogamiques et nématodes.
+            </p>
+        </div>
+    </div>
+
+    <!-- Grille des Familles Botaniques -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {% for family in families %}
+        <div class="bg-white rounded-2xl p-6 border border-gray-200 hover:shadow-md transition space-y-4 flex flex-col justify-between">
+            <div class="space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-[#1E592E]/10 text-[#1E592E]">
+                        Famille Botanique
+                    </span>
+                    <span class="text-xs font-bold text-gray-400">
+                        {{ family.vegetables.count }} légume{{ family.vegetables.count|pluralize }}
+                    </span>
+                </div>
+
+                <h2 class="text-xl sm:text-2xl font-black text-[#1E592E]">
+                    {{ family.name }}
+                </h2>
+
+                <div class="article-content text-xs sm:text-sm text-gray-600 leading-relaxed">
+                    {{ family.description|safe }}
+                </div>
+
+                {% if family.characteristics %}
+                <div class="p-3.5 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-700 space-y-1">
+                    <strong class="text-gray-900 block font-bold">Caractéristiques agronomiques :</strong>
+                    <div class="article-content leading-relaxed">{{ family.characteristics|safe }}</div>
+                </div>
+                {% endif %}
+
+                <!-- Légumes rattachés à cette famille -->
+                {% if family.vegetables.all %}
+                <div class="pt-2">
+                    <span class="text-xs font-bold text-gray-400 block mb-2">Exemples dans le guide :</span>
+                    <div class="flex flex-wrap gap-2">
+                        {% for veg in family.vegetables.all %}
+                        <a href="{% url 'web:vegetable_detail' veg.id %}" class="px-3 py-1 rounded-lg bg-[#3D7A42]/10 hover:bg-[#3D7A42] text-[#3D7A42] hover:text-white text-xs font-semibold transition">
+                            {{ veg.name }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="pt-3 border-t border-gray-100 flex items-center justify-between text-xs text-gray-500">
+                <span>Délai de retour sur la même planche : <strong>3 à 4 ans</strong></span>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full bg-white rounded-2xl p-12 text-center border border-gray-200">
+            <p class="text-gray-500 font-medium">Aucune famille botanique répertoriée.</p>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

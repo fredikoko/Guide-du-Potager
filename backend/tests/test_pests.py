@@ -73,7 +73,7 @@ class PestsAPITestCase(TestCase):
         res = self.client.get(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertTrue(res.data.get('is_locked'))
-        self.assertIn("Contenu Premium", res.data['treatment'])
+        self.assertIn("Contenu réservé", res.data['treatment'])
         self.assertNotIn("Solarisation", res.data['treatment'])
 
     def test_disease_premium_unlocked_for_premium_user(self):
@@ -90,7 +90,7 @@ class PestsAPITestCase(TestCase):
         res = self.client.get(url)
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertTrue(res.data.get('is_locked'))
-        self.assertIn("Contenu Premium", res.data['solution'])
+        self.assertIn("Contenu réservé", res.data['solution'])
         self.assertNotIn("Encarsia", res.data['solution'])
 
     def test_insect_premium_unlocked_for_premium_user(self):

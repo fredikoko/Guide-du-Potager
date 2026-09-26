@@ -8,9 +8,9 @@ class SubscriptionPlanSerializer(serializers.ModelSerializer):
     class Meta:
         model = SubscriptionPlan
         fields = [
-            'id', 'plan_type', 'name', 'price', 'currency',
+            'id', 'plan_type', 'name', 'description', 'price', 'currency',
             'approx_eur', 'discount_badge', 'duration_days',
-            'formatted_price', 'display_button_text', 'is_active', 'order'
+            'is_featured', 'formatted_price', 'display_button_text', 'is_active', 'order'
         ]
 
 class SubscriptionSerializer(serializers.ModelSerializer):
@@ -24,5 +24,5 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = ['id', 'payment_method', 'amount', 'currency', 'status', 'transaction_id', 'phone_number', 'created_at']
 
 class ChariowCheckoutRequestSerializer(serializers.Serializer):
-    plan_type = serializers.ChoiceField(choices=['monthly', 'yearly'])
+    plan_type = serializers.ChoiceField(choices=['monthly', 'seasonal', 'yearly'])
     redirect_url = serializers.URLField(required=False, allow_blank=True)

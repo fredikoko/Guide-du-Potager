@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Guide du Potager Tropical - Botanique & Maraîchage Bio{% endblock %}</title>
+    <meta name="description" content="Guide pratique complet du potager et maraîchage bio en climat tropical et sahélien : légumes, calendrier de semis, biopesticides et fertilisation naturelle.">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20y=%220%22%20width=%22100%22%20height=%22100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+
+    <!-- Fonts Google (Inter & Plus Jakarta Sans) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Tailwind CSS CDN avec Plugins Typography & Forms -->
+    <script src="https://cdn.tailwindcss.com?plugins=typography,forms"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        forest: '#1E592E',
+                        plant: '#3D7A42',
+                        sage: '#8AB86C',
+                        cream: '#F7F5ED',
+                        soil: '#543826',
+                        clay: '#855E42',
+                        accent: '#47C26B', // Vert Clair Lumineux pour les contenus exclusifs
+                    },
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #F7F5ED;
+            font-family: 'Plus Jakarta Sans', Inter, sans-serif;
+            color: #242b24;
+        }
+        /* Style des barres de défilement */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1ede1;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #8AB86C;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3D7A42;
+        }
+
+        /* TYPOGRAPHIE DES ARTICLES & CHAPITRES (Rendu HTML riche) */
+        .prose h1, .article-content h1 {
+            font-size: 1.875rem;
+            font-weight: 800;
+            color: #1E592E;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            line-height: 1.25;
+        }
+        .prose h2, .article-content h2 {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #1E592E;
+            margin-top: 1.75rem;
+            margin-bottom: 0.75rem;
+            line-height: 1.3;
+            padding-bottom: 0.25rem;
+            border-bottom: 2px solid rgba(71, 194, 107, 0.25);
+        }
+        .prose h3, .article-content h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #3D7A42;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .prose h4, .article-content h4 {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #543826;
+            margin-top: 1.25rem;
+            margin-bottom: 0.5rem;
+        }
+        .prose p, .article-content p {
+            margin-bottom: 1.15rem;
+            line-height: 1.75;
+            color: #374151;
+        }
+        .prose strong, .prose b, .article-content strong, .article-content b {
+            font-weight: 700;
+            color: #111827;
+        }
+        .prose em, .prose i, .article-content em, .article-content i {
+            font-style: italic;
+        }
+        .prose ul, .article-content ul {
+            list-style-type: disc !important;
+            padding-left: 1.75rem !important;
+            margin-top: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .prose ol, .article-content ol {
+            list-style-type: decimal !important;
+            padding-left: 1.75rem !important;
+            margin-top: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .prose li, .article-content li {
+            margin-bottom: 0.4rem;
+            line-height: 1.65;
+            color: #374151;
+        }
+        .prose table, .article-content table {
+            width: 100%;
+            margin-top: 1.5rem;
+            margin-bottom: 1.5rem;
+            border-collapse: separate;
+            border-spacing: 0;
+            border: 1px solid #E5E7EB;
+            border-radius: 1rem;
+            overflow: hidden;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+        }
+        .prose thead, .article-content thead {
+            background-color: #1E592E;
+            color: #ffffff;
+        }
+        .prose th, .article-content th {
+            padding: 0.75rem 1rem;
+            font-weight: 700;
+            font-size: 0.875rem;
+            text-align: left;
+            color: #ffffff;
+        }
+        .prose td, .article-content td {
+            padding: 0.75rem 1rem;
+            font-size: 0.875rem;
+            border-top: 1px solid #F3F4F6;
+            color: #374151;
+        }
+        .prose tbody tr:nth-child(even), .article-content tbody tr:nth-child(even) {
+            background-color: #F9FAFB;
+        }
+        .prose blockquote, .article-content blockquote {
+            border-left: 4px solid #47C26B;
+            background-color: rgba(71, 194, 107, 0.08);
+            padding: 1rem 1.25rem;
+            margin-top: 1.25rem;
+            margin-bottom: 1.25rem;
+            border-radius: 0 0.75rem 0.75rem 0;
+            color: #1E592E;
+        }
+        .prompt-illustration {
+            border-left: 4px solid #3D7A42 !important;
+            background-color: #F7F5ED !important;
+            padding: 1rem 1.25rem;
+            margin: 1.25rem 0;
+            border-radius: 0 0.75rem 0.75rem 0;
+            font-size: 0.875rem;
+            border: 1px solid #E5E7EB;
+            border-left-width: 4px !important;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="flex flex-col min-h-screen bg-[#F7F5ED] text-gray-800 antialiased">
+
+    <!-- HEADER / NAVIGATION RESPONSIVE -->
+    <header class="sticky top-0 z-40 bg-[#1E592E] text-white shadow-md border-b border-[#2c6e3b]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16 sm:h-20">
+                
+                <!-- Logo & Titre Principal -->
+                <div class="flex items-center space-x-3">
+                    <!-- Bouton Hamburger Mobile (Toggle Drawer) -->
+                    <button type="button" id="mobile-menu-btn" class="lg:hidden p-2 rounded-lg text-white hover:bg-[#286a37] focus:outline-none" aria-label="Ouvrir le menu">
+                        <i class="fa-solid fa-bars text-xl"></i>
+                    </button>
+
+                    <a href="{% url 'web:home' %}" class="flex items-center space-x-3 group">
+                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#47C26B]/20 border border-[#47C26B]/40 flex items-center justify-center text-[#47C26B] group-hover:scale-105 transition">
+                            <i class="fa-solid fa-leaf text-xl"></i>
+                        </div>
+                        <div>
+                            <span class="block text-base sm:text-lg font-extrabold tracking-tight text-white leading-tight">
+                                Guide du Potager
+                            </span>
+                            <span class="block text-xs font-semibold text-[#8AB86C] tracking-wide">
+                                Tropical & Bio
+                            </span>
+                        </div>
+                    </a>
+                </div>
+
+                <!-- Navigation Desktop Links (Visibles >= lg) -->
+                <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2 text-sm font-semibold">
+                    <a href="{% url 'web:home' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'home' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Guide Ebook
+                    </a>
+                    <a href="{% url 'web:vegetables_list' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'vegetables' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Légumes
+                    </a>
+                    <a href="{% url 'web:calendar' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'calendar' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Calendrier
+                    </a>
+                    <a href="{% url 'web:tools_list' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'tools' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Outils
+                    </a>
+                    <a href="{% url 'web:diseases_list' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'diseases' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Maladies
+                    </a>
+                    <a href="{% url 'web:insects_list' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'insects' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Insectes
+                    </a>
+                    <a href="{% url 'web:families_list' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'families' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Familles
+                    </a>
+                    <a href="{% url 'web:blog_list' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'blog' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Blog
+                    </a>
+                </nav>
+
+                <!-- Action Droite (Abonnement, Profil, Connexion) -->
+                <div class="flex items-center space-x-2 sm:space-x-3">
+                    {% if user.is_authenticated %}
+                        {% if is_premium %}
+                            <span class="hidden sm:inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/40">
+                                <i class="fa-solid fa-star mr-1"></i> Pass Actif
+                            </span>
+                        {% else %}
+                            <a href="{% url 'web:subscription' %}" class="hidden sm:inline-flex items-center px-3.5 py-1.5 rounded-lg text-xs font-bold bg-[#47C26B] hover:bg-[#3db05f] text-[#1E592E] shadow transition">
+                                <i class="fa-solid fa-star mr-1"></i> S'abonner
+                            </a>
+                        {% endif %}
+
+                        <a href="{% url 'web:profile' %}" class="flex items-center space-x-2 p-1.5 sm:px-3 sm:py-1.5 rounded-lg bg-[#286a37] hover:bg-[#307c41] transition text-sm font-semibold text-white">
+                            <i class="fa-solid fa-user-circle text-base text-[#47C26B]"></i>
+                            <span class="hidden md:inline">{{ user.username|truncatechars:12 }}</span>
+                        </a>
+
+                        <a href="{% url 'web:logout' %}" class="p-2 rounded-lg text-gray-300 hover:text-white hover:bg-[#286a37] transition" title="Se déconnecter">
+                            <i class="fa-solid fa-right-from-bracket"></i>
+                        </a>
+                    {% else %}
+                        <a href="{% url 'web:login' %}" class="text-xs sm:text-sm font-semibold text-gray-200 hover:text-white px-2 sm:px-3 py-1.5 rounded-lg hover:bg-[#286a37] transition">
+                            Connexion
+                        </a>
+                        <a href="{% url 'web:register' %}" class="text-xs sm:text-sm font-bold bg-[#47C26B] hover:bg-[#3db05f] text-[#1E592E] px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl shadow-md transition">
+                            S'inscrire
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOBILE SLIDE-OVER DRAWER (Parité avec Kivy NavigationDrawer) -->
+    <div id="drawer-backdrop" class="fixed inset-0 bg-black/60 z-50 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <div id="drawer-panel" class="fixed inset-y-0 left-0 max-w-xs w-full bg-[#1E592E] text-white shadow-2xl flex flex-col transform -translate-x-full transition-transform duration-300 ease-in-out">
+            
+            <!-- Drawer Header (Fond terre sombre #543826) -->
+            <div class="p-5 bg-[#543826] flex items-center justify-between border-b border-[#6d4932]">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-[#47C26B]/20 border border-[#47C26B]/40 flex items-center justify-center text-[#47C26B]">
+                        <i class="fa-solid fa-seedling text-lg"></i>
+                    </div>
+                    <div>
+                        <h4 class="font-extrabold text-base text-white leading-tight">Guide du Potager</h4>
+                        <p class="text-xs text-[#8AB86C]">Botanique & Maraîchage Bio</p>
+                    </div>
+                </div>
+                <button type="button" id="drawer-close-btn" class="p-2 text-gray-300 hover:text-white focus:outline-none">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Drawer Links Scrollables -->
+            <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
+                <a href="{% url 'web:home' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'home' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-book-open w-6 text-[#8AB86C]"></i>
+                    <span>Accueil & Guide Ebook</span>
+                </a>
+                <a href="{% url 'web:blog_list' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'blog' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-newspaper w-6 text-[#8AB86C]"></i>
+                    <span>Blog & Actualités</span>
+                </a>
+                <a href="{% url 'web:calendar' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'calendar' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-calendar-days w-6 text-[#8AB86C]"></i>
+                    <span>Simulateur Calendrier</span>
+                </a>
+                <a href="{% url 'web:vegetables_list' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'vegetables' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-carrot w-6 text-[#8AB86C]"></i>
+                    <span>Fiches Légumes</span>
+                </a>
+                <a href="{% url 'web:families_list' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'families' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-diagram-project w-6 text-[#8AB86C]"></i>
+                    <span>Familles Botaniques</span>
+                </a>
+                <a href="{% url 'web:tools_list' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'tools' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-trowel w-6 text-[#8AB86C]"></i>
+                    <span>Outils Maraîchers</span>
+                </a>
+                <a href="{% url 'web:diseases_list' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'diseases' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-shield-virus w-6 text-[#8AB86C]"></i>
+                    <span>Maladies & Soins Bio</span>
+                </a>
+                <a href="{% url 'web:insects_list' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'insects' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-bug w-6 text-[#8AB86C]"></i>
+                    <span>Insectes Nuisibles</span>
+                </a>
+
+                <div class="pt-3 pb-1 border-t border-[#286a37]">
+                    <a href="{% url 'web:subscription' %}" class="flex items-center px-4 py-3 rounded-xl font-bold text-sm bg-[#47C26B] text-[#1E592E] shadow-md hover:bg-[#3db05f] transition">
+                        <i class="fa-solid fa-star w-6 text-[#1E592E]"></i>
+                        <span>Abonnement & Pass VIP</span>
+                    </a>
+                </div>
+
+                {% if user.is_authenticated %}
+                <a href="{% url 'web:profile' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'profile' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-user-gear w-6 text-[#8AB86C]"></i>
+                    <span>Mon Profil</span>
+                </a>
+                {% else %}
+                <a href="{% url 'web:login' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm text-gray-200 hover:bg-[#286a37] transition">
+                    <i class="fa-solid fa-right-to-bracket w-6 text-[#8AB86C]"></i>
+                    <span>Connexion</span>
+                </a>
+                <a href="{% url 'web:register' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm text-gray-200 hover:bg-[#286a37] transition">
+                    <i class="fa-solid fa-user-plus w-6 text-[#8AB86C]"></i>
+                    <span>Créer un compte</span>
+                </a>
+                {% endif %}
+
+                <a href="{% url 'web:about' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm text-gray-200 hover:bg-[#286a37] transition">
+                    <i class="fa-solid fa-circle-info w-6 text-[#8AB86C]"></i>
+                    <span>À Propos</span>
+                </a>
+            </div>
+
+            <!-- Drawer Footer (Déconnexion) -->
+            {% if user.is_authenticated %}
+            <div class="p-3 bg-[#855E42] border-t border-[#9c7151]">
+                <a href="{% url 'web:logout' %}" class="flex items-center justify-center space-x-2 w-full py-2.5 px-4 rounded-xl text-white font-semibold text-sm hover:bg-[#724e35] transition">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Déconnexion</span>
+                </a>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+    <!-- FLASH MESSAGES -->
+    {% include 'web/components/alerts.html' %}
+
+    <!-- CONTENU PRINCIPAL -->
+    <main class="flex-1">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- FOOTER BOTANIQUE RESPONSIVE -->
+    <footer class="bg-[#1E592E] text-white mt-16 border-t-4 border-[#47C26B]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                
+                <!-- Identité & Mission -->
+                <div class="md:col-span-1 space-y-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-[#47C26B]/20 border border-[#47C26B]/40 flex items-center justify-center text-[#47C26B]">
+                            <i class="fa-solid fa-leaf"></i>
+                        </div>
+                        <span class="font-extrabold text-lg text-white">Guide du Potager</span>
+                    </div>
+                    <p class="text-xs sm:text-sm text-gray-300 leading-relaxed">
+                        Manuel numérique et fiches pratiques de maraîchage conventionnel et agro-écologique adapté au climat tropical. Cultivez avec succès toute l'année.
+                    </p>
+                    <div class="flex space-x-3 text-gray-300 pt-2">
+                        <a href="https://wa.me/" target="_blank" class="w-8 h-8 rounded-lg bg-[#286a37] flex items-center justify-center hover:text-[#47C26B] hover:bg-[#327e43] transition"><i class="fa-brands fa-whatsapp"></i></a>
+                        <a href="https://facebook.com/" target="_blank" class="w-8 h-8 rounded-lg bg-[#286a37] flex items-center justify-center hover:text-[#47C26B] hover:bg-[#327e43] transition"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="https://youtube.com/" target="_blank" class="w-8 h-8 rounded-lg bg-[#286a37] flex items-center justify-center hover:text-[#47C26B] hover:bg-[#327e43] transition"><i class="fa-brands fa-youtube"></i></a>
+                    </div>
+                </div>
+
+                <!-- Liens Guides & Fiches -->
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-wider text-[#8AB86C] mb-4">Guide & Fiches</h5>
+                    <ul class="space-y-2 text-xs sm:text-sm text-gray-200">
+                        <li><a href="{% url 'web:home' %}" class="hover:text-[#47C26B] transition">Sommaire du Manuel</a></li>
+                        <li><a href="{% url 'web:vegetables_list' %}" class="hover:text-[#47C26B] transition">Fiches Légumes tropicaux</a></li>
+                        <li><a href="{% url 'web:calendar' %}" class="hover:text-[#47C26B] transition">Simulateur Calendrier</a></li>
+                        <li><a href="{% url 'web:families_list' %}" class="hover:text-[#47C26B] transition">Familles botaniques</a></li>
+                    </ul>
+                </div>
+
+                <!-- Soins Bio & Outils -->
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-wider text-[#8AB86C] mb-4">Protection & Outils</h5>
+                    <ul class="space-y-2 text-xs sm:text-sm text-gray-200">
+                        <li><a href="{% url 'web:diseases_list' %}" class="hover:text-[#47C26B] transition">Maladies & Traitements Bio</a></li>
+                        <li><a href="{% url 'web:insects_list' %}" class="hover:text-[#47C26B] transition">Insectes & Biocontrôle</a></li>
+                        <li><a href="{% url 'web:tools_list' %}" class="hover:text-[#47C26B] transition">Outils maraîchers sahéliens</a></li>
+                        <li><a href="{% url 'web:blog_list' %}" class="hover:text-[#47C26B] transition">Articles & Retours d'expérience</a></li>
+                    </ul>
+                </div>
+
+                <!-- Formules & Accès -->
+                <div>
+                    <h5 class="text-xs font-bold uppercase tracking-wider text-[#8AB86C] mb-4">Pass & Abonnement</h5>
+                    <ul class="space-y-2 text-xs sm:text-sm text-gray-200">
+                        <li><a href="{% url 'web:subscription' %}" class="hover:text-[#47C26B] transition">Découvrir les formules</a></li>
+                        <li><a href="{% url 'web:about' %}" class="hover:text-[#47C26B] transition">À Propos & Contact</a></li>
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'web:profile' %}" class="hover:text-[#47C26B] transition">Mon profil maraîcher</a></li>
+                        {% else %}
+                        <li><a href="{% url 'web:login' %}" class="hover:text-[#47C26B] transition">Espace abonné</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
+
+            </div>
+
+            <div class="mt-12 pt-6 border-t border-[#286a37] flex flex-col sm:flex-row items-center justify-between text-xs text-gray-300">
+                <p>&copy; {{ now_year }} Guide du Potager Tropical. Tous droits réservés.</p>
+                <p class="mt-2 sm:mt-0 flex items-center space-x-1">
+                    <span>Maraîchage tropical : conventionnel, raisonné & agro-écologique</span>
+                    <i class="fa-solid fa-seedling text-[#47C26B]"></i>
+                </p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- SCRIPT DU MENU MOBILE DRAWER -->
+    <script>
+        (function() {
+            const menuBtn = document.getElementById('mobile-menu-btn');
+            const closeBtn = document.getElementById('drawer-close-btn');
+            const backdrop = document.getElementById('drawer-backdrop');
+            const panel = document.getElementById('drawer-panel');
+
+            function openDrawer() {
+                backdrop.classList.remove('opacity-0', 'pointer-events-none');
+                backdrop.classList.add('opacity-100');
+                panel.classList.remove('-translate-x-full');
+                panel.classList.add('translate-x-0');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeDrawer() {
+                backdrop.classList.remove('opacity-100');
+                backdrop.classList.add('opacity-0', 'pointer-events-none');
+                panel.classList.remove('translate-x-0');
+                panel.classList.add('-translate-x-full');
+                document.body.style.overflow = '';
+            }
+
+            if (menuBtn) menuBtn.addEventListener('click', openDrawer);
+            if (closeBtn) closeBtn.addEventListener('click', closeDrawer);
+            if (backdrop) {
+                backdrop.addEventListener('click', function(e) {
+                    if (e.target === backdrop) closeDrawer();
+                });
+            }
+        })();
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

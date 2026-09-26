@@ -17,9 +17,10 @@ class Theme:
     CARD_BG = (1.0, 1.0, 1.0, 1.0)           # Pure White Card
     HEADER_BG = (0.18, 0.38, 0.22, 1.0)      # Header Green
 
-    # Accents & Badges
-    GOLD_PREMIUM = (0.91, 0.67, 0.15, 1.0)   # #E8AB26 Premium Gold
-    FREE_BADGE = (0.28, 0.62, 0.36, 1.0)     # Free Badge Green
-    TEXT_DARK = (0.15, 0.18, 0.15, 1.0)      # Near-black text
+    # Accents & Distinctive Markers (Vert clair pour le marquage des contenus exclusifs)
+    ACCENT_EXCLUSIVE = (0.28, 0.76, 0.42, 1.0) # #47C26B Vert Clair Lumineux / Fresh Spring Green
+    ACCENT_HEX = "47C26B"                      # Code hex pour balises Kivy [color=...]
+    GOLD_PREMIUM = ACCENT_EXCLUSIVE            # Rétrocompatibilité
+    TEXT_DARK = (0.15, 0.18, 0.15, 1.0)        # Near-black text
     TEXT_LIGHT = (1.0, 1.0, 1.0, 1.0)        # White text
     TEXT_MUTED = (0.45, 0.48, 0.45, 1.0)      # Muted text

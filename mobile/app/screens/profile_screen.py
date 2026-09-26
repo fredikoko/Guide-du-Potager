@@ -160,7 +160,7 @@ class ProfileScreen(Screen):
         ))
 
         is_sub = profile.get('subscription_active', False) if isinstance(profile, dict) else False
-        sub_status_text = "[color=8AB86C][b]ACTIF (Premium)[/b][/color]" if is_sub else "[color=855E42][b]INACTIF (Accès Gratuit)[/b][/color]"
+        sub_status_text = "[color=8AB86C][b]ACTIF[/b][/color]" if is_sub else "[color=855E42][b]INACTIF[/b][/color]"
         end_date = profile.get('subscription_end_date', 'N/A') if isinstance(profile, dict) else 'N/A'
 
         card_sub.add_widget(Label(
@@ -174,8 +174,8 @@ class ProfileScreen(Screen):
             ))
 
         sub_btn = Button(
-            text="Gérer / Obtenir l'Abonnement Premium", font_size='15sp', size_hint_y=None, height=46,
-            background_normal='', background_color=Theme.GOLD_PREMIUM, color=Theme.TEXT_LIGHT
+            text="Gérer / Obtenir un Abonnement", font_size='15sp', size_hint_y=None, height=46,
+            background_normal='', background_color=Theme.ACCENT_EXCLUSIVE, color=Theme.TEXT_LIGHT
         )
         sub_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
         card_sub.add_widget(sub_btn)

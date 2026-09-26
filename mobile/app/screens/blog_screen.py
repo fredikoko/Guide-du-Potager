@@ -168,11 +168,13 @@ class BlogScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
-            # Article Title & Premium Badge
-            badge = " [PREMIUM]" if post.get('is_premium') else ""
+            # Article Title & Distinctive Accent
+            is_prem = bool(post.get('is_premium'))
+            star_indicator = " [color=47C26B]★[/color]" if is_prem else ""
             p_title = Label(
-                text=f"[b]{post['title']}[/b][color=E8AB26]{badge}[/color]",
-                markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
+                text=f"[b]{post['title']}[/b]{star_indicator}",
+                markup=True, font_size='17sp',
+                color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_DARK,
                 size_hint_y=None, halign='left', valign='top'
             )
             p_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
@@ -212,7 +214,7 @@ class BlogScreen(Screen):
                 size_hint_y=None,
                 height=42,
                 background_normal='',
-                background_color=Theme.PRIMARY_MAIN,
+                background_color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_MAIN,
                 color=Theme.TEXT_LIGHT
             )
             read_btn.bind(on_release=lambda instance, post_id=pid: self.open_post_detail(post_id))

@@ -61,7 +61,7 @@ class PostDetailView(generics.RetrieveAPIView):
                 f"<p><i>{instance.excerpt}</i></p>"
                 "<hr/>"
                 "<div style='background-color: #fff3cd; padding: 15px; border-radius: 6px; text-align: center; color: #856404;'>"
-                "<b>🔒 Article Réservé aux Membres Premium</b><br/>"
+                "<b>🔒 Article Réservé aux Membres Abonnés</b><br/>"
                 "Abonnez-vous dès aujourd'hui pour débloquer cet article exclusif, l'intégralité du guide et toutes les fiches d'experts !"
                 "</div>"
             )

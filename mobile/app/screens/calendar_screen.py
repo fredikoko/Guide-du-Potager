@@ -103,16 +103,28 @@ class CalendarScreen(Screen):
         self.add_widget(layout)
 
     def on_enter(self):
-        if self.cached_vegetables is None:
-            self.refresh_vegetables()
-        else:
-            self.render_calendar_results()
+        self.load_calendar_data()
 
-    def refresh_vegetables(self):
+    def load_calendar_data(self):
         self.results_container.clear_widgets()
         loading = Label(text="Chargement du calendrier...", color=Theme.TEXT_MUTED, font_size='15sp', size_hint_y=None, height=50)
         self.results_container.add_widget(loading)
 
+        month_num = MONTHS.index(self.selected_month) + 1
+        res = self.glossary_service.get_calendar_entries(action=self.selected_action, month=month_num)
+
+        if not res.get('success'):
+            # Si échec API (ex: mode hors-ligne sans cache du calendrier), tenter fallback sur vegetables
+            self._fallback_to_vegetables()
+            return
+
+        entries = res.get('data', [])
+        if isinstance(entries, dict) and 'results' in entries:
+            entries = entries['results']
+
+        self.render_calendar_entries(entries)
+
+    def _fallback_to_vegetables(self):
         res = self.glossary_service.get_vegetables()
         if not res.get('success'):
             self.results_container.clear_widgets()
@@ -120,11 +132,35 @@ class CalendarScreen(Screen):
             self.results_container.add_widget(err)
             return
 
-        vegs = res.get('data', [])
-        if isinstance(vegs, dict) and 'results' in vegs:
-            vegs = vegs['results']
-        self.cached_vegetables = vegs
-        self.render_calendar_results()
+        vegetables = res.get('data', [])
+        if isinstance(vegetables, dict) and 'results' in vegetables:
+            vegetables = vegetables['results']
+
+        matching = []
+        target_month_lower = self.selected_month.lower()
+        for veg in vegetables:
+            sowing_txt = (veg.get('sowing_period') or '').lower()
+            harvest_txt = (veg.get('harvest_period') or '').lower()
+            txt = sowing_txt if self.selected_action == 'semis' else harvest_txt
+            if (
+                target_month_lower[:3] in txt
+                or target_month_lower in txt
+                or "toute l'année" in txt
+                or "toute l'annee" in txt
+                or "toute l’année" in txt
+            ):
+                matching.append({
+                    'vegetable_name': veg.get('name'),
+                    'scientific_name': veg.get('scientific_name'),
+                    'vegetable_image': veg.get('image'),
+                    'sowing_period': veg.get('sowing_period'),
+                    'harvest_period': veg.get('harvest_period'),
+                    'care_tips': veg.get('care_tips'),
+                    'tropical_season_display': veg.get('tropical_season_display'),
+                    'cycle_duration_days': veg.get('cycle_duration_days'),
+                    'notes': ''
+                })
+        self.render_calendar_entries(matching)
 
     def select_action(self, action):
         self.selected_action = action
@@ -139,7 +175,7 @@ class CalendarScreen(Screen):
             self.semis_btn.background_color = (0.9, 0.9, 0.9, 1)
             self.semis_btn.color = Theme.TEXT_DARK
 
-        self.render_calendar_results()
+        self.load_calendar_data()
 
     def select_month(self, month_name):
         self.selected_month = month_name
@@ -151,74 +187,45 @@ class CalendarScreen(Screen):
                 btn.background_color = Theme.CARD_BG
                 btn.color = Theme.TEXT_DARK
 
-        self.render_calendar_results()
+        self.load_calendar_data()
 
-    def render_calendar_results(self):
+    def render_calendar_entries(self, entries):
         self.results_container.clear_widgets()
-        if self.cached_vegetables is None:
-            self.refresh_vegetables()
-            return
-
         base_root = Config.API_BASE_URL.replace('/api', '')
-        vegetables = self.cached_vegetables
 
-        matching_vegs = []
-        target_month_lower = self.selected_month.lower()
+        # Tri alphabétique par nom de légume
+        entries = sorted(entries, key=lambda e: (e.get('vegetable_name') or '').lower())
 
-        for veg in vegetables:
-            sowing_txt = (veg.get('sowing_period') or '').lower()
-            harvest_txt = (veg.get('harvest_period') or '').lower()
-
-            if self.selected_action == 'semis':
-                if (
-                    target_month_lower[:3] in sowing_txt
-                    or target_month_lower in sowing_txt
-                    or "toute l'année" in sowing_txt
-                    or "toute l'annee" in sowing_txt
-                    or "toute l’année" in sowing_txt
-                ):
-                    matching_vegs.append(veg)
-            else:
-                if (
-                    target_month_lower[:3] in harvest_txt
-                    or target_month_lower in harvest_txt
-                    or "toute l'année" in harvest_txt
-                    or "toute l'annee" in harvest_txt
-                    or "toute l’année" in harvest_txt
-                ):
-                    matching_vegs.append(veg)
-
-        # Header Status Label
         action_name = "Semer / Planter" if self.selected_action == 'semis' else "Récolter"
         status_lbl = Label(
-            text=f"[b]Légumes à {action_name} en {self.selected_month} ({len(matching_vegs)}) :[/b]",
+            text=f"[b]Légumes à {action_name} en {self.selected_month} ({len(entries)}) :[/b]",
             markup=True, font_size='16sp', color=Theme.PRIMARY_DARK,
             size_hint_y=None, height=35, halign='left'
         )
         status_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
         self.results_container.add_widget(status_lbl)
 
-        if not matching_vegs:
+        if not entries:
             empty_lbl = Label(
-                text=f"Aucun légume répertorié pour {action_name.lower()} spécifique en {self.selected_month}.",
+                text=f"Aucun légume programmé pour {action_name.lower()} en {self.selected_month}.",
                 color=Theme.TEXT_MUTED, font_size='14sp', size_hint_y=None, height=40, halign='left'
             )
             empty_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
             self.results_container.add_widget(empty_lbl)
             return
 
-        for veg in matching_vegs:
+        for item in entries:
             card = CardWidget(bg_color=Theme.CARD_BG)
 
             v_title = Label(
-                text=f"[b]{veg['name']}[/b] [i]({veg.get('scientific_name', '')})[/i]",
+                text=f"[b]{item.get('vegetable_name', '')}[/b] [i]({item.get('scientific_name', '')})[/i]",
                 markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
                 size_hint_y=None, height=35, halign='left'
             )
             v_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
             card.add_widget(v_title)
 
-            img_url = veg.get('image')
+            img_url = item.get('vegetable_image')
             if img_url:
                 if img_url.startswith('/'):
                     img_url = f"{base_root}{img_url}"
@@ -229,26 +236,36 @@ class CalendarScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
+            # Note spécifique pour ce mois si définie dans l'admin
+            if item.get('notes'):
+                note_lbl = Label(
+                    text=f"[b]💡 Conseil {self.selected_month} :[/b] {item['notes']}",
+                    markup=True, color=Theme.PRIMARY_DARK, font_size='13sp', size_hint_y=None
+                )
+                note_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                note_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(note_lbl)
+
             sow = Label(
-                text=f"[b]Semis :[/b] {veg.get('sowing_period', 'N/A')}",
+                text=f"[b]Semis :[/b] {item.get('sowing_period', 'N/A')}",
                 markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, height=25, halign='left'
             )
             sow.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
             card.add_widget(sow)
 
             harvest = Label(
-                text=f"[b]Récolte :[/b] {veg.get('harvest_period', 'N/A')}",
+                text=f"[b]Récolte :[/b] {item.get('harvest_period', 'N/A')}",
                 markup=True, color=Theme.BROWN_MAIN, font_size='14sp', size_hint_y=None, height=25, halign='left'
             )
             harvest.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
             card.add_widget(harvest)
 
-            if veg.get('tropical_season_display') or veg.get('cycle_duration_days'):
+            if item.get('tropical_season_display') or item.get('cycle_duration_days'):
                 trop_desc = []
-                if veg.get('tropical_season_display'):
-                    trop_desc.append(f"Saison : {veg['tropical_season_display']}")
-                if veg.get('cycle_duration_days'):
-                    trop_desc.append(f"Cycle : {veg['cycle_duration_days']} j")
+                if item.get('tropical_season_display'):
+                    trop_desc.append(f"Saison : {item['tropical_season_display']}")
+                if item.get('cycle_duration_days'):
+                    trop_desc.append(f"Cycle : {item['cycle_duration_days']} j")
                 trop_lbl = Label(
                     text=f"[b]Profil tropical :[/b] {' | '.join(trop_desc)}",
                     markup=True, color=Theme.PRIMARY_DARK, font_size='13sp', size_hint_y=None, height=25, halign='left'
@@ -256,13 +273,14 @@ class CalendarScreen(Screen):
                 trop_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
                 card.add_widget(trop_lbl)
 
-            tips = Label(
-                text=f"[b]Conseils :[/b] {veg.get('care_tips', '')}",
-                markup=True, color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, halign='left', valign='top'
-            )
-            tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-            tips.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-            card.add_widget(tips)
+            if item.get('care_tips'):
+                tips = Label(
+                    text=f"[b]Soins :[/b] {item['care_tips']}",
+                    markup=True, color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, halign='left', valign='top'
+                )
+                tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                tips.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(tips)
 
             self.results_container.add_widget(card)
 

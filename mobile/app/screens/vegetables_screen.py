@@ -4,11 +4,13 @@ from kivy.uix.scrollview import ScrollView
 from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.graphics import Color, Rectangle
+from kivy.uix.image import AsyncImage
 from ..styles.themes import Theme
 from ..services.glossary_service import GlossaryService
 from ..components.cards import CardWidget
 from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
+from ..utils.config import Config
 
 class VegetablesScreen(Screen):
     def __init__(self, **kwargs):
@@ -130,8 +132,30 @@ class VegetablesScreen(Screen):
             self.container.add_widget(empty_lbl)
             return
 
+        base_root = Config.API_BASE_URL.replace('/api', '')
         for veg in vegetables:
             card = CardWidget(bg_color=Theme.CARD_BG)
+
+            # Image if available
+            img_url = veg.get('image')
+            if img_url:
+                if img_url.startswith('/'):
+                    img_url = f"{base_root}{img_url}"
+                img_widget = AsyncImage(
+                    source=img_url,
+                    size_hint_y=None,
+                    height=140
+                )
+                card.add_widget(img_widget)
+
+            # Family tag if available
+            if veg.get('family_name'):
+                fam_lbl = Label(
+                    text=f"[color=3D7A42][b]🌱 {veg['family_name']}[/b][/color]",
+                    markup=True, font_size='12sp', size_hint_y=None, height=20, halign='left'
+                )
+                fam_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+                card.add_widget(fam_lbl)
 
             v_title = Label(
                 text=f"[b]{veg['name']}[/b] [i]({veg.get('scientific_name', '')})[/i]",
@@ -156,10 +180,14 @@ class VegetablesScreen(Screen):
             trop_parts = []
             if veg.get('tropical_season_display'):
                 trop_parts.append(f"[b]Saison :[/b] {veg['tropical_season_display']}")
-            if veg.get('heat_tolerance_display'):
-                trop_parts.append(f"[b]Chaleur :[/b] {veg['heat_tolerance_display']}")
             if veg.get('cycle_duration_days'):
                 trop_parts.append(f"[b]Cycle :[/b] {veg['cycle_duration_days']} j")
+            if veg.get('heat_tolerance_display'):
+                trop_parts.append(f"[b]Chaleur :[/b] {veg['heat_tolerance_display']}")
+            if veg.get('water_requirement_display'):
+                trop_parts.append(f"[b]Arrosage :[/b] {veg['water_requirement_display']}")
+            if veg.get('sun_exposure_display'):
+                trop_parts.append(f"[b]Exposition :[/b] {veg['sun_exposure_display']}")
 
             card.add_widget(v_title)
             card.add_widget(sow)

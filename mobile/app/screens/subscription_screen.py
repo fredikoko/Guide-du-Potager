@@ -34,7 +34,7 @@ class SubscriptionScreen(Screen):
         back_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'home'))
 
         title = Label(
-            text="[b]Abonnement Premium[/b]", markup=True, font_size='18sp',
+            text="[b]Abonnement & Pass[/b]", markup=True, font_size='18sp',
             color=Theme.TEXT_LIGHT, halign='left', valign='middle'
         )
         title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
@@ -60,67 +60,80 @@ class SubscriptionScreen(Screen):
         # Banner Card
         banner_card = CardWidget(bg_color=Theme.PRIMARY_DARK)
         banner_card.add_widget(Label(
-            text="[b]Passez à l'expérience Premium ![/b]", markup=True, font_size='18sp',
-            color=Theme.GOLD_PREMIUM, size_hint_y=None, height=35, halign='left'
+            text="[b]Accédez à l'expérience intégrale ![/b]", markup=True, font_size='18sp',
+            color=Theme.ACCENT_EXCLUSIVE, size_hint_y=None, height=35, halign='left'
         ))
         features_text = (
             "• Accès intégral aux chapitres avancés (Parties 2 et 3)\n"
             "• Articles exclusifs du Blog & analyses maraîchères d'experts\n"
             "• Fiches complètes des Maladies et Insectes ravageurs\n"
-            "• Traitements Bio, Recettes locales & Biocontrôle\n"
-            "• Guide des Outils Maraîchers de précision"
+            "• Soins conventionnels raisonnés, Biopesticides & Recettes locales\n"
+            "• Guide des Outils Maraîchers de précision & fiches hors-ligne\n"
+            "\n"
+            "[color=47C26B][b]💡 Rentabilisez votre pass dès votre première récolte en évitant les pertes ![/b][/color]"
         )
         banner_card.add_widget(Label(
-            text=features_text, color=Theme.TEXT_LIGHT, font_size='14sp', size_hint_y=None, height=115, halign='left'
+            text=features_text, markup=True, color=Theme.TEXT_LIGHT, font_size='13sp', size_hint_y=None, height=140, halign='left'
         ))
         self.container.add_widget(banner_card)
 
-        # Plan Selection (Chargement dynamique des prix configurés dans l'admin Django)
+        # Plan Selection (Chargement dynamique des prix et formules configurés dans l'admin Django)
         plan_card = CardWidget(bg_color=Theme.CARD_BG)
         plan_card.add_widget(Label(
             text="[b]1. Choisir votre formule :[/b]", markup=True, font_size='16sp',
             color=Theme.PRIMARY_DARK, size_hint_y=None, height=30, halign='left'
         ))
 
-        # Récupération des prix enregistrés dans l'administration
-        monthly_text = "Mensuel\n2 500 XOF (~4€)"
-        yearly_text = "Annuel (-30%)\n20 000 XOF (~30€)"
-
         plans_res = self.sub_service.get_plans()
+        plans = []
         if plans_res.get('success'):
-            plans = plans_res.get('data', [])
-            if isinstance(plans, dict) and 'results' in plans:
-                plans = plans['results']
+            raw = plans_res.get('data', [])
+            plans = raw.get('results', raw) if isinstance(raw, dict) else raw
 
-            for p in plans:
-                btn_txt = p.get('display_button_text')
-                if not btn_txt:
-                    badge = f" ({p.get('discount_badge')})" if p.get('discount_badge') else ""
-                    approx = f" ({p.get('approx_eur')})" if p.get('approx_eur') else ""
-                    btn_txt = f"{p.get('name', '')}{badge}\n{p.get('formatted_price', p.get('price'))} {p.get('currency', 'XOF')}{approx}"
+        if not plans:
+            # Fallback par défaut si hors-ligne sans cache
+            plans = [
+                {'plan_type': 'monthly', 'name': 'Pass 1 Mois', 'price': '2500.00', 'currency': 'XOF', 'approx_eur': '~4€', 'discount_badge': '', 'description': 'Découverte sans engagement', 'is_featured': False},
+                {'plan_type': 'seasonal', 'name': 'Pass Saison (3 Mois)', 'price': '5000.00', 'currency': 'XOF', 'approx_eur': '~8€', 'discount_badge': '⭐ Recommandé', 'description': '1 cycle complet de culture maraîchère', 'is_featured': True},
+                {'plan_type': 'yearly', 'name': 'Pass Annuel', 'price': '15000.00', 'currency': 'XOF', 'approx_eur': '~23€', 'discount_badge': '-50%', 'description': 'Accès illimité toute l\'année', 'is_featured': False},
+            ]
 
-                if p.get('plan_type') == 'monthly':
-                    monthly_text = btn_txt
-                elif p.get('plan_type') == 'yearly':
-                    yearly_text = btn_txt
+        # Sélectionner par défaut la formule recommandée si disponible
+        featured_plan = next((p['plan_type'] for p in plans if p.get('is_featured')), None)
+        if featured_plan:
+            self.selected_plan = featured_plan
+        elif plans and self.selected_plan not in [p['plan_type'] for p in plans]:
+            self.selected_plan = plans[0]['plan_type']
 
-        plans_layout = BoxLayout(orientation='horizontal', spacing=10, size_hint_y=None, height=52)
+        self.plan_buttons = {}
+        self.plans_data = {p['plan_type']: p for p in plans}
 
-        self.monthly_btn = Button(
-            text=monthly_text, font_size='13sp', halign='center',
-            background_normal='', background_color=Theme.PRIMARY_MAIN, color=Theme.TEXT_LIGHT
-        )
-        self.monthly_btn.bind(on_release=lambda x: self.select_plan('monthly'))
+        plans_container = BoxLayout(orientation='vertical', spacing=10, size_hint_y=None)
+        plans_container.bind(minimum_height=plans_container.setter('height'))
 
-        self.yearly_btn = Button(
-            text=yearly_text, font_size='13sp', halign='center',
-            background_normal='', background_color=Theme.CARD_BG, color=Theme.TEXT_DARK
-        )
-        self.yearly_btn.bind(on_release=lambda x: self.select_plan('yearly'))
+        for p in plans:
+            pt = p['plan_type']
+            name = p.get('name', pt.capitalize())
+            badge = p.get('discount_badge', '')
+            approx = f" ({p.get('approx_eur')})" if p.get('approx_eur') else ""
+            price_txt = f"{p.get('formatted_price', p.get('price', ''))} {p.get('currency', 'XOF')}{approx}"
+            desc = p.get('description', '')
 
-        plans_layout.add_widget(self.monthly_btn)
-        plans_layout.add_widget(self.yearly_btn)
-        plan_card.add_widget(plans_layout)
+            badge_str = f"  [b][color=47C26B]{badge}[/color][/b]" if badge else ""
+            desc_str = f"  •  [size=12sp]{desc}[/size]" if desc else ""
+            btn_label = f"[b]{name}[/b]{badge_str}\n[b]{price_txt}[/b]{desc_str}"
+
+            btn = Button(
+                text=btn_label, markup=True, font_size='13sp', halign='center', valign='middle',
+                size_hint_y=None, height=62, background_normal='',
+                background_color=Theme.PRIMARY_MAIN if pt == self.selected_plan else (0.92, 0.94, 0.92, 1),
+                color=Theme.TEXT_LIGHT if pt == self.selected_plan else Theme.TEXT_DARK
+            )
+            btn.bind(on_release=lambda instance, plan_code=pt: self.select_plan(plan_code))
+            self.plan_buttons[pt] = btn
+            plans_container.add_widget(btn)
+
+        plan_card.add_widget(plans_container)
         self.container.add_widget(plan_card)
 
         # Payment Card (Chariow Exclusive)
@@ -145,8 +158,8 @@ class SubscriptionScreen(Screen):
         pay_card.add_widget(self.status_msg)
 
         confirm_btn = Button(
-            text="Payer avec Chariow (Sécurisé)", font_size='16sp', size_hint_y=None, height=52,
-            background_normal='', background_color=Theme.GOLD_PREMIUM, color=Theme.TEXT_LIGHT
+            text="Payer avec Chariow (Mobile Money / Carte)", font_size='15sp', size_hint_y=None, height=52,
+            background_normal='', background_color=Theme.ACCENT_EXCLUSIVE, color=Theme.TEXT_LIGHT
         )
         confirm_btn.bind(on_release=self.process_payment)
         pay_card.add_widget(confirm_btn)
@@ -163,16 +176,16 @@ class SubscriptionScreen(Screen):
 
     def select_plan(self, plan):
         self.selected_plan = plan
-        if plan == 'monthly':
-            self.monthly_btn.background_color = Theme.PRIMARY_MAIN
-            self.monthly_btn.color = Theme.TEXT_LIGHT
-            self.yearly_btn.background_color = (0.9, 0.9, 0.9, 1)
-            self.yearly_btn.color = Theme.TEXT_DARK
-        else:
-            self.yearly_btn.background_color = Theme.PRIMARY_MAIN
-            self.yearly_btn.color = Theme.TEXT_LIGHT
-            self.monthly_btn.background_color = (0.9, 0.9, 0.9, 1)
-            self.monthly_btn.color = Theme.TEXT_DARK
+        for pt, btn in self.plan_buttons.items():
+            if pt == plan:
+                btn.background_color = Theme.PRIMARY_MAIN
+                btn.color = Theme.TEXT_LIGHT
+            else:
+                p_data = self.plans_data.get(pt, {})
+                # Si recommandé mais non sélectionné, léger fond chaleureux
+                bg = (0.97, 0.95, 0.90, 1) if p_data.get('is_featured') else (0.92, 0.94, 0.92, 1)
+                btn.background_color = bg
+                btn.color = Theme.TEXT_DARK
 
     def process_payment(self, instance):
         res = self.sub_service.initiate_chariow_checkout(self.selected_plan)
@@ -198,7 +211,7 @@ class SubscriptionScreen(Screen):
         status_res = self.sub_service.get_status()
         if status_res.get('subscription_active'):
             self.status_msg.color = (0.2, 0.7, 0.3, 1)
-            self.status_msg.text = "🎉 Félicitations ! Votre abonnement Premium est maintenant actif !"
+            self.status_msg.text = "🎉 Félicitations ! Votre abonnement est maintenant actif !"
             self.refresh_btn.opacity = 0
             self.refresh_btn.disabled = True
         else:

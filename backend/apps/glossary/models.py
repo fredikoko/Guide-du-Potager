@@ -114,3 +114,41 @@ class Vegetable(models.Model):
 
     def __str__(self):
         return self.name
+
+
+MONTH_CHOICES = (
+    (1, 'Janvier'),
+    (2, 'Février'),
+    (3, 'Mars'),
+    (4, 'Avril'),
+    (5, 'Mai'),
+    (6, 'Juin'),
+    (7, 'Juillet'),
+    (8, 'Août'),
+    (9, 'Septembre'),
+    (10, 'Octobre'),
+    (11, 'Novembre'),
+    (12, 'Décembre'),
+)
+
+CALENDAR_ACTION_CHOICES = (
+    ('semis', 'Semis & Plantations'),
+    ('recolte', 'Récoltes'),
+)
+
+class CalendarEntry(models.Model):
+    vegetable = models.ForeignKey(Vegetable, on_delete=models.CASCADE, related_name='calendar_entries', verbose_name="Légume")
+    action = models.CharField(max_length=20, choices=CALENDAR_ACTION_CHOICES, default='semis', verbose_name="Action")
+    month = models.PositiveSmallIntegerField(choices=MONTH_CHOICES, verbose_name="Mois")
+    notes = models.CharField(max_length=255, blank=True, verbose_name="Notes / Conseils spécifiques pour ce mois")
+    is_active = models.BooleanField(default=True, verbose_name="Actif")
+
+    class Meta:
+        verbose_name = "Entrée de calendrier"
+        verbose_name_plural = "Calendrier Cultural"
+        ordering = ['month', 'action', 'vegetable__name']
+        unique_together = ('vegetable', 'action', 'month')
+
+    def __str__(self):
+        return f"{self.get_action_display()} - {self.vegetable.name} ({self.get_month_display()})"
+

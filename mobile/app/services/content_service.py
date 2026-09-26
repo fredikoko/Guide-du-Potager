@@ -36,3 +36,14 @@ class ContentService:
         if cached:
             return {'success': True, 'data': cached, 'from_cache': True}
         return {'success': False, 'error': res.get('error', 'Chapitre indisponible.')}
+
+    def get_about(self):
+        res = self.api.get('content/about/')
+        if res.get('success'):
+            self.cache.set_cache('about_page', res['data'])
+            return {'success': True, 'data': res['data']}
+        cached = self.cache.get_cache('about_page')
+        if cached:
+            return {'success': True, 'data': cached, 'from_cache': True}
+        return {'success': False, 'error': res.get('error', 'Page À Propos indisponible.')}
+

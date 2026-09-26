@@ -7,6 +7,7 @@ from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.pest_service import PestService
+from ..services.auth_service import AuthService
 from ..components.cards import CardWidget
 from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
@@ -82,11 +83,13 @@ class DiseasesScreen(Screen):
 
         for disease in diseases:
             card = CardWidget(bg_color=Theme.CARD_BG)
+            is_prem = bool(disease.get('is_premium'))
 
-            badge = " [PREMIUM]" if disease.get('is_premium') else ""
+            title_txt = f"[b]{disease['name']}[/b]" + (" [color=47C26B]★[/color]" if is_prem else "")
             d_title = Label(
-                text=f"[b]{disease['name']}[/b][color=E8AB26]{badge}[/color]",
-                markup=True, font_size='17sp', color=(0.8, 0.2, 0.2, 1),
+                text=title_txt,
+                markup=True, font_size='17sp',
+                color=Theme.ACCENT_EXCLUSIVE if is_prem else (0.8, 0.2, 0.2, 1),
                 size_hint_y=None, height=35, halign='left', valign='middle'
             )
             d_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
@@ -104,6 +107,15 @@ class DiseasesScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
+            if disease.get('symptoms'):
+                s_text = disease['symptoms'][:100] + ("..." if len(disease['symptoms']) > 100 else "")
+                d_desc = Label(
+                    text=s_text,
+                    color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, height=40, halign='left', valign='top'
+                )
+                d_desc.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(d_desc)
+
             did = disease['id']
             detail_btn = Button(
                 text="Voir les détails →",
@@ -111,7 +123,7 @@ class DiseasesScreen(Screen):
                 size_hint_y=None,
                 height=42,
                 background_normal='',
-                background_color=Theme.PRIMARY_MAIN,
+                background_color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_MAIN,
                 color=Theme.TEXT_LIGHT
             )
             detail_btn.bind(on_release=lambda instance, disease_id=did, i_url=img_url: self.open_disease_detail(disease_id, i_url))
@@ -125,26 +137,35 @@ class DiseasesScreen(Screen):
             return
 
         data = res['data']
+        is_prem = bool(data.get('is_premium'))
+        is_sub = AuthService().is_subscribed()
+        is_locked = data.get('is_locked', False) or (is_prem and not is_sub)
+
         base_root = Config.API_BASE_URL.replace('/api', '')
         img_url = data.get('image') or fallback_img
         if img_url and img_url.startswith('/'):
             img_url = f"{base_root}{img_url}"
 
-        fields = [
-            ("Symptômes", data.get('symptoms', ''), Theme.TEXT_DARK),
-            ("Traitement", data.get('treatment', ''), Theme.PRIMARY_MAIN),
-            ("Prévention", data.get('prevention', ''), Theme.BROWN_MAIN),
-        ]
-        if data.get('favorable_season'):
-            fields.append(("Saison de prolifération", data.get('favorable_season'), (0.85, 0.45, 0.15, 1)))
-        if data.get('tropical_organic_treatment'):
-            fields.append(("Traitement bio tropical", data.get('tropical_organic_treatment'), Theme.PRIMARY_DARK))
+        if is_locked:
+            fields = [
+                ("Diagnostic", "🔒 La fiche pathologique complète, les symptômes précis et les traitements bio locaux sont réservés aux abonnés.", Theme.TEXT_MUTED),
+            ]
+        else:
+            fields = [
+                ("Symptômes", data.get('symptoms', ''), Theme.TEXT_DARK),
+                ("Traitement", data.get('treatment', ''), Theme.PRIMARY_MAIN),
+                ("Prévention", data.get('prevention', ''), Theme.BROWN_MAIN),
+            ]
+            if data.get('favorable_season'):
+                fields.append(("Saison de prolifération", data.get('favorable_season'), (0.85, 0.45, 0.15, 1)))
+            if data.get('tropical_organic_treatment'):
+                fields.append(("Traitement bio tropical", data.get('tropical_organic_treatment'), Theme.PRIMARY_DARK))
 
         popup = DetailPopup(
             title_text=data['name'],
             image_url=img_url,
             fields=fields,
-            is_locked=data.get('is_locked', False),
+            is_locked=is_locked,
             upgrade_callback=lambda: setattr(self.manager, 'current', 'subscription')
         )
         popup.open()

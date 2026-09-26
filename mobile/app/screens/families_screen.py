@@ -90,6 +90,24 @@ class FamiliesScreen(Screen):
             card.add_widget(f_title)
             card.add_widget(f_desc)
 
+            if family.get('characteristics'):
+                f_char = Label(
+                    text=f"[b]Caractéristiques agronomiques :[/b]\n{family['characteristics']}",
+                    markup=True,
+                    color=Theme.BROWN_DARK, font_size='13sp', size_hint_y=None, halign='left', valign='top'
+                )
+                f_char.bind(texture_size=lambda instance, value: setattr(instance, 'height', max(value[1] + 8, 30)))
+                f_char.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(f_char)
+
+            rot_lbl = Label(
+                text="[color=47C26B]🔄[/color] [i]Délai de rotation recommandé : 3 à 4 ans[/i]",
+                markup=True,
+                color=Theme.TEXT_MUTED, font_size='12sp', size_hint_y=None, height=26, halign='left'
+            )
+            rot_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            card.add_widget(rot_lbl)
+
             # Button to filter vegetables for this family
             fid = family['id']
             fname = family['name']
