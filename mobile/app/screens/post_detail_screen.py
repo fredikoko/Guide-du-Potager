@@ -152,32 +152,6 @@ class PostDetailScreen(Screen):
             upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
             self.body_container.add_widget(upgrade_btn)
 
-        # Render extra attached article images if present (only if not already embedded in content)
-        content_html = data.get('content', '')
-        for img_data in data.get('images', []):
-            img_url = img_data.get('image')
-            if img_url:
-                img_filename = img_url.split('?')[0].split('/')[-1]
-                if img_filename and img_filename in content_html:
-                    continue  # Skip image if already displayed inline in content
-
-                if img_url.startswith('/'):
-                    img_url = f"{base_root}{img_url}"
-
-                img_widget = AsyncImage(
-                    source=img_url,
-                    size_hint_y=None,
-                    height=240
-                )
-                self.body_container.add_widget(img_widget)
-                if img_data.get('caption'):
-                    cap_label = Label(
-                        text=f"[i]{img_data['caption']}[/i]",
-                        markup=True,
-                        color=Theme.TEXT_MUTED, font_size='13sp', size_hint_y=None, height=25
-                    )
-                    self.body_container.add_widget(cap_label)
-
         # Comments Section Header
         comments = data.get('comments', [])
         c_header = Label(
