@@ -291,7 +291,7 @@ def blog_list_view(request):
 
 def blog_detail_view(request, slug):
     """Article de blog avec commentaires et incrémentation des vues."""
-    post = get_object_or_404(Post.objects.select_related('category', 'author'), slug=slug, is_published=True)
+    post = get_object_or_404(Post.objects.select_related('category', 'author').prefetch_related('faqs'), slug=slug, is_published=True)
     
     # Incrémentation des vues
     Post.objects.filter(id=post.id).update(views_count=post.views_count + 1)

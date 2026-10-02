@@ -33,7 +33,7 @@ class PostListView(generics.ListAPIView):
         return queryset
 
 class PostDetailView(generics.RetrieveAPIView):
-    queryset = Post.objects.filter(is_published=True).select_related('category', 'author').prefetch_related('images', 'comments__author')
+    queryset = Post.objects.filter(is_published=True).select_related('category', 'author').prefetch_related('images', 'comments__author', 'faqs')
     serializer_class = PostDetailSerializer
     permission_classes = [permissions.AllowAny]
     authentication_classes = [JWTAuthentication]

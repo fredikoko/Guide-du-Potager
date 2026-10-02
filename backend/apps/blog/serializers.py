@@ -1,10 +1,15 @@
 from rest_framework import serializers
-from .models import Category, Post, PostImage, Comment
+from .models import Category, Post, PostImage, Comment, PostFAQ
 
 class CategorySerializer(serializers.ModelSerializer):
     class Meta:
         model = Category
         fields = ['id', 'name', 'slug', 'description']
+
+class PostFAQSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PostFAQ
+        fields = ['id', 'question', 'answer', 'order']
 
 class PostImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()
@@ -61,6 +66,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
     cover_image = serializers.SerializerMethodField()
     images = PostImageSerializer(many=True, read_only=True)
     comments = CommentSerializer(many=True, read_only=True)
+    faqs = PostFAQSerializer(many=True, read_only=True)
     is_locked = serializers.BooleanField(default=False, read_only=True)
 
     class Meta:
@@ -68,7 +74,8 @@ class PostDetailSerializer(serializers.ModelSerializer):
         fields = [
             'id', 'title', 'slug', 'category', 'category_name',
             'author_name', 'excerpt', 'content', 'cover_image', 'images',
-            'is_premium', 'is_locked', 'views_count', 'created_at', 'updated_at', 'comments'
+            'is_premium', 'is_locked', 'views_count', 'created_at', 'updated_at',
+            'comments', 'faqs'
         ]
 
     def get_cover_image(self, obj):

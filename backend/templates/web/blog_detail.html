@@ -62,6 +62,43 @@
         {% endif %}
     </article>
 
+    <!-- SECTION FOIRE AUX QUESTIONS (FAQ) (FACULTATIF) -->
+    {% if post.faqs.all %}
+    <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-5">
+        <div class="flex items-center justify-between">
+            <h3 class="font-extrabold text-xl text-[#1E592E] flex items-center">
+                <i class="fa-solid fa-circle-question mr-2.5 text-[#47C26B]"></i>
+                Foire Aux Questions (FAQ)
+            </h3>
+            <span class="text-xs font-semibold px-2.5 py-1 bg-[#e8f5e9] text-[#1E592E] rounded-full">
+                {{ post.faqs.count }} question{{ post.faqs.count|pluralize:"s" }}
+            </span>
+        </div>
+
+        <div class="space-y-3">
+            {% for faq in post.faqs.all %}
+            <details class="group bg-gray-50 hover:bg-gray-100/70 border border-gray-200 rounded-xl transition duration-150 overflow-hidden">
+                <summary class="flex justify-between items-center p-4 font-bold text-gray-900 cursor-pointer list-none select-none">
+                    <span class="flex items-start space-x-3 text-sm sm:text-base pr-4">
+                        <span class="text-[#3D7A42] font-black shrink-0">Q.</span>
+                        <span class="text-left leading-snug">{{ faq.question }}</span>
+                    </span>
+                    <span class="text-[#3D7A42] transition-transform duration-200 group-open:rotate-180 shrink-0">
+                        <i class="fa-solid fa-chevron-down text-xs sm:text-sm"></i>
+                    </span>
+                </summary>
+                <div class="px-4 pb-4 pt-2 border-t border-gray-200 text-xs sm:text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-white/60">
+                    <div class="flex items-start space-x-3">
+                        <span class="text-[#47C26B] font-black shrink-0">R.</span>
+                        <div class="flex-1">{{ faq.answer }}</div>
+                    </div>
+                </div>
+            </details>
+            {% endfor %}
+        </div>
+    </section>
+    {% endif %}
+
     <!-- SECTION COMMENTAIRES -->
     <section class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-6">
         <h3 class="font-extrabold text-xl text-[#1E592E] flex items-center">

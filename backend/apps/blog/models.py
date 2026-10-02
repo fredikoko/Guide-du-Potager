@@ -75,3 +75,19 @@ class Comment(models.Model):
 
     def __str__(self):
         return f"Commentaire de {self.author.username} sur {self.post.title}"
+
+class PostFAQ(models.Model):
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='faqs')
+    question = models.CharField(max_length=300, verbose_name="Question")
+    answer = models.TextField(verbose_name="Réponse")
+    order = models.PositiveIntegerField(default=0, verbose_name="Ordre d'affichage")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Question / Réponse (FAQ)"
+        verbose_name_plural = "Foire Aux Questions (FAQ)"
+        ordering = ['order', 'id']
+
+    def __str__(self):
+        return f"{self.question[:60]} ({self.post.title})"

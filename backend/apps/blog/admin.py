@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from .models import Category, Post, PostImage, Comment
+from .models import Category, Post, PostImage, Comment, PostFAQ
 
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
@@ -26,6 +26,12 @@ class PostImageInline(admin.TabularInline):
         return "Enregistrez d'abord l'image"
     html_snippet.short_description = "Code HTML à insérer dans le texte"
 
+class PostFAQInline(admin.StackedInline):
+    model = PostFAQ
+    extra = 0
+    fields = ('question', 'answer', 'order')
+    classes = ('collapse',)
+
 class CommentInline(admin.TabularInline):
     model = Comment
     extra = 0
@@ -38,7 +44,7 @@ class PostAdmin(admin.ModelAdmin):
     list_editable = ('is_premium', 'is_published')
     search_fields = ('title', 'excerpt', 'content')
     prepopulated_fields = {'slug': ('title',)}
-    inlines = [PostImageInline, CommentInline]
+    inlines = [PostImageInline, PostFAQInline, CommentInline]
     readonly_fields = ('cover_image_preview', 'views_count', 'created_at', 'updated_at')
 
     def cover_image_preview(self, obj):
@@ -93,3 +99,10 @@ class CommentAdmin(admin.ModelAdmin):
     list_display = ('post', 'author', 'is_approved', 'created_at')
     list_filter = ('is_approved', 'created_at')
     search_fields = ('content', 'author__username', 'post__title')
+
+@admin.register(PostFAQ)
+class PostFAQAdmin(admin.ModelAdmin):
+    list_display = ('question', 'post', 'order', 'created_at')
+    list_filter = ('post',)
+    search_fields = ('question', 'answer', 'post__title')
+    ordering = ('post', 'order')

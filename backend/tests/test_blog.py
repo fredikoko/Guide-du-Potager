@@ -5,7 +5,7 @@ from datetime import timedelta
 from rest_framework.test import APIClient
 from rest_framework import status
 from django.contrib.auth import get_user_model
-from apps.blog.models import Category, Post, Comment
+from apps.blog.models import Category, Post, Comment, PostFAQ
 
 User = get_user_model()
 
@@ -128,3 +128,53 @@ class BlogAPITestCase(TestCase):
         res_auth = self.client.post(url, {'content': 'Merci pour cette fiche compost !'})
         self.assertEqual(res_auth.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Comment.objects.filter(post=self.post_free).count(), 1)
+
+    def test_post_faq_optional_and_serialized(self):
+        # 1. An article without FAQs returns an empty list (FAQ is optional)
+        url = reverse('blog_post_detail', kwargs={'pk': self.post_free.pk})
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertIn('faqs', res.data)
+        self.assertEqual(res.data['faqs'], [])
+
+        # 2. Add 2 FAQs with custom ordering
+        faq2 = PostFAQ.objects.create(
+            post=self.post_free,
+            question="Combien de temps faut-il pour obtenir du compost mûr ?",
+            answer="En climat tropical, 6 à 8 semaines suffisent grâce à la chaleur.",
+            order=2
+        )
+        faq1 = PostFAQ.objects.create(
+            post=self.post_free,
+            question="Quels déchets ne pas mettre dans le compost ?",
+            answer="Évitez la viande, les produits laitiers et les plantes malades.",
+            order=1
+        )
+
+        res = self.client.get(url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(res.data['faqs']), 2)
+        # Verify ordering
+        self.assertEqual(res.data['faqs'][0]['id'], faq1.id)
+        self.assertEqual(res.data['faqs'][0]['question'], "Quels déchets ne pas mettre dans le compost ?")
+        self.assertEqual(res.data['faqs'][1]['id'], faq2.id)
+
+    def test_post_faq_web_view(self):
+        # Without FAQ: no FAQ section title in HTML
+        web_url = reverse('web:blog_detail', kwargs={'slug': self.post_free.slug})
+        res = self.client.get(web_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertNotContains(res, "Foire Aux Questions (FAQ)")
+
+        # With FAQ: section is displayed
+        PostFAQ.objects.create(
+            post=self.post_free,
+            question="Quelle humidité maintenir ?",
+            answer="Le compost doit être comme une éponge essorée.",
+            order=1
+        )
+        res = self.client.get(web_url)
+        self.assertEqual(res.status_code, status.HTTP_200_OK)
+        self.assertContains(res, "Foire Aux Questions (FAQ)")
+        self.assertContains(res, "Quelle humidité maintenir ?")
+        self.assertContains(res, "Le compost doit être comme une éponge essorée.")

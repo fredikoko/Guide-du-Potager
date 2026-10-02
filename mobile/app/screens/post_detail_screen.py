@@ -152,6 +152,39 @@ class PostDetailScreen(Screen):
             upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
             self.body_container.add_widget(upgrade_btn)
 
+        # FAQ Section (Facultatif)
+        faqs = data.get('faqs', [])
+        if faqs:
+            faq_header = Label(
+                text=f"[b]Foire Aux Questions ({len(faqs)}) :[/b]",
+                markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
+                size_hint_y=None, height=35, halign='left'
+            )
+            faq_header.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            self.body_container.add_widget(faq_header)
+
+            for faq in faqs:
+                faq_card = CardWidget(bg_color=Theme.CARD_BG)
+                q_label = Label(
+                    text=f"[b][color=1E592E]Q : {faq['question']}[/color][/b]",
+                    markup=True, font_size='15sp', color=Theme.PRIMARY_DARK,
+                    size_hint_y=None, halign='left', valign='top'
+                )
+                q_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                q_label.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+
+                a_label = Label(
+                    text=f"[color=47C26B]R :[/color] {faq['answer']}",
+                    markup=True, font_size='14sp', color=Theme.TEXT_DARK,
+                    size_hint_y=None, halign='left', valign='top'
+                )
+                a_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                a_label.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+
+                faq_card.add_widget(q_label)
+                faq_card.add_widget(a_label)
+                self.body_container.add_widget(faq_card)
+
         # Comments Section Header
         comments = data.get('comments', [])
         c_header = Label(
