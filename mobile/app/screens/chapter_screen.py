@@ -7,8 +7,10 @@ from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.content_service import ContentService
+from ..services.auth_service import AuthService
 from ..utils.html_parser import HTMLParser
 from ..utils.config import Config
+from ..components.cards import TableWidget, CardWidget
 
 class ChapterScreen(Screen):
     def __init__(self, **kwargs):
@@ -78,15 +80,64 @@ class ChapterScreen(Screen):
 
         data = res['data']
         is_prem = bool(data.get('is_premium'))
+        is_sub = AuthService().is_subscribed()
+        is_locked = bool(data.get('is_locked')) or (is_prem and not is_sub)
+
         star = " [color=47C26B]★[/color]" if is_prem else ""
         self.title_label.text = f"[b]{data['title']}[/b]{star}"
         self.title_label.color = Theme.ACCENT_EXCLUSIVE if is_prem else Theme.TEXT_LIGHT
+
+        # If locked, display Paywall Card and do not render premium content/images
+        if is_locked:
+            lock_card = CardWidget(bg_color=Theme.CARD_BG)
+            lock_icon = Label(text="🔒", font_size='36sp', size_hint_y=None, height=50)
+            lock_card.add_widget(lock_icon)
+
+            lock_title = Label(
+                text="[b]Chapitre Réservé aux Membres Abonnés[/b]",
+                markup=True,
+                font_size='18sp',
+                color=Theme.PRIMARY_DARK,
+                size_hint_y=None,
+                height=35,
+                halign='center'
+            )
+            lock_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            lock_card.add_widget(lock_title)
+
+            lock_desc = Label(
+                text="Ce chapitre approfondi fait partie du programme complet du Guide du Potager Tropical.\n\nAbonnez-vous dès aujourd'hui pour débloquer l'accès complet et illimité à l'intégralité des chapitres du guide, fiches maladies & insectes et outils agronomiques !",
+                markup=True,
+                font_size='14sp',
+                color=Theme.TEXT_DARK,
+                size_hint_y=None,
+                halign='center'
+            )
+            lock_desc.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            lock_desc.bind(texture_size=lambda s, v: setattr(s, 'height', v[1]))
+            lock_card.add_widget(lock_desc)
+
+            upgrade_btn = Button(
+                text="★ Débloquer l'accès complet",
+                font_size='16sp',
+                size_hint_y=None,
+                height=54,
+                background_normal='',
+                background_color=Theme.ACCENT_EXCLUSIVE,
+                color=Theme.TEXT_LIGHT
+            )
+            upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
+            lock_card.add_widget(upgrade_btn)
+
+            self.body_container.add_widget(lock_card)
+            return
 
         # Base URL for relative media image URLs
         base_root = Config.API_BASE_URL.replace('/api', '')
 
         # Parse chapter content into sequential text and embedded image blocks
-        blocks = self.html_parser.parse_blocks(data['content'], base_url=base_root)
+        raw_content = data.get('rendered_content') or data.get('content') or ''
+        blocks = self.html_parser.parse_blocks(raw_content, base_url=base_root)
 
         for block in blocks:
             if block['type'] == 'text':
@@ -111,19 +162,12 @@ class ChapterScreen(Screen):
                 )
                 self.body_container.add_widget(img_widget)
 
-        # Check if access locked, display Upgrade Button
-        if data.get('is_locked'):
-            upgrade_btn = Button(
-                text="★ Débloquer l'accès complet",
-                font_size='16sp',
-                size_hint_y=None,
-                height=54,
-                background_normal='',
-                background_color=Theme.ACCENT_EXCLUSIVE,
-                color=Theme.TEXT_LIGHT
-            )
-            upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
-            self.body_container.add_widget(upgrade_btn)
+            elif block['type'] == 'table':
+                table_widget = TableWidget(
+                    headers=block['headers'],
+                    rows=block['rows']
+                )
+                self.body_container.add_widget(table_widget)
 
         # Render extra attached chapter images if present (only if not already embedded in content)
         content_html = data.get('content', '')

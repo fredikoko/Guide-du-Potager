@@ -16,7 +16,13 @@ class PostListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        queryset = Post.objects.filter(is_published=True).select_related('category', 'author').prefetch_related('images')
+        user = self.request.user
+        if user and user.is_authenticated and user.is_staff:
+            queryset = Post.objects.all()
+        else:
+            queryset = Post.objects.published()
+
+        queryset = queryset.select_related('category', 'author').prefetch_related('images')
         category_id = self.request.query_params.get('category')
         search = self.request.query_params.get('search')
 
@@ -33,10 +39,15 @@ class PostListView(generics.ListAPIView):
         return queryset
 
 class PostDetailView(generics.RetrieveAPIView):
-    queryset = Post.objects.filter(is_published=True).select_related('category', 'author').prefetch_related('images', 'comments__author', 'faqs')
     serializer_class = PostDetailSerializer
     permission_classes = [permissions.AllowAny]
     authentication_classes = [JWTAuthentication]
+
+    def get_queryset(self):
+        user = self.request.user
+        if user and user.is_authenticated and user.is_staff:
+            return Post.objects.all().select_related('category', 'author').prefetch_related('images', 'comments__author', 'faqs')
+        return Post.objects.published().select_related('category', 'author').prefetch_related('images', 'comments__author', 'faqs')
 
     def get(self, request, *args, **kwargs):
         instance = self.get_object()
@@ -56,8 +67,7 @@ class PostDetailView(generics.RetrieveAPIView):
 
         # Lock premium articles for non-subscribed users
         if instance.is_premium and not is_subscribed:
-            data['is_locked'] = True
-            data['content'] = (
+            lock_html = (
                 f"<p><i>{instance.excerpt}</i></p>"
                 "<hr/>"
                 "<div style='background-color: #fff3cd; padding: 15px; border-radius: 6px; text-align: center; color: #856404;'>"
@@ -65,6 +75,12 @@ class PostDetailView(generics.RetrieveAPIView):
                 "Abonnez-vous dès aujourd'hui pour débloquer cet article exclusif, l'intégralité du guide et toutes les fiches d'experts !"
                 "</div>"
             )
+            data['is_locked'] = True
+            data['content'] = lock_html
+            data['rendered_content'] = lock_html
+            data['images'] = []
+        else:
+            data['is_locked'] = False
 
         return Response(data)
 
@@ -74,7 +90,10 @@ class AddCommentView(APIView):
 
     def post(self, request, pk):
         try:
-            post = Post.objects.get(pk=pk, is_published=True)
+            if request.user.is_staff:
+                post = Post.objects.get(pk=pk)
+            else:
+                post = Post.objects.published().get(pk=pk)
         except Post.DoesNotExist:
             return Response({'error': 'Article non trouvé.'}, status=status.HTTP_404_NOT_FOUND)
 

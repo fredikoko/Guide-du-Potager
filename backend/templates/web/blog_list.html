@@ -70,9 +70,16 @@
                         <span class="font-extrabold text-[#47C26B]">
                             [{{ post.category.name|default:'Général' }}]
                         </span>
-                        <span class="text-gray-400">
-                            {{ post.created_at|date:"d M Y" }}
-                        </span>
+                        <div class="flex items-center space-x-2 text-gray-400">
+                            {% if user.is_staff %}
+                                {% if post.is_scheduled %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-sky-100 text-sky-800">🕒 Planifié</span>
+                                {% elif not post.is_published %}
+                                <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-gray-100 text-gray-700">⚪ Brouillon</span>
+                                {% endif %}
+                            {% endif %}
+                            <span>{{ post.published_at|default:post.created_at|date:"d M Y" }}</span>
+                        </div>
                     </div>
 
                     <h2 class="text-lg font-extrabold text-gray-900 group-hover:text-[#1E592E] transition leading-snug">
@@ -83,7 +90,7 @@
                     </h2>
 
                     <p class="text-xs sm:text-sm text-gray-600 leading-relaxed line-clamp-3">
-                        {{ post.excerpt|default:post.content|striptags }}
+                        {{ post.excerpt|default:post.rendered_content|striptags }}
                     </p>
                 </div>
             </div>

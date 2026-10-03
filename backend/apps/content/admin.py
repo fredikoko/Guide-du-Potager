@@ -42,10 +42,11 @@ class ChapterAdmin(admin.ModelAdmin):
             'fields': ('content',),
             'description': (
                 '<div style="background-color: #e8f5e9; border-left: 4px solid #2e7d32; padding: 12px; margin-bottom: 15px; border-radius: 4px;">'
-                '<strong>💡 Astuce Administrateur - Insertion d\'images dans le texte :</strong><br/>'
-                '1. Ajoutez vos images dans la section <em>"Images associées"</em> ci-dessous puis sauvegardez.<br/>'
-                '2. Copiez le code HTML généré dans la colonne <code>Code HTML à insérer</code>.<br/>'
-                '3. Collez ce code n\'importe où dans le champ <strong>Contenu</strong> ci-dessus pour afficher l\'image directement à cet endroit dans le texte !'
+                '<strong>💡 Astuce Rédaction & Formatage Universel :</strong><br/>'
+                'Ce champ supporte simultanément le <strong>Markdown (.md)</strong>, le <strong>HTML riche</strong> et le <strong>Texte brut</strong>.<br/>'
+                '• <em>Markdown :</em> <code>## Titre</code>, <code>**Gras**</code>, <code>*Italique*</code>, <code>- Puce</code>, <code>1. Numéro</code>, <code>[Lien](url)</code>, <code>![Légende](url)</code>, <code>| Tableaux |</code>, <code>&gt; Citation</code>.<br/>'
+                '• <em>HTML :</em> <code>&lt;h2&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;ul&gt;&lt;li&gt;</code>, <code>&lt;img src="..."&gt;</code>, <code>&lt;div class="..."&gt;</code>.<br/>'
+                '• <em>Images associées :</em> Ajoutez vos images ci-dessous, puis insérez le code HTML généré ou la syntaxe Markdown <code>![Légende](/media/...)</code> où vous le souhaitez dans le texte !'
                 '</div>'
             )
         }),

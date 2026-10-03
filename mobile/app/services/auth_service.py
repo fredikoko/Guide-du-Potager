@@ -20,6 +20,8 @@ class AuthService:
         profile = user.get('profile')
         if not profile or not isinstance(profile, dict):
             return False
+        if 'is_premium' in profile:
+            return bool(profile.get('is_premium'))
         return bool(profile.get('subscription_active', False))
 
     def login(self, email, password):

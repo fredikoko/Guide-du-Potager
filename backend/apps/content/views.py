@@ -1,5 +1,6 @@
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
+from rest_framework_simplejwt.authentication import JWTAuthentication
 from .models import Part, Chapter, AboutPage
 from .serializers import PartSerializer, ChapterListSerializer, ChapterDetailSerializer, AboutPageSerializer
 
@@ -22,6 +23,7 @@ class ChapterDetailView(generics.RetrieveAPIView):
     queryset = Chapter.objects.select_related('part').prefetch_related('images')
     serializer_class = ChapterDetailSerializer
     permission_classes = [permissions.AllowAny]
+    authentication_classes = [JWTAuthentication]
 
     def retrieve(self, request, *args, **kwargs):
         chapter = self.get_object()
@@ -40,13 +42,15 @@ class ChapterDetailView(generics.RetrieveAPIView):
         data = serializer.data
 
         if not has_access:
-            # Mask content and images for non-subscribed users accessing premium content
-            data['is_locked'] = True
-            data['content'] = (
+            # Mask content, rendered_content, and images for non-subscribed users accessing premium content
+            lock_msg = (
                 f"<h1>🔒 {chapter.title}</h1>"
                 "<p>Ce chapitre est réservé aux abonnés du Guide du Potager Tropical.</p>"
                 "<p>Abonnez-vous pour débloquer l'accès complet à tous les chapitres, outils avancés, et fiches maladies & insectes !</p>"
             )
+            data['is_locked'] = True
+            data['content'] = lock_msg
+            data['rendered_content'] = lock_msg
             data['images'] = []
         else:
             data['is_locked'] = False

@@ -41,7 +41,7 @@
                     Ce chapitre approfondi fait partie du programme complet du Guide du Potager Tropical. Il présente des protocoles agronomiques de pointe pour les sols sahéliens et tropicaux.
                 </p>
                 <div class="relative overflow-hidden max-h-32 opacity-40 select-none pointer-events-none filter blur-[1px]">
-                    {{ chapter.content|striptags|truncatewords:60 }}
+                    {{ chapter.rendered_content|striptags|truncatewords:60 }}
                 </div>
             </div>
 
@@ -50,7 +50,7 @@
         {% else %}
             <!-- Lecture Complète Débloquée -->
             <div class="prose prose-lg prose-green max-w-none text-gray-800 leading-relaxed space-y-5 article-content">
-                {{ chapter.content|safe }}
+                {{ chapter.rendered_content|safe }}
             </div>
 
             {% if chapter.images.all %}

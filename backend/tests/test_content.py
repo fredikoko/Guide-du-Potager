@@ -38,6 +38,26 @@ class ContentAPITestCase(TestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertTrue(response.data['is_locked'])
         self.assertIn("abonnés", response.data['content'])
+        self.assertIn("abonnés", response.data['rendered_content'])
+        self.assertNotIn("Contenu secret", response.data['content'])
+        self.assertNotIn("Contenu secret", response.data['rendered_content'])
+
+    def test_premium_chapter_access_subscribed(self):
+        from django.utils import timezone
+        import datetime
+
+        user = User.objects.create_user(email="subscriber@example.com", username="sub", password="password123")
+        user.profile.subscription_active = True
+        user.profile.subscription_end_date = timezone.now() + datetime.timedelta(days=30)
+        user.profile.save()
+
+        self.client.force_authenticate(user=user)
+        url = reverse('chapter_detail', kwargs={'pk': self.chapter_premium.pk})
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertFalse(response.data['is_locked'])
+        self.assertIn("Contenu secret", response.data['content'])
+        self.assertIn("Contenu secret", response.data['rendered_content'])
 
     def test_about_page_api(self):
         url = reverse('about_page')

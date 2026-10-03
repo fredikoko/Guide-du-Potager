@@ -252,7 +252,7 @@
                             </a>
                         </h3>
                         <p class="text-xs text-gray-600 line-clamp-2">
-                            {{ post.excerpt|default:post.content|striptags|truncatewords:20 }}
+                            {{ post.excerpt|default:post.rendered_content|striptags|truncatewords:20 }}
                         </p>
                     </div>
 

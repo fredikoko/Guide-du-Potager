@@ -89,6 +89,8 @@ class BlogAPITestCase(TestCase):
         self.assertTrue(res.data.get('is_locked'))
         self.assertIn("Réservé aux Membres", res.data['content'])
         self.assertNotIn("secret des ollas", res.data['content'])
+        self.assertIn("Réservé aux Membres", res.data['rendered_content'])
+        self.assertNotIn("secret des ollas", res.data['rendered_content'])
 
     def test_premium_post_unlocked_for_premium_user(self):
         self.client.force_authenticate(user=self.premium_user)
@@ -97,6 +99,7 @@ class BlogAPITestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertFalse(res.data.get('is_locked'))
         self.assertIn("secret des ollas", res.data['content'])
+        self.assertIn("secret des ollas", res.data['rendered_content'])
 
     def test_premium_post_locked_if_subscription_expired(self):
         # Even if subscription_active is True in DB, if end date is in the past, user is locked
@@ -115,6 +118,9 @@ class BlogAPITestCase(TestCase):
         self.assertEqual(res.status_code, status.HTTP_200_OK)
         self.assertTrue(res.data.get('is_locked'))
         self.assertIn("Réservé aux Membres", res.data['content'])
+        self.assertNotIn("secret des ollas", res.data['content'])
+        self.assertIn("Réservé aux Membres", res.data['rendered_content'])
+        self.assertNotIn("secret des ollas", res.data['rendered_content'])
 
     def test_add_comment_flow(self):
         url = reverse('blog_add_comment', kwargs={'pk': self.post_free.pk})
@@ -178,3 +184,69 @@ class BlogAPITestCase(TestCase):
         self.assertContains(res, "Foire Aux Questions (FAQ)")
         self.assertContains(res, "Quelle humidité maintenir ?")
         self.assertContains(res, "Le compost doit être comme une éponge essorée.")
+
+    def test_scheduled_post_hidden_from_public(self):
+        future_date = timezone.now() + timedelta(days=7)
+        scheduled_post = Post.objects.create(
+            title="Les cultures d'avenir sous climat sahélien",
+            slug="cultures-avenir-sahel",
+            author=self.author,
+            category=self.category,
+            excerpt="Analyse prospective des cultures résistantes.",
+            content="<p>Moringa, niébé et fonio sont les piliers de demain.</p>",
+            is_published=True,
+            published_at=future_date
+        )
+
+        # 1. Vérification des propriétés du modèle
+        self.assertTrue(scheduled_post.is_scheduled)
+        self.assertFalse(scheduled_post.is_visible)
+        self.assertEqual(scheduled_post.publication_status, "scheduled")
+        self.assertNotIn(scheduled_post, Post.objects.published())
+
+        # 2. Invisible sur l'API publique (PostListView)
+        url_list = reverse('blog_post_list')
+        res_list = self.client.get(url_list)
+        results = res_list.data.get('results', res_list.data)
+        ids = [p['id'] for p in results]
+        self.assertNotIn(scheduled_post.id, ids)
+
+        # 3. Invisible sur le détail API pour un utilisateur régulier (404)
+        url_detail = reverse('blog_post_detail', kwargs={'pk': scheduled_post.pk})
+        res_detail = self.client.get(url_detail)
+        self.assertEqual(res_detail.status_code, status.HTTP_404_NOT_FOUND)
+
+        # 4. Invisible sur le site Web pour un visiteur public (404)
+        web_url = reverse('web:blog_detail', kwargs={'slug': scheduled_post.slug})
+        web_res = self.client.get(web_url)
+        self.assertEqual(web_res.status_code, 404)
+
+        # 5. Visible pour un administrateur / staff avec mode prévisualisation
+        staff_user = User.objects.create_user(
+            email='admin@potager.fr',
+            username='admin_staff',
+            password='Password123!',
+            is_staff=True
+        )
+        self.client.force_authenticate(user=staff_user)
+        self.client.force_login(staff_user)
+        res_staff_api = self.client.get(url_detail)
+        self.assertEqual(res_staff_api.status_code, status.HTTP_200_OK)
+        self.assertTrue(res_staff_api.data.get('is_scheduled'))
+
+        res_staff_web = self.client.get(web_url)
+        self.assertEqual(res_staff_web.status_code, 200)
+        self.assertContains(res_staff_web, "Mode Prévisualisation Administrateur")
+        self.assertContains(res_staff_web, "planifié")
+
+        # 6. Devient accessible dès que la date de publication est échue
+        scheduled_post.published_at = timezone.now() - timedelta(minutes=5)
+        scheduled_post.save()
+        self.assertTrue(scheduled_post.is_visible)
+        self.assertFalse(scheduled_post.is_scheduled)
+        self.client.force_authenticate(user=None)  # Public visitor
+        self.client.logout()
+        res_after = self.client.get(url_detail)
+        self.assertEqual(res_after.status_code, status.HTTP_200_OK)
+        web_res_after = self.client.get(web_url)
+        self.assertEqual(web_res_after.status_code, 200)

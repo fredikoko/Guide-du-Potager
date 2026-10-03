@@ -9,11 +9,12 @@ User = get_user_model()
 class UserProfileSerializer(serializers.ModelSerializer):
     climate_zone_display = serializers.CharField(source='get_climate_zone_display', read_only=True)
     garden_type_display = serializers.CharField(source='get_garden_type_display', read_only=True)
+    is_premium = serializers.BooleanField(read_only=True)
 
     class Meta:
         model = UserProfile
         fields = [
-            'subscription_active', 'subscription_end_date',
+            'subscription_active', 'subscription_end_date', 'is_premium',
             'country', 'climate_zone', 'climate_zone_display',
             'garden_type', 'garden_type_display',
             'preferences', 'history', 'avatar', 'phone_number'

@@ -16,7 +16,7 @@ class Part(models.Model):
 class Chapter(models.Model):
     part = models.ForeignKey(Part, on_delete=models.CASCADE, related_name='chapters')
     title = models.CharField(max_length=200)
-    content = models.TextField()  # HTML or Markdown content
+    content = models.TextField(help_text="Contenu du chapitre (supporte simultanément Markdown, HTML riche et Texte brut)")
     order = models.IntegerField(default=1)
     is_premium = models.BooleanField(default=False)
     estimated_reading_time = models.IntegerField(default=5)  # minutes
@@ -25,6 +25,11 @@ class Chapter(models.Model):
 
     class Meta:
         ordering = ['order']
+
+    @property
+    def rendered_content(self):
+        from .rendering import render_content
+        return render_content(self.content)
 
     def __str__(self):
         return f"Chapitre {self.order}: {self.title}"

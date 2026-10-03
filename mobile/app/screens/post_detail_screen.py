@@ -8,9 +8,10 @@ from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.blog_service import BlogService
+from ..services.auth_service import AuthService
 from ..utils.html_parser import HTMLParser
 from ..utils.config import Config
-from ..components.cards import CardWidget
+from ..components.cards import CardWidget, FAQAccordionCard, TableWidget
 
 class PostDetailScreen(Screen):
     def __init__(self, **kwargs):
@@ -78,6 +79,8 @@ class PostDetailScreen(Screen):
         date_str = (data.get('created_at') or '')[:10]
         views = data.get('views_count', 0)
         is_prem = bool(data.get('is_premium'))
+        is_sub = AuthService().is_subscribed()
+        is_locked = bool(data.get('is_locked')) or (is_prem and not is_sub)
         star = " [color=47C26B]★[/color]" if is_prem else ""
 
         meta_card = CardWidget(bg_color=Theme.PRIMARY_DARK)
@@ -120,8 +123,70 @@ class PostDetailScreen(Screen):
             )
             self.body_container.add_widget(img_widget)
 
-        # Render HTML Content blocks
-        blocks = self.html_parser.parse_blocks(data['content'], base_url=base_root)
+        # If locked, display excerpt and Paywall Card, then return early
+        if is_locked:
+            if data.get('excerpt'):
+                exc_card = CardWidget(bg_color=Theme.CARD_BG)
+                exc_label = Label(
+                    text=f"[i]{data['excerpt']}[/i]",
+                    markup=True,
+                    font_size='15sp',
+                    color=Theme.TEXT_DARK,
+                    size_hint_y=None,
+                    halign='left',
+                    valign='top'
+                )
+                exc_label.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+                exc_label.bind(texture_size=lambda s, v: setattr(s, 'height', v[1]))
+                exc_card.add_widget(exc_label)
+                self.body_container.add_widget(exc_card)
+
+            lock_card = CardWidget(bg_color=Theme.CARD_BG)
+            lock_icon = Label(text="🔒", font_size='36sp', size_hint_y=None, height=50)
+            lock_card.add_widget(lock_icon)
+
+            lock_title = Label(
+                text="[b]Article Réservé aux Membres Abonnés[/b]",
+                markup=True,
+                font_size='18sp',
+                color=Theme.PRIMARY_DARK,
+                size_hint_y=None,
+                height=35,
+                halign='center'
+            )
+            lock_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            lock_card.add_widget(lock_title)
+
+            lock_desc = Label(
+                text="Cet article exclusif approfondit des techniques maraîchères de pointe pour le climat tropical.\n\nAbonnez-vous dès aujourd'hui pour débloquer cet article exclusif, l'intégralité du guide et toutes les fiches d'experts !",
+                markup=True,
+                font_size='14sp',
+                color=Theme.TEXT_DARK,
+                size_hint_y=None,
+                halign='center'
+            )
+            lock_desc.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            lock_desc.bind(texture_size=lambda s, v: setattr(s, 'height', v[1]))
+            lock_card.add_widget(lock_desc)
+
+            upgrade_btn = Button(
+                text="★ Débloquer l'accès complet",
+                font_size='16sp',
+                size_hint_y=None,
+                height=54,
+                background_normal='',
+                background_color=Theme.ACCENT_EXCLUSIVE,
+                color=Theme.TEXT_LIGHT
+            )
+            upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
+            lock_card.add_widget(upgrade_btn)
+
+            self.body_container.add_widget(lock_card)
+            return
+
+        # Render HTML/Markdown Content blocks
+        raw_content = data.get('rendered_content') or data.get('content') or ''
+        blocks = self.html_parser.parse_blocks(raw_content, base_url=base_root)
         for block in blocks:
             if block['type'] == 'text':
                 lbl = Label(
@@ -138,19 +203,12 @@ class PostDetailScreen(Screen):
                 )
                 self.body_container.add_widget(img_widget)
 
-        # Check if access locked, display Upgrade Button
-        if data.get('is_locked'):
-            upgrade_btn = Button(
-                text="★ Débloquer l'accès complet",
-                font_size='16sp',
-                size_hint_y=None,
-                height=54,
-                background_normal='',
-                background_color=Theme.ACCENT_EXCLUSIVE,
-                color=Theme.TEXT_LIGHT
-            )
-            upgrade_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'subscription'))
-            self.body_container.add_widget(upgrade_btn)
+            elif block['type'] == 'table':
+                table_widget = TableWidget(
+                    headers=block['headers'],
+                    rows=block['rows']
+                )
+                self.body_container.add_widget(table_widget)
 
         # FAQ Section (Facultatif)
         faqs = data.get('faqs', [])
@@ -164,25 +222,10 @@ class PostDetailScreen(Screen):
             self.body_container.add_widget(faq_header)
 
             for faq in faqs:
-                faq_card = CardWidget(bg_color=Theme.CARD_BG)
-                q_label = Label(
-                    text=f"[b][color=1E592E]Q : {faq['question']}[/color][/b]",
-                    markup=True, font_size='15sp', color=Theme.PRIMARY_DARK,
-                    size_hint_y=None, halign='left', valign='top'
+                faq_card = FAQAccordionCard(
+                    question=faq['question'],
+                    answer=faq['answer']
                 )
-                q_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-                q_label.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-
-                a_label = Label(
-                    text=f"[color=47C26B]R :[/color] {faq['answer']}",
-                    markup=True, font_size='14sp', color=Theme.TEXT_DARK,
-                    size_hint_y=None, halign='left', valign='top'
-                )
-                a_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-                a_label.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-
-                faq_card.add_widget(q_label)
-                faq_card.add_widget(a_label)
                 self.body_container.add_widget(faq_card)
 
         # Comments Section Header

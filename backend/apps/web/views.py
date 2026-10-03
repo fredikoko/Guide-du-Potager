@@ -34,7 +34,7 @@ def user_has_premium_access(request):
 def home_view(request):
     """Page d'accueil responsive & Sommaire interactif du Guide du Potager."""
     parts = Part.objects.prefetch_related('chapters').all()
-    recent_posts = Post.objects.filter(is_published=True).select_related('category')[:3]
+    recent_posts = Post.objects.published().select_related('category')[:3]
     featured_tools = Tool.objects.all()[:3]
     vegetables_count = Vegetable.objects.count()
     calendar_count = CalendarEntry.objects.count()
@@ -267,7 +267,12 @@ def blog_list_view(request):
     query = request.GET.get('q', '').strip()
     category_slug = request.GET.get('category', '').strip()
 
-    posts = Post.objects.filter(is_published=True).select_related('category', 'author')
+    if request.user.is_authenticated and request.user.is_staff:
+        posts = Post.objects.all()
+    else:
+        posts = Post.objects.published()
+
+    posts = posts.select_related('category', 'author')
 
     if query:
         posts = posts.filter(
@@ -291,11 +296,24 @@ def blog_list_view(request):
 
 def blog_detail_view(request, slug):
     """Article de blog avec commentaires et incrémentation des vues."""
-    post = get_object_or_404(Post.objects.select_related('category', 'author').prefetch_related('faqs'), slug=slug, is_published=True)
+    is_staff = request.user.is_authenticated and request.user.is_staff
+    if is_staff:
+        post = get_object_or_404(
+            Post.objects.select_related('category', 'author').prefetch_related('faqs'),
+            slug=slug
+        )
+        is_admin_preview = not post.is_visible
+    else:
+        post = get_object_or_404(
+            Post.objects.published().select_related('category', 'author').prefetch_related('faqs'),
+            slug=slug
+        )
+        is_admin_preview = False
     
-    # Incrémentation des vues
-    Post.objects.filter(id=post.id).update(views_count=post.views_count + 1)
-    post.views_count += 1
+    # Incrémentation des vues uniquement pour les visiteurs réguliers
+    if not is_admin_preview:
+        Post.objects.filter(id=post.id).update(views_count=post.views_count + 1)
+        post.views_count += 1
 
     is_premium_user = user_has_premium_access(request)
     is_locked = post.is_premium and not is_premium_user
@@ -313,11 +331,12 @@ def blog_detail_view(request, slug):
             messages.success(request, "Votre commentaire a été publié avec succès !")
             return redirect('web:blog_detail', slug=slug)
 
-    recent_posts = Post.objects.filter(is_published=True).exclude(id=post.id)[:3]
+    recent_posts = Post.objects.published().exclude(id=post.id)[:3]
 
     context = {
         'post': post,
         'is_locked': is_locked,
+        'is_admin_preview': is_admin_preview,
         'comments': comments,
         'comment_form': comment_form,
         'recent_posts': recent_posts,
