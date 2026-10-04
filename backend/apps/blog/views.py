@@ -16,13 +16,8 @@ class PostListView(generics.ListAPIView):
     permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        user = self.request.user
-        if user and user.is_authenticated and user.is_staff:
-            queryset = Post.objects.all()
-        else:
-            queryset = Post.objects.published()
-
-        queryset = queryset.select_related('category', 'author').prefetch_related('images')
+        # L'API publique et mobile n'affiche TOUJOURS que les articles publiés dont l'échéance est atteinte
+        queryset = Post.objects.published().select_related('category', 'author').prefetch_related('images')
         category_id = self.request.query_params.get('category')
         search = self.request.query_params.get('search')
 

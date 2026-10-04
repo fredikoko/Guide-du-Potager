@@ -266,8 +266,12 @@ def blog_list_view(request):
     """Articles, fiches pratiques et retours d'expérience avec filtres."""
     query = request.GET.get('q', '').strip()
     category_slug = request.GET.get('category', '').strip()
+    is_staff = request.user.is_authenticated and request.user.is_staff
+    show_all = is_staff and request.GET.get('include_drafts') == '1'
 
-    if request.user.is_authenticated and request.user.is_staff:
+    # Par défaut, la liste publique n'affiche QUE les articles en ligne (publiés et date échue)
+    # Seul un administrateur ayant activé ?include_drafts=1 peut voir les brouillons et planifiés
+    if show_all:
         posts = Post.objects.all()
     else:
         posts = Post.objects.published()
@@ -291,6 +295,8 @@ def blog_list_view(request):
         'query': query,
         'selected_category': category_slug,
         'active_tab': 'blog',
+        'is_staff': is_staff,
+        'show_all': show_all,
     }
     return render(request, 'web/blog_list.html', context)
 

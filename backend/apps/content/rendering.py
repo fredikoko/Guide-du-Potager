@@ -28,7 +28,7 @@ class ContentRenderer:
             code_blocks.append(f'<pre><code{lang_attr}>{escaped_code}</code></pre>')
             return f"<!--CODE_BLOCK_{idx}-->"
 
-        pattern_fenced = re.compile(r'^(?:```|~~~)([a-zA-Z0-9_-]*)\n(.*?)\n(?:```|~~~)$', re.MULTILINE | re.DOTALL)
+        pattern_fenced = re.compile(r'^[ \t]*(?:```|~~~)([a-zA-Z0-9_-]*)[ \t]*\n(.*?)\n[ \t]*(?:```|~~~)[ \t]*$', re.MULTILINE | re.DOTALL)
         text = pattern_fenced.sub(save_code_block, text)
 
         # 1.5 Isolation des titres et séparateurs Markdown pour éviter qu'ils ne soient fusionnés

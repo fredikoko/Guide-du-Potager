@@ -61,14 +61,26 @@ class PublicationStatusFilter(admin.SimpleListFilter):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'status_badge', 'published_at', 'is_premium', 'author', 'views_count', 'cover_image_preview')
+    list_display = ('title', 'category', 'status_badge', 'published_at', 'preview_link', 'is_premium', 'author', 'views_count', 'cover_image_preview')
     list_filter = (PublicationStatusFilter, 'is_premium', 'category', 'published_at')
     date_hierarchy = 'published_at'
     search_fields = ('title', 'excerpt', 'content')
     prepopulated_fields = {'slug': ('title',)}
     inlines = [PostImageInline, PostFAQInline, CommentInline]
-    readonly_fields = ('cover_image_preview', 'views_count', 'created_at', 'updated_at')
+    readonly_fields = ('cover_image_preview', 'preview_link', 'views_count', 'created_at', 'updated_at')
     actions = ['publish_now', 'unpublish_draft']
+
+    def preview_link(self, obj):
+        from django.urls import reverse
+        if obj.slug:
+            url = reverse('web:blog_detail', kwargs={'slug': obj.slug})
+            return format_html(
+                '<a href="{}" target="_blank" style="display:inline-flex; align-items:center; gap:4px; background:#f0fdf4; border:1px solid #bbf7d0; color:#15803d; padding:3px 8px; border-radius:4px; font-weight:600; font-size:11px; text-decoration:none;">'
+                '👁️ Prévisualiser ↗</a>',
+                url
+            )
+        return "-"
+    preview_link.short_description = "Aperçu Web"
 
     def status_badge(self, obj):
         from django.utils import timezone

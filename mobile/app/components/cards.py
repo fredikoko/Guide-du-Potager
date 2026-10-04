@@ -2,8 +2,17 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.scrollview import ScrollView
 from kivy.graphics import Color, RoundedRectangle, Line
 from ..styles.themes import Theme
+import os
+import kivy
+
+FONTS_DIR = os.path.join(os.path.dirname(kivy.__file__), 'data', 'fonts')
+ASSETS_FONTS_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'fonts')
+CONSOLAS_FONT = os.path.join(ASSETS_FONTS_DIR, 'consola.ttf')
+DEJAVU_FONT = os.path.join(FONTS_DIR, 'DejaVuSans.ttf')
+MONO_FONT = CONSOLAS_FONT if os.path.exists(CONSOLAS_FONT) else (DEJAVU_FONT if os.path.exists(DEJAVU_FONT) else 'DejaVuSans')
 
 class CardWidget(BoxLayout):
     def __init__(self, bg_color=Theme.CARD_BG, radius=[10], **kwargs):
@@ -260,4 +269,75 @@ class TableWidget(BoxLayout):
         self.rect.pos = self.pos
         self.rect.size = self.size
         self.border_line.rounded_rectangle = [self.pos[0], self.pos[1], self.size[0], self.size[1], 8]
+
+class CodeBlockWidget(BoxLayout):
+    """
+    Composant Mobile pour l'affichage de blocs de code et schémas préformatés (ASCII / Unicode Art).
+    - Préserve intégralement les espaces multiples, retours à la ligne et alignements de colonnes.
+    - Utilise la police 'DejaVuSans' pour garantir l'affichage parfait de tous les caractères
+      graphiques Unicode (╭─┴╮, ◄▼, ═│╪, ░▓, etc.).
+    - ScrollView horizontal évitant tout retour à la ligne forcé qui détruirait les schémas sur petit écran.
+    - Cadre sombre élégant avec coin arrondi et badge descriptif.
+    """
+    def __init__(self, content="", lang=None, **kwargs):
+        super().__init__(**kwargs)
+        self.orientation = 'vertical'
+        self.size_hint_y = None
+        self.spacing = 6
+        self.padding = [12, 10, 12, 12]
+        self.bind(minimum_height=self.setter('height'))
+
+        with self.canvas.before:
+            Color(0.12, 0.16, 0.13, 1.0)  # Fond sombre végétal #1F2921
+            self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[8])
+            Color(0.24, 0.38, 0.26, 0.8)  # Bordure vert nature
+            self.border_line = Line(rounded_rectangle=[self.pos[0], self.pos[1], self.size[0], self.size[1], 8], width=1)
+        self.bind(size=self._update_graphics, pos=self._update_graphics)
+
+        badge_title = f"📋 {lang.upper()}" if lang else "📊 Schéma / Diagramme"
+        badge_lbl = Label(
+            text=f"[b][color=47C26B]{badge_title}[/color][/b]",
+            markup=True,
+            font_size='11sp',
+            size_hint_y=None,
+            height=20,
+            halign='left',
+            valign='middle'
+        )
+        badge_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+        self.add_widget(badge_lbl)
+
+        scroll = ScrollView(size_hint_y=None, do_scroll_x=True, do_scroll_y=False)
+        scroll.bar_width = 4
+        scroll.bar_color = [0.28, 0.76, 0.42, 0.7]
+        scroll.scroll_type = ['bars', 'content']
+
+        # Remplacement des tabulations par 4 espaces pour garantir un alignement strict
+        clean_content = content.replace('\t', '    ').strip('\r\n')
+        code_lbl = Label(
+            text=clean_content,
+            font_name=MONO_FONT,
+            font_size='12sp',
+            line_height=1.18,
+            color=(0.92, 0.96, 0.92, 1.0),
+            size_hint=(None, None),
+            halign='left',
+            valign='top'
+        )
+        code_lbl.bind(texture_size=lambda s, v: self._update_code_size(code_lbl, scroll, v))
+        self.code_lbl = code_lbl
+        self.scroll = scroll
+
+        scroll.add_widget(code_lbl)
+        self.add_widget(scroll)
+
+    def _update_code_size(self, lbl, scroll, texture_size):
+        lbl.size = (max(texture_size[0] + 24, 200), texture_size[1] + 8)
+        scroll.height = texture_size[1] + 16
+
+    def _update_graphics(self, instance, value):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
+        self.border_line.rounded_rectangle = [self.pos[0], self.pos[1], self.size[0], self.size[1], 8]
+
 

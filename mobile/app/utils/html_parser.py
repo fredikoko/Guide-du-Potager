@@ -53,8 +53,8 @@ class HTMLParser:
         text = re.sub(r'^>\s*(.+)$', r'\n[i]« \1 »[/i]\n', text, flags=re.MULTILINE)
         # Liens Markdown [texte](url)
         text = re.sub(r'(?<!!)\[(.*?)\]\((.*?)\)', r'[color=3D7A42][u]\1[/u][/color]', text)
-        # Code inline `code`
-        text = re.sub(r'`([^`]+)`', r'[color=1E592E]\1[/color]', text)
+        # Code inline `code` (évite de capturer les triples backticks ```)
+        text = re.sub(r'(?<!`)`([^`\n]+)`(?!`)', r'[color=1E592E]\1[/color]', text)
 
         # 2. Suppression des icônes de polices vides (ex: <i class="fa-solid fa-leaf"></i>)
         text = re.sub(r'<i\s+class=["\'][^"\']*fa-[^"\']*["\'][^>]*>\s*</i>', '', text, flags=re.IGNORECASE)
@@ -117,11 +117,11 @@ class HTMLParser:
         text = re.sub(r'<u(?:\s+[^>]*)?>(.*?)</u>', r'[u]\1[/u]', text, flags=re.DOTALL | re.IGNORECASE)
 
         # 7. Sauts de ligne et paragraphes
-        text = re.sub(r'<br\s*/?>', r'\n', text, flags=re.IGNORECASE)
-        text = re.sub(r'<p(?:\s+[^>]*)?>(.*?)</p>', r'\1\n\n', text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r'<br\s*/?>[ \t]*\n?', r'\n', text, flags=re.IGNORECASE)
+        text = re.sub(r'<p(?:\s+[^>]*)?>\s*(.*?)\s*</p>', r'\1\n\n', text, flags=re.DOTALL | re.IGNORECASE)
 
         # 8. Listes à puces et ordonnées
-        text = re.sub(r'<li(?:\s+[^>]*)?>(.*?)</li>', r'  • \1\n', text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r'<li(?:\s+[^>]*)?>\s*(.*?)\s*</li>', r'  • \1\n', text, flags=re.DOTALL | re.IGNORECASE)
         text = re.sub(r'</?(?:ul|ol)(?:\s+[^>]*)?>', r'\n', text, flags=re.IGNORECASE)
 
         # 9. Tableaux HTML -> Affichage structuré et lisible pour mobile
@@ -141,9 +141,9 @@ class HTMLParser:
         text = re.sub(r'</?(?:table|thead|tbody|tfoot)(?:\s+[^>]*)?>', r'\n', text, flags=re.IGNORECASE)
 
         # 10. Citations et encarts div
-        text = re.sub(r'<blockquote(?:\s+[^>]*)?>(.*?)</blockquote>', r'\n[i]« \1 »[/i]\n', text, flags=re.DOTALL | re.IGNORECASE)
-        text = re.sub(r'<div(?:\s+[^>]*)?>', r'\n', text, flags=re.IGNORECASE)
-        text = re.sub(r'</div>', r'\n', text, flags=re.IGNORECASE)
+        text = re.sub(r'<blockquote(?:\s+[^>]*)?>\s*(.*?)\s*</blockquote>', r'\n[i]« \1 »[/i]\n', text, flags=re.DOTALL | re.IGNORECASE)
+        text = re.sub(r'<div(?:\s+[^>]*)?>\s*', r'\n', text, flags=re.IGNORECASE)
+        text = re.sub(r'\s*</div>', r'\n', text, flags=re.IGNORECASE)
 
         # 11. Nettoyage des balises HTML restantes
         text = re.sub(r'<[^>]+>', '', text)
@@ -157,9 +157,9 @@ class HTMLParser:
         # 13.5 Nettoyage résiduel de tout # Markdown orphelin en début de ligne
         text = re.sub(r'^[ \t]*#{1,6}\s*(.*?)(?:\s*#+)?$', r'[size=17][b][color=3D7A42]\1[/color][/b][/size]', text, flags=re.MULTILINE)
 
-        # 14. Normalisation des espaces et sauts de ligne multiples
-        text = re.sub(r'[ \t]+', ' ', text)
-        text = re.sub(r' \n', '\n', text)
+        # 14. Normalisation intelligente des espaces et sauts de ligne
+        text = re.sub(r'(?<=\S)[ \t]{2,}', ' ', text)
+        text = re.sub(r'[ \t]+\n', '\n', text)
         text = re.sub(r'\n{3,}', '\n\n', text)
 
         return text.strip()
@@ -224,7 +224,17 @@ class HTMLParser:
             re.MULTILINE
         )
 
-        # 3. Détection des images (HTML <img> et Markdown ![alt](url))
+        # 3. Détection des blocs de code & schémas préformatés (HTML <pre> et Markdown ```...```)
+        pre_html_pattern = re.compile(
+            r'<pre(?:\s+[^>]*)?>\s*(?:<code(?:\s+class=["\'](?:language-)?([a-zA-Z0-9_-]*)["\'][^>]*)?>)?(.*?)(?:</code>)?\s*</pre>',
+            re.DOTALL | re.IGNORECASE
+        )
+        code_md_pattern = re.compile(
+            r'^[ \t]*(?:```|~~~)([a-zA-Z0-9_-]*)[ \t]*\n(.*?)\n[ \t]*(?:```|~~~)[ \t]*$',
+            re.MULTILINE | re.DOTALL
+        )
+
+        # 4. Détection des images (HTML <img> et Markdown ![alt](url))
         img_pattern = re.compile(
             r'(?:<img\s+[^>]*src=["\']([^"\']+)["\'][^>]*>|!\[(.*?)\]\(([^)\s]+)(?:\s+"[^"]*")?\))',
             re.IGNORECASE
@@ -258,7 +268,32 @@ class HTMLParser:
                         'rows': rows
                     })
 
-        # Collecte des images (hors des tableaux)
+        # Collecte des blocs de code HTML <pre><code>...</code></pre>
+        occupied_spans = [(e['start'], e['end']) for e in elements]
+        for match in pre_html_pattern.finditer(html_content):
+            if not any(ts <= match.start() and match.end() <= te for ts, te in occupied_spans):
+                code_text = html.unescape(match.group(2))
+                elements.append({
+                    'start': match.start(),
+                    'end': match.end(),
+                    'type': 'code',
+                    'content': code_text,
+                    'lang': match.group(1) or None
+                })
+
+        # Collecte des blocs de code Markdown ```...```
+        occupied_spans = [(e['start'], e['end']) for e in elements]
+        for match in code_md_pattern.finditer(html_content):
+            if not any(ts <= match.start() and match.end() <= te for ts, te in occupied_spans):
+                elements.append({
+                    'start': match.start(),
+                    'end': match.end(),
+                    'type': 'code',
+                    'content': match.group(2),
+                    'lang': match.group(1) or None
+                })
+
+        # Collecte des images (hors des tableaux et blocs de code)
         occupied_spans = [(e['start'], e['end']) for e in elements]
         for match in img_pattern.finditer(html_content):
             if not any(ts <= match.start() and match.end() <= te for ts, te in occupied_spans):
@@ -274,7 +309,7 @@ class HTMLParser:
                     'url': img_url
                 })
 
-        # Trier tous les éléments par position
+        # Trier tous les éléments par position chronologique
         elements.sort(key=lambda x: x['start'])
 
         blocks = []
@@ -291,6 +326,8 @@ class HTMLParser:
                 blocks.append({'type': 'image', 'url': elem['url']})
             elif elem['type'] == 'table':
                 blocks.append({'type': 'table', 'headers': elem['headers'], 'rows': elem['rows']})
+            elif elem['type'] == 'code':
+                blocks.append({'type': 'code', 'content': elem['content'], 'lang': elem.get('lang')})
 
             last_idx = elem['end']
 

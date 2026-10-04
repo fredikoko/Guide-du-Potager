@@ -11,7 +11,7 @@ from ..services.blog_service import BlogService
 from ..services.auth_service import AuthService
 from ..utils.html_parser import HTMLParser
 from ..utils.config import Config
-from ..components.cards import CardWidget, FAQAccordionCard, TableWidget
+from ..components.cards import CardWidget, FAQAccordionCard, TableWidget, CodeBlockWidget
 
 class PostDetailScreen(Screen):
     def __init__(self, **kwargs):
@@ -191,11 +191,19 @@ class PostDetailScreen(Screen):
             if block['type'] == 'text':
                 lbl = Label(
                     text=block['content'], markup=True, font_size='16sp',
+                    line_height=1.35,
                     color=Theme.TEXT_DARK, size_hint_y=None, halign='left', valign='top'
                 )
                 lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
                 lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
                 self.body_container.add_widget(lbl)
+
+            elif block['type'] == 'code':
+                code_widget = CodeBlockWidget(
+                    content=block['content'],
+                    lang=block.get('lang')
+                )
+                self.body_container.add_widget(code_widget)
 
             elif block['type'] == 'image':
                 img_widget = AsyncImage(

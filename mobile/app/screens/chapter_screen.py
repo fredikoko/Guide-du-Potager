@@ -10,7 +10,7 @@ from ..services.content_service import ContentService
 from ..services.auth_service import AuthService
 from ..utils.html_parser import HTMLParser
 from ..utils.config import Config
-from ..components.cards import TableWidget, CardWidget
+from ..components.cards import TableWidget, CardWidget, CodeBlockWidget
 
 class ChapterScreen(Screen):
     def __init__(self, **kwargs):
@@ -145,6 +145,7 @@ class ChapterScreen(Screen):
                     text=block['content'],
                     markup=True,
                     font_size='16sp',
+                    line_height=1.35,
                     color=Theme.TEXT_DARK,
                     size_hint_y=None,
                     halign='left',
@@ -153,6 +154,13 @@ class ChapterScreen(Screen):
                 content_label.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
                 content_label.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
                 self.body_container.add_widget(content_label)
+
+            elif block['type'] == 'code':
+                code_widget = CodeBlockWidget(
+                    content=block['content'],
+                    lang=block.get('lang')
+                )
+                self.body_container.add_widget(code_widget)
 
             elif block['type'] == 'image':
                 img_widget = AsyncImage(

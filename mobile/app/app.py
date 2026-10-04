@@ -19,6 +19,14 @@ from .screens.post_detail_screen import PostDetailScreen
 from .screens.about_screen import AboutScreen
 
 from kivy.core.window import Window
+from kivy.core.text import LabelBase
+import os
+import kivy
+
+FONTS_DIR = os.path.join(os.path.dirname(kivy.__file__), 'data', 'fonts')
+DEJAVU_PATH = os.path.join(FONTS_DIR, 'DejaVuSans.ttf')
+if os.path.exists(DEJAVU_PATH):
+    LabelBase.register(name='DejaVuSans', fn_regular=DEJAVU_PATH)
 
 class GuidePotagerTropicalApp(App):
     sm = ObjectProperty(None)

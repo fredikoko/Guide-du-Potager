@@ -44,6 +44,39 @@
         </div>
     </div>
 
+    {% if is_staff %}
+    <!-- Bandeau de Contrôle Administrateur -->
+    <div class="bg-emerald-50/80 border border-emerald-200 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs text-emerald-950 shadow-sm">
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-xl bg-[#1E592E] text-white flex items-center justify-center shrink-0">
+                <i class="fa-solid fa-shield-halved text-sm"></i>
+            </div>
+            <div>
+                <span class="font-bold text-sm block">Session Administrateur active</span>
+                {% if show_all %}
+                    <span class="text-emerald-800">Affichage étendu : vous visualisez actuellement les <strong>articles en ligne, planifiés et brouillons</strong>.</span>
+                {% else %}
+                    <span class="text-emerald-800">Vue visiteur public : seuls les <strong>articles en ligne</strong> sont affichés (les planifiés et brouillons sont masqués).</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="shrink-0 flex items-center gap-2">
+            {% if show_all %}
+                <a href="{% url 'web:blog_list' %}" class="px-3.5 py-2 bg-white border border-emerald-300 rounded-xl hover:bg-emerald-100/60 font-bold text-emerald-900 transition">
+                    👁️ Passer en vue visiteur public
+                </a>
+            {% else %}
+                <a href="{% url 'web:blog_list' %}?include_drafts=1" class="px-3.5 py-2 bg-[#1E592E] text-white rounded-xl hover:bg-[#3D7A42] font-bold shadow-sm transition">
+                    📋 Afficher aussi les planifiés & brouillons
+                </a>
+            {% endif %}
+            <a href="/admin/blog/post/" target="_blank" class="px-3 py-2 bg-white border border-emerald-300 rounded-xl hover:bg-emerald-100/60 font-semibold text-emerald-800 transition" title="Gérer dans Django Admin">
+                ⚙️ Admin ↗
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
     <!-- Grille des Articles -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {% for post in posts %}
