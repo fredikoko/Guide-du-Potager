@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr" class="h-full">
 <head>
@@ -5,7 +6,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Guide du Potager Tropical - Botanique & Maraîchage Bio{% endblock %}</title>
     <meta name="description" content="Guide pratique complet du potager et maraîchage bio en climat tropical et sahélien : légumes, calendrier de semis, biopesticides et fertilisation naturelle.">
-    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220%22%20y=%220%22%20width=%22100%22%20height=%22100%22><text y=%22.9em%22 font-size=%2290%22>🌱</text></svg>">
+    <link rel="icon" type="image/png" href="{% static 'img/favicon.png' %}">
+    <link rel="shortcut icon" href="{% static 'img/favicon.ico' %}">
+    <link rel="apple-touch-icon" href="{% static 'img/icon.png' %}">
 
     <!-- Fonts Google (Inter & Plus Jakarta Sans) -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -189,9 +192,7 @@
                     </button>
 
                     <a href="{% url 'web:home' %}" class="flex items-center space-x-3 group">
-                        <div class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-[#47C26B]/20 border border-[#47C26B]/40 flex items-center justify-center text-[#47C26B] group-hover:scale-105 transition">
-                            <i class="fa-solid fa-leaf text-xl"></i>
-                        </div>
+                        <img src="{% static 'img/icon.png' %}" alt="Logo Guide du Potager" class="w-10 h-10 sm:w-11 sm:h-11 rounded-xl object-cover shadow-sm group-hover:scale-105 transition border border-[#47C26B]/40">
                         <div>
                             <span class="block text-base sm:text-lg font-extrabold tracking-tight text-white leading-tight">
                                 Guide du Potager
@@ -275,9 +276,7 @@
             <!-- Drawer Header (Fond terre sombre #543826) -->
             <div class="p-5 bg-[#543826] flex items-center justify-between border-b border-[#6d4932]">
                 <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 rounded-xl bg-[#47C26B]/20 border border-[#47C26B]/40 flex items-center justify-center text-[#47C26B]">
-                        <i class="fa-solid fa-seedling text-lg"></i>
-                    </div>
+                    <img src="{% static 'img/icon.png' %}" alt="Logo Guide du Potager" class="w-10 h-10 rounded-xl object-cover shadow-sm border border-[#47C26B]/40">
                     <div>
                         <h4 class="font-extrabold text-base text-white leading-tight">Guide du Potager</h4>
                         <p class="text-xs text-[#8AB86C]">Botanique & Maraîchage Bio</p>
@@ -385,9 +384,7 @@
                 <!-- Identité & Mission -->
                 <div class="md:col-span-1 space-y-4">
                     <div class="flex items-center space-x-3">
-                        <div class="w-9 h-9 rounded-xl bg-[#47C26B]/20 border border-[#47C26B]/40 flex items-center justify-center text-[#47C26B]">
-                            <i class="fa-solid fa-leaf"></i>
-                        </div>
+                        <img src="{% static 'img/icon.png' %}" alt="Logo Guide du Potager" class="w-9 h-9 rounded-xl object-cover shadow-sm border border-[#47C26B]/40">
                         <span class="font-extrabold text-lg text-white">Guide du Potager</span>
                     </div>
                     <p class="text-xs sm:text-sm text-gray-300 leading-relaxed">

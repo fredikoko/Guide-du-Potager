@@ -34,6 +34,9 @@ class GuidePotagerTropicalApp(App):
 
     def build(self):
         self.title = "Guide du Potager Tropical"
+        icon_path = os.path.join(os.path.dirname(__file__), 'assets', 'icon.png')
+        if os.path.exists(icon_path):
+            self.icon = icon_path
         self.auth_service = AuthService()
         self.sm = ScreenManager(transition=FadeTransition())
 

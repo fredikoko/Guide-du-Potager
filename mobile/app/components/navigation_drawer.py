@@ -3,7 +3,9 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.button import Button
 from kivy.uix.label import Label
 from kivy.uix.scrollview import ScrollView
+from kivy.uix.image import Image as KivyImage
 from kivy.graphics import Color, Rectangle
+import os
 from ..styles.themes import Theme
 
 class DrawerButton(Button):
@@ -57,7 +59,17 @@ class NavigationDrawer(FloatLayout):
         with header.canvas.before:
             Color(*Theme.BROWN_DARK)
             self.header_rect = Rectangle(size=header.size, pos=header.pos)
-        header.bind(size=self._update_header_rect, pos=self._update_header_rect)
+        # App icon in drawer header
+        icon_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'assets', 'icon.png')
+        if os.path.exists(icon_path):
+            icon_img = KivyImage(
+                source=icon_path,
+                size_hint=(None, None),
+                size=(46, 46),
+                allow_stretch=True,
+                keep_ratio=True
+            )
+            header.add_widget(icon_img)
 
         title_box = BoxLayout(orientation='vertical', spacing=2)
         app_title = Label(
