@@ -45,10 +45,26 @@
             </div>
         </div>
 
-        <h1 class="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
-            {{ post.title }}
-            {% if post.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
-        </h1>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+            <h1 class="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
+                {{ post.title }}
+                {% if post.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+            </h1>
+
+            <div class="flex items-center space-x-2 shrink-0">
+                {% if can_download_pdf %}
+                <a href="{% url 'web:download_post_pdf' post.slug %}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-extrabold text-[#1E592E] shadow-sm transition">
+                    <i class="fa-solid fa-file-pdf text-red-500 text-sm"></i>
+                    <span>Télécharger en PDF</span>
+                </a>
+                {% elif is_locked and post.id %}
+                <a href="{% url 'web:purchase_post' post.id %}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-[#47C26B] hover:bg-emerald-400 text-[#1E592E] text-xs font-extrabold shadow-sm transition">
+                    <i class="fa-solid fa-file-pdf text-red-600"></i>
+                    <span>Acheter l'article ({{ formatted_post_price }} {{ pricing.currency }})</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
     </header>
 
     <!-- Image Principale -->

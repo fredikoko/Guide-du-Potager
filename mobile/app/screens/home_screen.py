@@ -168,6 +168,7 @@ class HomeScreen(Screen):
         self.content_container.add_widget(sec_modules)
 
         modules = [
+            ("📖 Sommaire & Recherche", "Explorez tous les chapitres par partie et par mots-clés.", "guide", Theme.CARD_BG),
             ("📅 Simulateur Cultural", "Que semer et récolter ce mois-ci selon la saison tropicale.", "calendar", Theme.CARD_BG),
             ("🩺 Maladies & Soins [color=47C26B]★[/color]", "Identifier les attaques, traitements raisonnés et soins bio au neem.", "diseases", Theme.CARD_BG),
             ("🐛 Insectes & Biocontrôle [color=47C26B]★[/color]", "Lutte phytosanitaire raisonnée, barrières et répulsifs naturels.", "insects", Theme.CARD_BG),
@@ -198,11 +199,31 @@ class HomeScreen(Screen):
         # ======================================================================
         # 3. SOMMAIRE DU MANUEL NUMÉRIQUE EBOOK
         # ======================================================================
-        sec_guide = self._create_auto_label(
-            "[b]📖 Sommaire du Manuel Ebook :[/b]",
-            font_size='16sp', color=Theme.PRIMARY_DARK
+        guide_header_box = BoxLayout(orientation='horizontal', size_hint_y=None, height=36, spacing=8)
+        sec_guide = Label(
+            text="[b]📖 Sommaire du Manuel Ebook :[/b]",
+            markup=True,
+            font_size='16sp',
+            color=Theme.PRIMARY_DARK,
+            size_hint_x=0.65,
+            halign='left',
+            valign='middle'
         )
-        self.content_container.add_widget(sec_guide)
+        sec_guide.bind(size=sec_guide.setter('text_size'))
+        
+        btn_all_guide = Button(
+            text="Vue liste →",
+            font_size='11sp',
+            size_hint_x=0.35,
+            background_normal='',
+            background_color=Theme.PRIMARY_LIGHT,
+            color=Theme.PRIMARY_DARK
+        )
+        btn_all_guide.bind(on_release=lambda x: setattr(self.manager, 'current', 'guide'))
+        
+        guide_header_box.add_widget(sec_guide)
+        guide_header_box.add_widget(btn_all_guide)
+        self.content_container.add_widget(guide_header_box)
 
         res = self.content_service.get_parts()
         if res.get('success'):
@@ -301,7 +322,7 @@ class HomeScreen(Screen):
 
     def open_chapter(self, chapter_id):
         chapter_screen = self.manager.get_screen('chapter')
-        chapter_screen.load_chapter(chapter_id)
+        chapter_screen.load_chapter(chapter_id, from_screen='home')
         self.manager.current = 'chapter'
 
     def toggle_drawer(self, instance=None):

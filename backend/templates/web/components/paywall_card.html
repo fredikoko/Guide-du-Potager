@@ -48,5 +48,33 @@
             </a>
             {% endif %}
         </div>
+
+        {% if post and formatted_post_price %}
+        <!-- Option Achat à l'unité de l'article avec PDF -->
+        <div class="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/10 p-4 rounded-xl border border-white/10">
+            <div>
+                <span class="text-xs uppercase font-extrabold text-[#47C26B] tracking-wider block">⚡ Achat à l'Unité</span>
+                <span class="text-sm font-bold text-white">Débloquer cet article uniquement</span>
+                <span class="text-xs text-gray-200 block">Lecture illimitée + Téléchargement de la fiche en PDF</span>
+            </div>
+            <a href="{% url 'web:purchase_post' post.id %}" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl font-extrabold text-xs text-[#1E592E] bg-white hover:bg-gray-100 shadow-md transition shrink-0">
+                <i class="fa-solid fa-file-pdf mr-1.5 text-red-600"></i>
+                Acheter cet article ({{ formatted_post_price }} {{ pricing.currency }})
+            </a>
+        </div>
+        {% elif chapter and pricing %}
+        <!-- Option Achat du Guide Complet Ebook PDF -->
+        <div class="mt-6 pt-5 border-t border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/10 p-4 rounded-xl border border-white/10">
+            <div>
+                <span class="text-xs uppercase font-extrabold text-[#47C26B] tracking-wider block">📖 Ebook Intégral</span>
+                <span class="text-sm font-bold text-white">Acheter le Guide Complet en Ebook PDF</span>
+                <span class="text-xs text-gray-200 block">Débloquez l'ensemble des parties et téléchargez le PDF complet</span>
+            </div>
+            <a href="{% url 'web:purchase_guide' %}" class="inline-flex items-center justify-center px-4 py-2.5 rounded-xl font-extrabold text-xs text-[#1E592E] bg-white hover:bg-gray-100 shadow-md transition shrink-0">
+                <i class="fa-solid fa-cart-shopping mr-1.5"></i>
+                Acheter le Guide Complet ({{ pricing.formatted_guide_price }} {{ pricing.currency }})
+            </a>
+        </div>
+        {% endif %}
     </div>
 </div>

@@ -3,7 +3,9 @@ from .views import (
     SubscriptionStatusView,
     SubscriptionPlanListView,
     ChariowCheckoutView,
-    ChariowWebhookView
+    ChariowWebhookView,
+    DigitalProductPricingView,
+    UserPurchasesListView,
 )
 
 urlpatterns = [
@@ -13,4 +15,6 @@ urlpatterns = [
     path('webhook/', ChariowWebhookView.as_view(), name='subscription_webhook'),
     path('chariow/checkout/', ChariowCheckoutView.as_view(), name='chariow_checkout'),
     path('chariow/webhook/', ChariowWebhookView.as_view(), name='chariow_webhook'),
+    path('pricing/', DigitalProductPricingView.as_view(), name='digital_pricing'),
+    path('my-purchases/', UserPurchasesListView.as_view(), name='user_purchases'),
 ]

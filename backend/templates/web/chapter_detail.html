@@ -27,10 +27,19 @@
             {% endif %}
         </div>
 
-        <h1 class="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
-            {{ chapter.title }}
-            {% if chapter.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
-        </h1>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-1">
+            <h1 class="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
+                {{ chapter.title }}
+                {% if chapter.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+            </h1>
+
+            {% if user_has_guide_access %}
+            <a href="{% url 'web:download_guide_pdf' %}" class="inline-flex items-center space-x-2 px-4 py-2.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 text-xs font-extrabold text-[#1E592E] shadow-sm transition shrink-0">
+                <i class="fa-solid fa-file-pdf text-red-500 text-sm"></i>
+                <span>Télécharger le Guide (PDF)</span>
+            </a>
+            {% endif %}
+        </div>
     </header>
 
     <!-- Contenu du Chapitre ou Paywall -->
@@ -53,9 +62,9 @@
                 {{ chapter.rendered_content|safe }}
             </div>
 
-            {% if chapter.images.all %}
+            {% if extra_images %}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-8 pt-8 border-t border-gray-100">
-                {% for img in chapter.images.all %}
+                {% for img in extra_images %}
                 <figure class="rounded-xl overflow-hidden border border-gray-200 bg-gray-50">
                     <img src="{{ img.image.url }}" alt="{{ img.caption|default:chapter.title }}" class="w-full h-56 object-cover">
                     {% if img.caption %}
@@ -84,7 +93,7 @@
         <div></div>
         {% endif %}
 
-        <a href="{% url 'web:home' %}#sommaire-guide" class="text-xs font-bold text-gray-500 hover:text-[#1E592E] px-4 py-2 rounded-lg hover:bg-gray-100 transition">
+        <a href="{% url 'web:guide_summary' %}" class="text-xs font-bold text-gray-500 hover:text-[#1E592E] px-4 py-2 rounded-lg hover:bg-gray-100 transition">
             <i class="fa-solid fa-list mr-1"></i> Sommaire général
         </a>
 

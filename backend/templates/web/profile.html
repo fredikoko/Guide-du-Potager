@@ -61,6 +61,79 @@
         </div>
     </div>
 
+    <!-- Mes Achats Numériques & Fichiers PDF -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-6">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3">
+            <h2 class="text-xl font-black text-[#1E592E] flex items-center">
+                <i class="fa-solid fa-file-pdf text-red-500 mr-2"></i>
+                Mes Achats Numériques & Fichiers PDF
+            </h2>
+            <span class="text-xs text-gray-500 font-semibold">Téléchargements illimités à vie</span>
+        </div>
+
+        {% if has_guide_access or user_purchases %}
+        <div class="space-y-3">
+            {% if has_guide_access %}
+            <div class="p-4 rounded-2xl bg-emerald-50/80 border border-emerald-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center space-x-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-[#1E592E] text-white flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-book-bookmark"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-sm text-[#1E592E] block">Guide Complet du Potager Tropical (Ebook PDF)</span>
+                        <span class="text-xs text-gray-500">Toutes les parties & chapitres agronomiques réunis en un seul fichier PDF A4.</span>
+                    </div>
+                </div>
+                <a href="{% url 'web:download_guide_pdf' %}" class="inline-flex items-center justify-center space-x-2 px-4 py-2.5 rounded-xl bg-[#1E592E] hover:bg-[#164323] text-white text-xs font-extrabold shadow-sm transition shrink-0">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Télécharger le PDF</span>
+                </a>
+            </div>
+            {% endif %}
+
+            {% for purchase in user_purchases %}
+            {% if purchase.purchase_type == 'post' and purchase.post %}
+            <div class="p-4 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-center space-x-3.5">
+                    <div class="w-10 h-10 rounded-xl bg-white border border-gray-200 text-[#3D7A42] flex items-center justify-center text-lg shrink-0">
+                        <i class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <div>
+                        <span class="font-extrabold text-sm text-gray-900 block">{{ purchase.post.title }}</span>
+                        <span class="text-xs text-gray-500">Acheté le {{ purchase.created_at|date:"d/m/Y" }} • {{ purchase.amount }} {{ purchase.currency }}</span>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2 shrink-0">
+                    <a href="{% url 'web:blog_detail' purchase.post.slug %}" class="px-3 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 hover:text-[#1E592E] text-xs font-semibold transition">
+                        Lire en ligne
+                    </a>
+                    <a href="{% url 'web:download_post_pdf' purchase.post.slug %}" class="inline-flex items-center space-x-1.5 px-3 py-2 rounded-xl bg-[#47C26B] hover:bg-emerald-400 text-[#1E592E] text-xs font-extrabold shadow-sm transition">
+                        <i class="fa-solid fa-download"></i>
+                        <span>PDF</span>
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-6 px-4 bg-gray-50 rounded-2xl border border-dashed border-gray-200 space-y-3">
+            <i class="fa-solid fa-basket-shopping text-3xl text-gray-300"></i>
+            <p class="text-xs sm:text-sm text-gray-500 max-w-md mx-auto">
+                Vous n'avez pas encore acheté de guide ou d'article à l'unité. Vous pouvez acquérir le Guide Complet ou vos articles favoris pour les emporter partout en PDF.
+            </p>
+            <div class="flex items-center justify-center space-x-3 pt-1">
+                <a href="{% url 'web:guide_summary' %}" class="px-4 py-2 rounded-xl bg-[#1E592E] text-white text-xs font-bold transition">
+                    Découvrir le Guide Complet
+                </a>
+                <a href="{% url 'web:blog_list' %}" class="px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-700 text-xs font-bold transition">
+                    Parcourir les Articles
+                </a>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
     <!-- Formulaire Modification du Profil -->
     <div class="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-gray-200 space-y-6">
         <h2 class="text-xl font-black text-[#1E592E] border-b border-gray-100 pb-3 flex items-center">

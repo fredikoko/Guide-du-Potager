@@ -25,9 +25,9 @@
 
                 <!-- Boutons d'Action Rapide -->
                 <div class="flex flex-wrap gap-3 sm:gap-4 pt-2">
-                    <a href="#sommaire-guide" class="inline-flex items-center px-5 sm:px-6 py-3 rounded-xl font-bold text-[#1E592E] bg-[#47C26B] hover:bg-[#3db05f] shadow-lg transition transform hover:-translate-y-0.5">
+                    <a href="{% url 'web:guide_summary' %}" class="inline-flex items-center px-5 sm:px-6 py-3 rounded-xl font-bold text-[#1E592E] bg-[#47C26B] hover:bg-[#3db05f] shadow-lg transition transform hover:-translate-y-0.5">
                         <i class="fa-solid fa-book-open mr-2"></i>
-                        Lire le Manuel Ebook
+                        Sommaire du Manuel Ebook
                     </a>
                     <a href="{% url 'web:calendar' %}" class="inline-flex items-center px-5 sm:px-6 py-3 rounded-xl font-bold text-white bg-[#3D7A42] hover:bg-[#468c4c] shadow transition">
                         <i class="fa-solid fa-calendar-days mr-2 text-[#8AB86C]"></i>
@@ -83,14 +83,24 @@
 
     <!-- SOMMAIRE DU MANUEL / EBOOK (Parité avec Kivy HomeScreen) -->
     <section id="sommaire-guide" class="scroll-mt-24 space-y-6">
-        <div class="flex flex-col sm:flex-row sm:items-end justify-between border-b border-gray-200 pb-4">
+        <div class="flex flex-col sm:flex-row sm:items-end justify-between border-b border-gray-200 pb-4 gap-3">
             <div>
                 <span class="text-xs font-bold uppercase tracking-wider text-[#3D7A42]">Manuel Numérique</span>
                 <h2 class="text-2xl sm:text-3xl font-extrabold text-[#1E592E]">Sommaire des Parties & Chapitres</h2>
+                <p class="text-xs sm:text-sm text-gray-500 mt-1">
+                    Les contenus signalés par <span class="font-bold text-[#47C26B]">★</span> sont réservés aux abonnés.
+                </p>
             </div>
-            <p class="text-xs sm:text-sm text-gray-500 mt-1 sm:mt-0">
-                Les contenus signalés par <span class="font-bold text-[#47C26B]">★</span> sont réservés aux abonnés.
-            </p>
+            <div class="flex items-center space-x-2 shrink-0">
+                <a href="{% url 'web:purchase_guide' %}" class="inline-flex items-center px-3.5 py-2 rounded-xl bg-[#47C26B] hover:bg-emerald-400 text-xs font-extrabold text-[#1E592E] shadow-sm transition">
+                    <i class="fa-solid fa-file-pdf mr-1.5 text-red-700"></i>
+                    <span>Ebook PDF</span>
+                </a>
+                <a href="{% url 'web:guide_summary' %}" class="inline-flex items-center px-3.5 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100/70 border border-emerald-200 text-xs font-bold text-[#1E592E] shadow-sm transition">
+                    <span>Sommaire complet</span>
+                    <i class="fa-solid fa-arrow-right ml-1.5 text-[#47C26B]"></i>
+                </a>
+            </div>
         </div>
 
         <div class="space-y-6">

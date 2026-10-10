@@ -1,3 +1,5 @@
+from io import BytesIO
+from django.http import FileResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
 from django.contrib.auth.decorators import login_required
@@ -10,8 +12,10 @@ from apps.content.models import Part, Chapter, AboutPage
 from apps.glossary.models import Vegetable, PlantFamily, Tool, CalendarEntry, TOOL_CATEGORIES, TROPICAL_SEASON_CHOICES
 from apps.pests.models import Disease, Insect
 from apps.blog.models import Post, Category, Comment
-from apps.subscriptions.models import SubscriptionPlan, Subscription
+from apps.subscriptions.models import SubscriptionPlan, Subscription, DigitalProductPricing, UserPurchase
 from apps.subscriptions.chariow_service import ChariowService
+from apps.subscriptions.purchase_service import PurchaseService
+from apps.content.pdf_service import generate_guide_pdf, generate_post_pdf
 from apps.accounts.models import UserProfile
 
 from .forms import WebLoginForm, WebRegisterForm, UserProfileUpdateForm, BlogCommentForm
@@ -49,10 +53,51 @@ def home_view(request):
     }
     return render(request, 'web/home.html', context)
 
+def guide_summary_view(request):
+    """Page dédiée au sommaire du Guide du Potager (parties et chapitres) sous forme de grille d'articles."""
+    query = request.GET.get('q', '').strip()
+    part_id = request.GET.get('part', '').strip()
+
+    parts = Part.objects.prefetch_related('chapters').all()
+    chapters = Chapter.objects.select_related('part').prefetch_related('images').all().order_by('part__order', 'order')
+
+    if part_id:
+        try:
+            chapters = chapters.filter(part_id=int(part_id))
+        except ValueError:
+            pass
+
+    if query:
+        chapters = chapters.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(part__title__icontains=query)
+        )
+
+    # Statistiques du guide
+    total_chapters = Chapter.objects.count()
+    total_parts = parts.count()
+    pricing = PurchaseService.get_pricing()
+    user_has_guide_access = PurchaseService.user_has_guide_access(request.user)
+
+    context = {
+        'parts': parts,
+        'chapters': chapters,
+        'query': query,
+        'selected_part': part_id,
+        'total_chapters': total_chapters,
+        'total_parts': total_parts,
+        'pricing': pricing,
+        'user_has_guide_access': user_has_guide_access,
+        'active_tab': 'guide',
+    }
+    return render(request, 'web/guide_list.html', context)
+
 def chapter_detail_view(request, chapter_id):
     """Lecture d'un chapitre avec navigation précédente / suivante et paywall."""
     chapter = get_object_or_404(Chapter.objects.select_related('part'), id=chapter_id)
     is_premium_user = user_has_premium_access(request)
+    user_has_guide_access = PurchaseService.user_has_guide_access(request.user)
     
     # Navigation : Chapitre précédent et suivant
     prev_chapter = Chapter.objects.filter(
@@ -63,13 +108,31 @@ def chapter_detail_view(request, chapter_id):
         Q(part=chapter.part, order__gt=chapter.order) | Q(part__order__gt=chapter.part.order)
     ).order_by('part__order', 'order').first()
 
-    is_locked = chapter.is_premium and not is_premium_user
+    # Débloqué si non-premium, abonné, ou possession du Guide Complet
+    is_locked = chapter.is_premium and not is_premium_user and not user_has_guide_access
+
+    # Filtrer les images d'illustration additionnelles non déjà insérées dans le corps du texte
+    import urllib.parse
+    extra_images = []
+    content_corpus = (
+        urllib.parse.unquote(chapter.content or "") + " " +
+        urllib.parse.unquote(chapter.rendered_content or "")
+    ).lower()
+
+    for img in chapter.images.all():
+        if img.image:
+            fn = urllib.parse.unquote(img.image.name.split('/')[-1]).lower()
+            if fn and fn not in content_corpus:
+                extra_images.append(img)
 
     context = {
         'chapter': chapter,
+        'extra_images': extra_images,
         'is_locked': is_locked,
         'prev_chapter': prev_chapter,
         'next_chapter': next_chapter,
+        'user_has_guide_access': user_has_guide_access,
+        'pricing': PurchaseService.get_pricing(),
         'active_tab': 'guide',
     }
     return render(request, 'web/chapter_detail.html', context)
@@ -322,7 +385,10 @@ def blog_detail_view(request, slug):
         post.views_count += 1
 
     is_premium_user = user_has_premium_access(request)
-    is_locked = post.is_premium and not is_premium_user
+    can_read = PurchaseService.user_has_post_access(request.user, post)
+    is_locked = not can_read
+    can_download_pdf = can_read
+    is_post_purchased = request.user.is_authenticated and UserPurchase.objects.filter(user=request.user, post=post, status='completed').exists()
 
     comments = post.comments.filter(is_approved=True).select_related('author').order_by('-created_at')
     comment_form = BlogCommentForm()
@@ -342,6 +408,11 @@ def blog_detail_view(request, slug):
     context = {
         'post': post,
         'is_locked': is_locked,
+        'can_download_pdf': can_download_pdf,
+        'is_post_purchased': is_post_purchased,
+        'post_price': post.purchase_price,
+        'formatted_post_price': post.formatted_purchase_price,
+        'pricing': PurchaseService.get_pricing(),
         'is_admin_preview': is_admin_preview,
         'comments': comments,
         'comment_form': comment_form,
@@ -491,14 +562,142 @@ def profile_view(request):
         form = UserProfileUpdateForm(instance=profile, initial={'username': request.user.username})
 
     active_sub = Subscription.objects.filter(user=request.user, status='active').order_by('-end_date').first()
+    user_purchases = UserPurchase.objects.filter(user=request.user, status='completed').select_related('post', 'chapter')
+    has_guide_access = PurchaseService.user_has_guide_access(request.user)
 
     context = {
         'form': form,
         'profile': profile,
         'active_sub': active_sub,
+        'user_purchases': user_purchases,
+        'has_guide_access': has_guide_access,
         'active_tab': 'profile',
     }
     return render(request, 'web/profile.html', context)
+
+# ==============================================================================
+# ACHATS NUMÉRIQUES (GUIDE COMPLET & ARTICLES) & TÉLÉCHARGEMENT PDF
+# ==============================================================================
+
+@login_required(login_url='web:login')
+def download_guide_pdf_view(request):
+    """Téléchargement sécurisé du PDF complet du Guide pour les acheteurs ou staff."""
+    if not PurchaseService.user_has_guide_access(request.user):
+        messages.warning(
+            request,
+            "Vous devez acquérir le Guide Complet en Ebook PDF pour débloquer son téléchargement."
+        )
+        return redirect('web:guide_summary')
+
+    buf = BytesIO()
+    generate_guide_pdf(buf, user=request.user)
+    buf.seek(0)
+    filename = "Guide_Complet_du_Potager_Tropical.pdf"
+    return FileResponse(buf, as_attachment=True, filename=filename, content_type='application/pdf')
+
+
+@login_required(login_url='web:login')
+def purchase_guide_view(request):
+    """Achat direct ou via Chariow du Guide Complet en Ebook PDF."""
+    if PurchaseService.user_has_guide_access(request.user):
+        messages.info(request, "Vous possédez déjà le Guide Complet en Ebook PDF.")
+        return redirect('web:guide_summary')
+
+    pricing = PurchaseService.get_pricing()
+
+    if request.method == 'POST':
+        api_key = getattr(settings, 'CHARIOW_API_KEY', '')
+        # Si Chariow est configuré avec un product_id pour le guide
+        if api_key and pricing.guide_chariow_product_id:
+            redirect_url = request.build_absolute_uri('/guide/')
+            result = ChariowService.create_checkout_session(
+                user=request.user,
+                plan_type='full_guide',
+                redirect_url=redirect_url,
+                customer_ip=request.META.get('REMOTE_ADDR')
+            )
+            if result.get('success') and result.get('checkout_url'):
+                return redirect(result['checkout_url'])
+
+        # Validation de l'achat numérique
+        purchase, _ = PurchaseService.record_completed_purchase(
+            user=request.user,
+            purchase_type='full_guide',
+            payment_method='chariow'
+        )
+        messages.success(
+            request,
+            f"Félicitations ! Vous avez acquis le Guide Complet ({pricing.formatted_guide_price} {pricing.currency}). Le téléchargement de votre Ebook PDF est immédiatement disponible !"
+        )
+        return redirect('web:guide_summary')
+
+    context = {
+        'pricing': pricing,
+        'active_tab': 'guide',
+    }
+    return render(request, 'web/purchase_guide_confirm.html', context)
+
+
+@login_required(login_url='web:login')
+def download_post_pdf_view(request, slug):
+    """Téléchargement du PDF officiel d'un article de blog."""
+    post = get_object_or_404(Post, slug=slug)
+    if not PurchaseService.user_has_post_access(request.user, post):
+        messages.warning(
+            request,
+            f"Veuillez débloquer cet article ({post.formatted_purchase_price} XOF) ou souscrire un abonnement pour télécharger son PDF."
+        )
+        return redirect('web:blog_detail', slug=slug)
+
+    buf = BytesIO()
+    generate_post_pdf(post, buf, user=request.user)
+    buf.seek(0)
+    filename = f"Article_{post.slug}.pdf"
+    return FileResponse(buf, as_attachment=True, filename=filename, content_type='application/pdf')
+
+
+@login_required(login_url='web:login')
+def purchase_post_view(request, post_id):
+    """Achat unitaire d'un article de blog spécifique."""
+    post = get_object_or_404(Post, id=post_id)
+    if PurchaseService.user_has_post_access(request.user, post) and post.is_premium:
+        messages.info(request, "Vous avez déjà accès à cet article.")
+        return redirect('web:blog_detail', slug=post.slug)
+
+    pricing = PurchaseService.get_pricing()
+
+    if request.method == 'POST':
+        api_key = getattr(settings, 'CHARIOW_API_KEY', '')
+        if api_key and pricing.article_chariow_product_id:
+            redirect_url = request.build_absolute_uri(f'/blog/{post.slug}/')
+            result = ChariowService.create_checkout_session(
+                user=request.user,
+                plan_type='post',
+                redirect_url=redirect_url,
+                customer_ip=request.META.get('REMOTE_ADDR')
+            )
+            if result.get('success') and result.get('checkout_url'):
+                return redirect(result['checkout_url'])
+
+        # Enregistrement de l'achat direct
+        purchase, _ = PurchaseService.record_completed_purchase(
+            user=request.user,
+            purchase_type='post',
+            post=post,
+            payment_method='chariow'
+        )
+        messages.success(
+            request,
+            f"L'article « {post.title} » est maintenant débloqué ({post.formatted_purchase_price} {pricing.currency}) ! Vous pouvez le consulter et télécharger son PDF."
+        )
+        return redirect('web:blog_detail', slug=post.slug)
+
+    context = {
+        'post': post,
+        'pricing': pricing,
+        'active_tab': 'blog',
+    }
+    return render(request, 'web/purchase_post_confirm.html', context)
 
 # ==============================================================================
 # À PROPOS & MISSION

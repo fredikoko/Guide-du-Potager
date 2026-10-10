@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Subscription, Payment, SubscriptionPlan
+from .models import Subscription, Payment, SubscriptionPlan, DigitalProductPricing, UserPurchase
 
 class SubscriptionPlanSerializer(serializers.ModelSerializer):
     formatted_price = serializers.CharField(read_only=True)
@@ -26,3 +26,37 @@ class PaymentSerializer(serializers.ModelSerializer):
 class ChariowCheckoutRequestSerializer(serializers.Serializer):
     plan_type = serializers.ChoiceField(choices=['monthly', 'seasonal', 'yearly'])
     redirect_url = serializers.URLField(required=False, allow_blank=True)
+
+
+class DigitalProductPricingSerializer(serializers.ModelSerializer):
+    formatted_guide_price = serializers.CharField(read_only=True)
+    formatted_article_price = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = DigitalProductPricing
+        fields = [
+            'id', 'guide_title', 'guide_description',
+            'guide_price', 'formatted_guide_price',
+            'article_default_price', 'formatted_article_price',
+            'currency', 'is_active', 'updated_at'
+        ]
+
+
+class UserPurchaseSerializer(serializers.ModelSerializer):
+    item_title = serializers.SerializerMethodField()
+
+    class Meta:
+        model = UserPurchase
+        fields = [
+            'id', 'purchase_type', 'item_title', 'amount',
+            'currency', 'status', 'transaction_id', 'created_at'
+        ]
+
+    def get_item_title(self, obj):
+        if obj.purchase_type == 'full_guide':
+            return "Guide Complet du Potager Tropical"
+        elif obj.post:
+            return obj.post.title
+        elif obj.chapter:
+            return obj.chapter.title
+        return obj.purchase_type

@@ -49,6 +49,14 @@ class Post(models.Model):
     content = models.TextField(help_text="Contenu de l'article (supporte simultanément Markdown, HTML riche et Texte brut)")
     cover_image = models.ImageField(upload_to='blog/', blank=True, null=True)
     is_premium = models.BooleanField(default=False, help_text="Définir si cet article est réservé aux abonnés Premium")
+    custom_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Prix d'achat unitaire (XOF)",
+        help_text="Laissez vide pour appliquer le tarif général défini dans la tarification numérique des achats."
+    )
     is_published = models.BooleanField(default=True, verbose_name="Publier l'article", help_text="Décocher pour conserver sous forme de brouillon.")
     published_at = models.DateTimeField(
         default=timezone.now,
@@ -89,6 +97,21 @@ class Post(models.Model):
     def rendered_content(self):
         from apps.content.rendering import render_content
         return render_content(self.content)
+
+    @property
+    def purchase_price(self):
+        """Retourne le tarif d'achat unitaire (personnalisé ou tarif général de la plateforme)."""
+        if self.custom_price is not None:
+            return self.custom_price
+        try:
+            from apps.subscriptions.models import DigitalProductPricing
+            return DigitalProductPricing.get_pricing().article_default_price
+        except Exception:
+            return 500.00
+
+    @property
+    def formatted_purchase_price(self):
+        return f"{self.purchase_price:,.0f}".replace(",", " ")
 
     def save(self, *args, **kwargs):
         if not self.slug:

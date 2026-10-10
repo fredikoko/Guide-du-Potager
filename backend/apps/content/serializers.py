@@ -17,9 +17,33 @@ class ChapterImageSerializer(serializers.ModelSerializer):
         return None
 
 class ChapterListSerializer(serializers.ModelSerializer):
+    part_title = serializers.CharField(source='part.title', read_only=True)
+    part_order = serializers.IntegerField(source='part.order', read_only=True)
+    cover_image = serializers.SerializerMethodField()
+    excerpt = serializers.SerializerMethodField()
+
     class Meta:
         model = Chapter
-        fields = ['id', 'part', 'title', 'order', 'is_premium', 'estimated_reading_time']
+        fields = [
+            'id', 'part', 'part_title', 'part_order', 'title', 'order',
+            'is_premium', 'estimated_reading_time', 'cover_image', 'excerpt'
+        ]
+
+    def get_cover_image(self, obj):
+        first_img = obj.images.first()
+        if first_img and first_img.image:
+            request = self.context.get('request')
+            if request:
+                return request.build_absolute_uri(first_img.image.url)
+            return first_img.image.url
+        return None
+
+    def get_excerpt(self, obj):
+        import re
+        clean = re.sub(r'<[^>]+>', ' ', obj.content or '')
+        clean = re.sub(r'#+\s*', '', clean)
+        clean = ' '.join(clean.split())
+        return clean[:160] + ('...' if len(clean) > 160 else '')
 
 class ChapterDetailSerializer(serializers.ModelSerializer):
     images = ChapterImageSerializer(many=True, read_only=True)

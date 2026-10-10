@@ -235,10 +235,39 @@ class ChariowService:
                     existing_payment.save(update_fields=['pulse_delivery_id'])
                 return True, "Paiement déjà validé.", 200
 
-            # Activer l'abonnement
+            # Vérifier s'il s'agit d'un achat à l'unité (Guide complet ou Article)
+            purchase_type = custom_metadata.get('purchase_type')
+            if purchase_type in ('full_guide', 'post', 'chapter'):
+                from .purchase_service import PurchaseService
+                from apps.blog.models import Post
+                from apps.content.models import Chapter
+
+                post_id = custom_metadata.get('post_id')
+                chapter_id = custom_metadata.get('chapter_id')
+                post_obj = Post.objects.filter(id=post_id).first() if post_id else None
+                chapter_obj = Chapter.objects.filter(id=chapter_id).first() if chapter_id else None
+
+                purchase, payment = PurchaseService.record_completed_purchase(
+                    user=user,
+                    purchase_type=purchase_type,
+                    post=post_obj,
+                    chapter=chapter_obj,
+                    payment_method='chariow',
+                    transaction_id=tx_id,
+                    phone_number=customer.get('phone', '') if isinstance(customer.get('phone'), str) else ''
+                )
+
+                if delivery_id:
+                    payment.pulse_delivery_id = delivery_id
+                    payment.save(update_fields=['pulse_delivery_id'])
+
+                logger.info(f"Achat numérique Chariow validé pour {user.email} (type={purchase_type}, tx={tx_id})")
+                return True, "Achat numérique validé avec succès.", 200
+
+            # Sinon, activer l'abonnement récurrent
             subscription, payment = SubscriptionService.activate_subscription(
                 user=user,
-                plan_type=plan_type,
+                plan_type=plan_type or 'monthly',
                 payment_method='chariow',
                 transaction_id=tx_id,
                 phone_number=customer.get('phone', '') if isinstance(customer.get('phone'), str) else ''

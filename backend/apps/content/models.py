@@ -19,6 +19,14 @@ class Chapter(models.Model):
     content = models.TextField(help_text="Contenu du chapitre (supporte simultanément Markdown, HTML riche et Texte brut)")
     order = models.IntegerField(default=1)
     is_premium = models.BooleanField(default=False)
+    custom_price = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        verbose_name="Prix d'achat unitaire (XOF)",
+        help_text="Laissez vide pour appliquer le tarif général défini dans la tarification numérique des achats."
+    )
     estimated_reading_time = models.IntegerField(default=5)  # minutes
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -30,6 +38,21 @@ class Chapter(models.Model):
     def rendered_content(self):
         from .rendering import render_content
         return render_content(self.content)
+
+    @property
+    def purchase_price(self):
+        """Retourne le tarif d'achat unitaire (personnalisé ou tarif général de la plateforme)."""
+        if self.custom_price is not None:
+            return self.custom_price
+        try:
+            from apps.subscriptions.models import DigitalProductPricing
+            return DigitalProductPricing.get_pricing().article_default_price
+        except Exception:
+            return 500.00
+
+    @property
+    def formatted_purchase_price(self):
+        return f"{self.purchase_price:,.0f}".replace(",", " ")
 
     def __str__(self):
         return f"Chapitre {self.order}: {self.title}"

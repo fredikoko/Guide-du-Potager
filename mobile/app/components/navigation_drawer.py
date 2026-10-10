@@ -106,7 +106,8 @@ class NavigationDrawer(FloatLayout):
         menu_box.bind(minimum_height=menu_box.setter('height'))
 
         items = [
-            ("Accueil & Manuel", "home", "🏠"),
+            ("Accueil", "home", "🏠"),
+            ("Sommaire du Guide", "guide", "📖"),
             ("Simulateur Calendrier", "calendar", "📅"),
             ("Fiches Légumes", "vegetables", "🥕"),
             ("Familles Botaniques", "families", "🌱"),

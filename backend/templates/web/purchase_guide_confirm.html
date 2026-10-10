@@ -1,0 +1,95 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Acheter le Guide Complet (Ebook PDF) - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto px-4 sm:px-6 py-12">
+    
+    <!-- Fil d'ariane -->
+    <nav class="flex items-center space-x-2 text-xs text-gray-500 mb-8">
+        <a href="{% url 'web:home' %}" class="hover:text-[#1E592E]">Accueil</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <a href="{% url 'web:guide_summary' %}" class="hover:text-[#1E592E]">Sommaire du Guide</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <span class="text-[#1E592E] font-semibold">Achat Guide Complet</span>
+    </nav>
+
+    <div class="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-xl">
+        <!-- Bannière Supérieure Vert Forêt -->
+        <div class="bg-gradient-to-r from-[#1E592E] via-[#286a37] to-[#3D7A42] p-8 sm:p-10 text-white relative">
+            <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/30 text-xs font-bold uppercase tracking-wider mb-4">
+                <i class="fa-solid fa-book-bookmark"></i>
+                <span>Édition Intégrale Ebook PDF</span>
+            </div>
+            <h1 class="text-2xl sm:text-3xl font-black leading-tight mb-2">
+                {{ pricing.guide_title }}
+            </h1>
+            <p class="text-emerald-100 text-sm max-w-xl">
+                {{ pricing.guide_description }}
+            </p>
+        </div>
+
+        <!-- Détails de l'Offre & Tarification -->
+        <div class="p-8 sm:p-10 space-y-8">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between p-6 bg-emerald-50/70 rounded-2xl border border-emerald-100 gap-4">
+                <div>
+                    <span class="block text-xs uppercase font-extrabold text-[#3D7A42] tracking-wider">Tarif Définitif</span>
+                    <div class="flex items-baseline space-x-2">
+                        <span class="text-3xl sm:text-4xl font-black text-[#1E592E]">{{ pricing.formatted_guide_price }}</span>
+                        <span class="text-lg font-bold text-[#1E592E]">{{ pricing.currency }}</span>
+                    </div>
+                    <span class="text-xs text-gray-500 font-medium">Paiement unique • Accès à vie • Téléchargement immédiat</span>
+                </div>
+
+                <div class="text-right shrink-0">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-[#1E592E] text-xs font-bold shadow-sm">
+                        <i class="fa-solid fa-file-pdf text-red-500 mr-2 text-base"></i> Format Ebook PDF A4
+                    </span>
+                </div>
+            </div>
+
+            <!-- Avantages inclus -->
+            <div class="space-y-4">
+                <h3 class="text-sm font-extrabold uppercase text-gray-700 tracking-wider">Inclus avec votre acquisition :</h3>
+                <ul class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700">
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-circle-check text-[#47C26B] mt-1 shrink-0"></i>
+                        <span><b>100% des chapitres</b> et parties agronomiques rédigés par nos experts.</span>
+                    </li>
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-circle-check text-[#47C26B] mt-1 shrink-0"></i>
+                        <span><b>Téléchargement illimité</b> du fichier PDF haute résolution.</span>
+                    </li>
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-circle-check text-[#47C26B] mt-1 shrink-0"></i>
+                        <span>Protocoles sahéliens & tropicaux (fertilisations NPK, neem, irrigation).</span>
+                    </li>
+                    <li class="flex items-start space-x-3">
+                        <i class="fa-solid fa-circle-check text-[#47C26B] mt-1 shrink-0"></i>
+                        <span>Consultable hors-ligne partout sur le terrain (téléphone, tablette, PC).</span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Formulaire de confirmation d'achat -->
+            <form method="post" action="{% url 'web:purchase_guide' %}" class="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-4">
+                {% csrf_token %}
+                <button type="submit" class="w-full sm:flex-1 py-4 px-6 rounded-2xl bg-[#1E592E] hover:bg-[#164323] text-white font-extrabold text-base shadow-lg shadow-emerald-900/20 transition flex items-center justify-center space-x-3 group">
+                    <i class="fa-solid fa-lock text-[#47C26B]"></i>
+                    <span>Confirmer l'achat ({{ pricing.formatted_guide_price }} {{ pricing.currency }})</span>
+                    <i class="fa-solid fa-arrow-right group-hover:translate-x-1 transition text-sm"></i>
+                </button>
+
+                <a href="{% url 'web:guide_summary' %}" class="w-full sm:w-auto py-4 px-6 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-center text-sm transition">
+                    Annuler
+                </a>
+            </form>
+
+            <div class="flex items-center justify-center space-x-6 text-xs text-gray-500 pt-2">
+                <span class="flex items-center"><i class="fa-solid fa-shield-halved text-emerald-600 mr-1.5"></i> Paiement Sécurisé</span>
+                <span class="flex items-center"><i class="fa-solid fa-bolt text-amber-500 mr-1.5"></i> Déblocage Instantané</span>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

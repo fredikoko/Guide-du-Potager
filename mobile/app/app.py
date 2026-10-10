@@ -17,6 +17,7 @@ from .screens.calendar_screen import CalendarScreen
 from .screens.blog_screen import BlogScreen
 from .screens.post_detail_screen import PostDetailScreen
 from .screens.about_screen import AboutScreen
+from .screens.guide_screen import GuideScreen
 
 from kivy.core.window import Window
 from kivy.core.text import LabelBase
@@ -52,6 +53,7 @@ class GuidePotagerTropicalApp(App):
         self.sm.add_widget(ProfileScreen(name='profile'))
         self.sm.add_widget(SubscriptionScreen(name='subscription'))
         self.sm.add_widget(AboutScreen(name='about'))
+        self.sm.add_widget(GuideScreen(name='guide'))
 
         # Check authentication on app startup
         if self.auth_service.is_authenticated():
@@ -72,6 +74,10 @@ class GuidePotagerTropicalApp(App):
                     self.sm.current = 'login'
                 elif self.sm.current == 'post_detail':
                     self.sm.current = 'blog'
+                elif self.sm.current == 'chapter':
+                    chap_screen = self.sm.get_screen('chapter')
+                    prev = getattr(chap_screen, 'previous_screen', 'home')
+                    self.sm.current = prev
                 elif self.sm.current == 'vegetables':
                     veg_screen = self.sm.get_screen('vegetables')
                     if getattr(veg_screen, 'current_family_id', None) is not None:

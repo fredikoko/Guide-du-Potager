@@ -1,0 +1,89 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Acheter l'article : {{ post.title }} - Guide du Potager Tropical{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto px-4 sm:px-6 py-12">
+    
+    <!-- Fil d'ariane -->
+    <nav class="flex items-center space-x-2 text-xs text-gray-500 mb-8">
+        <a href="{% url 'web:home' %}" class="hover:text-[#1E592E]">Accueil</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <a href="{% url 'web:blog_list' %}" class="hover:text-[#1E592E]">Blog</a>
+        <i class="fa-solid fa-chevron-right text-[10px] text-gray-400"></i>
+        <span class="text-[#1E592E] font-semibold truncate max-w-[200px]">{{ post.title }}</span>
+    </nav>
+
+    <div class="bg-white rounded-3xl border border-gray-200 overflow-hidden shadow-xl">
+        <!-- Bannière Supérieure -->
+        <div class="bg-gradient-to-r from-[#1E592E] to-[#3D7A42] p-6 sm:p-8 text-white">
+            <span class="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-[#47C26B]/20 text-[#47C26B] border border-[#47C26B]/30 text-xs font-bold uppercase tracking-wider mb-3">
+                <i class="fa-solid fa-file-invoice"></i>
+                <span>Achat d'Article à l'Unité</span>
+            </span>
+            <h1 class="text-xl sm:text-2xl font-black leading-tight">
+                {{ post.title }}
+            </h1>
+            {% if post.category %}
+            <p class="text-xs text-emerald-200 mt-2 font-medium">
+                Catégorie : {{ post.category.name }}
+            </p>
+            {% endif %}
+        </div>
+
+        <div class="p-6 sm:p-8 space-y-6">
+            {% if post.excerpt %}
+            <p class="text-sm text-gray-600 bg-gray-50 p-4 rounded-xl border border-gray-100 italic">
+                « {{ post.excerpt }} »
+            </p>
+            {% endif %}
+
+            <!-- Tarif de l'article -->
+            <div class="flex items-center justify-between p-5 bg-emerald-50/70 rounded-2xl border border-emerald-100">
+                <div>
+                    <span class="block text-xs uppercase font-extrabold text-[#3D7A42] tracking-wider">Prix Unitaire</span>
+                    <div class="flex items-baseline space-x-1.5">
+                        <span class="text-3xl font-black text-[#1E592E]">{{ post.formatted_purchase_price }}</span>
+                        <span class="text-base font-bold text-[#1E592E]">{{ pricing.currency }}</span>
+                    </div>
+                </div>
+
+                <div class="text-right">
+                    <span class="inline-flex items-center px-3 py-1.5 rounded-xl bg-white border border-emerald-200 text-[#1E592E] text-xs font-bold shadow-sm">
+                        <i class="fa-solid fa-file-pdf text-red-500 mr-2 text-base"></i> Fiche PDF Incluse
+                    </span>
+                </div>
+            </div>
+
+            <!-- Avantages débloqués -->
+            <ul class="space-y-2.5 text-sm text-gray-700">
+                <li class="flex items-center space-x-3">
+                    <i class="fa-solid fa-circle-check text-[#47C26B]"></i>
+                    <span><b>Lecture complète illimitée</b> de l'article sur la plateforme.</span>
+                </li>
+                <li class="flex items-center space-x-3">
+                    <i class="fa-solid fa-circle-check text-[#47C26B]"></i>
+                    <span><b>Téléchargement direct du PDF</b> imprimable pour le terrain.</span>
+                </li>
+                <li class="flex items-center space-x-3">
+                    <i class="fa-solid fa-circle-check text-[#47C26B]"></i>
+                    <span>Accès permanent lié à votre compte maraîcher.</span>
+                </li>
+            </ul>
+
+            <!-- Boutons de validation -->
+            <form method="post" action="{% url 'web:purchase_post' post.id %}" class="pt-4 border-t border-gray-100 flex flex-col sm:flex-row items-center gap-3">
+                {% csrf_token %}
+                <button type="submit" class="w-full sm:flex-1 py-3.5 px-6 rounded-2xl bg-[#1E592E] hover:bg-[#164323] text-white font-extrabold text-sm shadow-lg shadow-emerald-900/20 transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-lock text-[#47C26B]"></i>
+                    <span>Confirmer et débloquer ({{ post.formatted_purchase_price }} {{ pricing.currency }})</span>
+                </button>
+
+                <a href="{% url 'web:blog_detail' post.slug %}" class="w-full sm:w-auto py-3.5 px-5 rounded-2xl bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold text-center text-xs transition">
+                    Annuler
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

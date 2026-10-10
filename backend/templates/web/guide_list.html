@@ -1,0 +1,213 @@
+{% extends 'web/base.html' %}
+
+{% block title %}Sommaire du Guide du Potager Tropical - Parties & Chapitres{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-12 space-y-8">
+    
+    <!-- En-tête / Bannière Principale (Parité avec blog_list.html) -->
+    <div class="bg-white rounded-2xl p-6 sm:p-8 shadow-sm border border-gray-200">
+        <div class="max-w-3xl space-y-3">
+            <span class="text-xs font-bold uppercase tracking-wider text-[#3D7A42]">Manuel Pratique & Itinéraires Techniques</span>
+            <h1 class="text-2xl sm:text-4xl font-extrabold text-[#1E592E]">Sommaire du Guide du Potager</h1>
+            <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
+        </div>
+
+        <!-- Bannière Ebook PDF (Achat & Téléchargement) -->
+        <div class="mt-6 pt-5 border-t border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4 p-5 rounded-2xl {% if user_has_guide_access %}bg-emerald-50 border border-emerald-200{% else %}bg-gradient-to-r from-emerald-900/90 to-[#1E592E] text-white shadow-md{% endif %}">
+            <div class="flex items-center space-x-4">
+                <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shrink-0 {% if user_has_guide_access %}bg-[#1E592E] text-white{% else %}bg-[#47C26B] text-[#1E592E]{% endif %}">
+                    <i class="fa-solid fa-file-pdf"></i>
+                </div>
+                <div>
+                    <div class="flex items-center space-x-2">
+                        <span class="font-extrabold text-sm {% if user_has_guide_access %}text-[#1E592E]{% else %}text-white{% endif %}">
+                            {{ pricing.guide_title }}
+                        </span>
+                        {% if user_has_guide_access %}
+                        <span class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-[#47C26B]/20 text-[#1E592E] border border-[#47C26B]/40">
+                            ✓ Débloqué
+                        </span>
+                        {% endif %}
+                    </div>
+                    <p class="text-xs {% if user_has_guide_access %}text-gray-600{% else %}text-emerald-100{% endif %} mt-0.5">
+                        {% if user_has_guide_access %}
+                        Votre exemplaire officiel est prêt. Téléchargez-le pour l'emporter sur le terrain.
+                        {% else %}
+                        Téléchargez l'intégralité des chapitres en un seul fichier PDF A4 imprimable pour seulement <span class="font-bold text-[#47C26B]">{{ pricing.formatted_guide_price }} {{ pricing.currency }}</span>.
+                        {% endif %}
+                    </p>
+                </div>
+            </div>
+
+            <div class="shrink-0 flex items-center space-x-3">
+                {% if user_has_guide_access %}
+                <a href="{% url 'web:download_guide_pdf' %}" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#1E592E] hover:bg-[#164323] text-white text-xs font-extrabold shadow-md transition">
+                    <i class="fa-solid fa-download"></i>
+                    <span>Télécharger le PDF (A4)</span>
+                </a>
+                {% else %}
+                <a href="{% url 'web:purchase_guide' %}" class="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-[#47C26B] hover:bg-emerald-400 text-[#1E592E] text-xs font-extrabold shadow-md transition">
+                    <i class="fa-solid fa-cart-shopping"></i>
+                    <span>Acheter l'Ebook ({{ pricing.formatted_guide_price }} {{ pricing.currency }})</span>
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Recherche et Filtres par Partie -->
+        <div class="mt-6 pt-4 border-t border-gray-100 space-y-4">
+            <form method="get" class="flex flex-col sm:flex-row gap-3">
+                <div class="relative flex-1">
+                    <input type="text" name="q" value="{{ query }}" placeholder="Rechercher un chapitre, une technique, un mot-clé (ex: sol, paillage, engrais)..."
+                        class="w-full pl-10 pr-4 py-2.5 rounded-xl border border-gray-300 focus:ring-2 focus:ring-[#3D7A42] focus:border-transparent outline-none text-sm transition">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-gray-400 text-sm"></i>
+                </div>
+                {% if selected_part %}
+                <input type="hidden" name="part" value="{{ selected_part }}">
+                {% endif %}
+                <button type="submit" class="px-5 py-2.5 bg-[#3D7A42] hover:bg-[#1E592E] text-white font-bold rounded-xl text-sm transition flex items-center justify-center space-x-2">
+                    <i class="fa-solid fa-search text-xs"></i>
+                    <span>Rechercher</span>
+                </button>
+                {% if query or selected_part %}
+                <a href="{% url 'web:guide_summary' %}" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl text-sm transition text-center flex items-center justify-center">
+                    Réinitialiser
+                </a>
+                {% endif %}
+            </form>
+
+            <!-- Badges de Filtrage par Grande Partie -->
+            <div class="flex flex-wrap gap-2 text-xs font-semibold pt-1">
+                <a href="{% url 'web:guide_summary' %}{% if query %}?q={{ query }}{% endif %}"
+                   class="px-3 py-1.5 rounded-lg border transition {% if not selected_part %}bg-[#1E592E] text-white border-[#1E592E] shadow-sm{% else %}border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">
+                    Toutes les parties ({{ total_chapters }})
+                </a>
+                {% for part in parts %}
+                <a href="{% url 'web:guide_summary' %}?part={{ part.id }}{% if query %}&q={{ query }}{% endif %}"
+                   class="px-3 py-1.5 rounded-lg border transition {% if selected_part == part.id|stringformat:'s' %}bg-[#1E592E] text-white border-[#1E592E] shadow-sm{% else %}border-gray-200 text-gray-600 hover:bg-gray-50{% endif %}">
+                    Partie {{ part.order }} : {{ part.title|truncatechars:24 }} ({{ part.chapters.count }})
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 3 Cartes Statistiques / Repères du Guide -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-xl bg-[#1E592E]/10 text-[#1E592E] flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-layer-group"></i>
+            </div>
+            <div>
+                <span class="block text-xl sm:text-2xl font-black text-[#1E592E]">{{ total_parts }}</span>
+                <span class="text-xs text-gray-500 font-medium">Grandes Parties</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-xl bg-[#3D7A42]/10 text-[#3D7A42] flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-book-bookmark"></i>
+            </div>
+            <div>
+                <span class="block text-xl sm:text-2xl font-black text-[#1E592E]">{{ total_chapters }}</span>
+                <span class="text-xs text-gray-500 font-medium">Chapitres Développés</span>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl p-4 sm:p-5 border border-gray-200 shadow-sm flex items-center space-x-3.5">
+            <div class="w-11 h-11 rounded-xl bg-amber-500/10 text-amber-700 flex items-center justify-center text-lg shrink-0">
+                <i class="fa-solid fa-seedling"></i>
+            </div>
+            <div>
+                <span class="block text-xl sm:text-2xl font-black text-[#1E592E]">100%</span>
+                <span class="text-xs text-gray-500 font-medium">Pratiques Tropicales</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Grille des Cartes de Chapitres (Style identique à la liste des articles) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {% for chapter in chapters %}
+        <article class="bg-white rounded-2xl overflow-hidden border border-gray-200 hover:shadow-xl transition flex flex-col justify-between group">
+            <div>
+                <!-- Image de Couverture du Chapitre -->
+                <div class="relative h-48 bg-gradient-to-r from-[#1E592E] to-[#3D7A42] overflow-hidden flex items-center justify-center">
+                    {% if chapter.images.first %}
+                    <img src="{{ chapter.images.first.image.url }}" alt="{{ chapter.title }}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                    {% else %}
+                    <div class="w-full h-full bg-gradient-to-br from-[#1E592E] via-[#286a37] to-[#3D7A42] flex flex-col items-center justify-center text-white/30 space-y-2">
+                        <i class="fa-solid fa-book-open text-5xl group-hover:scale-110 transition duration-300"></i>
+                        <span class="text-[11px] font-bold text-white/50 tracking-wider uppercase">Guide du Potager</span>
+                    </div>
+                    {% endif %}
+
+                    <!-- Badge Numéro de Partie / Chapitre (En haut à gauche) -->
+                    <span class="absolute top-3 left-3 px-3 py-1 rounded-full text-xs font-extrabold bg-[#1E592E]/80 backdrop-blur-sm text-white shadow-sm flex items-center border border-white/20">
+                        Partie {{ chapter.part.order }} • Ch. {{ chapter.order }}
+                    </span>
+
+                    <!-- Badge Exclusif Premium (En haut à droite) -->
+                    {% if chapter.is_premium %}
+                    <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-bold bg-[#47C26B] text-[#1E592E] shadow-sm flex items-center">
+                        <i class="fa-solid fa-star mr-1"></i> Exclusif
+                    </span>
+                    {% else %}
+                    <span class="absolute top-3 right-3 px-2.5 py-1 rounded-full text-xs font-semibold bg-white/90 backdrop-blur-sm text-gray-700 shadow-sm flex items-center">
+                        Accès libre
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Informations Textuelles -->
+                <div class="p-6 space-y-3">
+                    <div class="flex items-center justify-between text-xs">
+                        <span class="font-extrabold text-[#47C26B] truncate" title="{{ chapter.part.title }}">
+                            [{{ chapter.part.title }}]
+                        </span>
+                    </div>
+
+                    <h2 class="text-lg font-extrabold text-gray-900 group-hover:text-[#1E592E] transition leading-snug">
+                        <a href="{% url 'web:chapter_detail' chapter.id %}">
+                            {{ chapter.title }}
+                            {% if chapter.is_premium %}<span class="text-[#47C26B]">★</span>{% endif %}
+                        </a>
+                    </h2>
+
+                    <p class="text-xs sm:text-sm text-gray-600 leading-relaxed line-clamp-3">
+                        {{ chapter.content|striptags|truncatewords:28 }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- Bas de Carte / Lien vers le Chapitre -->
+            <div class="p-6 pt-0 flex items-center justify-between text-xs text-gray-400 border-t border-gray-100 mt-4">
+                <span class="flex items-center text-gray-500 font-medium">
+                    <i class="fa-solid fa-seedling text-[#47C26B] mr-1.5"></i> Partie {{ chapter.part.order }}
+                </span>
+                <a href="{% url 'web:chapter_detail' chapter.id %}" class="font-bold text-[#3D7A42] group-hover:text-[#1E592E] flex items-center transition">
+                    <span>Consulter le chapitre</span>
+                    <i class="fa-solid fa-chevron-right ml-1.5 text-[10px] transform group-hover:translate-x-0.5 transition"></i>
+                </a>
+            </div>
+        </article>
+        {% empty %}
+        <div class="col-span-full bg-white rounded-2xl p-12 text-center border border-gray-200 space-y-4">
+            <div class="w-16 h-16 mx-auto rounded-full bg-gray-100 flex items-center justify-center text-gray-400 text-2xl">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+            <div class="space-y-1">
+                <h3 class="text-lg font-bold text-gray-800">Aucun chapitre trouvé</h3>
+                <p class="text-sm text-gray-500">Aucun chapitre ne correspond à vos critères de recherche actuels.</p>
+            </div>
+            <div>
+                <a href="{% url 'web:guide_summary' %}" class="inline-flex items-center px-4 py-2 bg-[#1E592E] text-white rounded-xl text-xs font-bold hover:bg-[#3D7A42] transition">
+                    Voir tous les chapitres du guide
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}

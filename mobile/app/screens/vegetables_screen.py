@@ -5,6 +5,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.graphics import Color, Rectangle
 from kivy.uix.image import AsyncImage
+from kivy.clock import Clock
 from ..styles.themes import Theme
 from ..services.glossary_service import GlossaryService
 from ..components.cards import CardWidget
@@ -58,13 +59,18 @@ class VegetablesScreen(Screen):
         layout.add_widget(search_box)
 
         # Scrollable Vegetables List
-        scroll = ScrollView()
+        self.scroll = ScrollView()
         self.container = BoxLayout(orientation='vertical', size_hint_y=None, padding=15, spacing=15)
         self.container.bind(minimum_height=self.container.setter('height'))
-        scroll.add_widget(self.container)
+        self.scroll.add_widget(self.container)
 
-        layout.add_widget(scroll)
+        layout.add_widget(self.scroll)
         self.add_widget(layout)
+
+    def reset_scroll(self, *args):
+        if hasattr(self, 'scroll') and self.scroll:
+            self.scroll.scroll_y = 1.0
+            self.scroll.scroll_x = 0.0
 
     def on_enter(self):
         """Called automatically whenever the user navigates to this screen."""
@@ -86,6 +92,7 @@ class VegetablesScreen(Screen):
             # Revenir aux familles botaniques et réinitialiser le filtre
             self.current_family_id = None
             self.current_family_name = None
+            self.reset_scroll()
             if self.manager:
                 self.manager.current = 'families'
         else:
@@ -95,6 +102,7 @@ class VegetablesScreen(Screen):
         self.load_vegetables(family_id=self.current_family_id, family_name=self.current_family_name, search=query)
 
     def load_vegetables(self, family_id=None, family_name=None, search=None):
+        self.reset_scroll()
         self.current_family_id = family_id
         self.current_family_name = family_name
         self._refresh_header_button()
@@ -105,6 +113,7 @@ class VegetablesScreen(Screen):
             self.title_label.text = "[b]Fiches Légumes[/b]"
 
         self.container.clear_widgets()
+        Clock.schedule_once(self.reset_scroll, 0)
         res = self.glossary_service.get_vegetables(family_id=family_id, search=search)
 
         if not res.get('success'):

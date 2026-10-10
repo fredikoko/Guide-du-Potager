@@ -54,20 +54,21 @@ class PostDetailView(generics.RetrieveAPIView):
         serializer = self.get_serializer(instance)
         data = serializer.data
 
-        # Check if user has active subscription
+        # Check if user has access (subscribed or purchased or non-premium)
+        from apps.subscriptions.purchase_service import PurchaseService
         user = request.user
-        is_subscribed = False
-        if user and user.is_authenticated and hasattr(user, 'profile'):
-            is_subscribed = user.profile.is_premium
+        can_read = PurchaseService.user_has_post_access(user, instance)
+        data['purchase_price'] = instance.purchase_price
+        data['formatted_purchase_price'] = instance.formatted_purchase_price
 
-        # Lock premium articles for non-subscribed users
-        if instance.is_premium and not is_subscribed:
+        # Lock premium articles for unauthorized users
+        if instance.is_premium and not can_read:
             lock_html = (
                 f"<p><i>{instance.excerpt}</i></p>"
                 "<hr/>"
                 "<div style='background-color: #fff3cd; padding: 15px; border-radius: 6px; text-align: center; color: #856404;'>"
-                "<b>🔒 Article Réservé aux Membres Abonnés</b><br/>"
-                "Abonnez-vous dès aujourd'hui pour débloquer cet article exclusif, l'intégralité du guide et toutes les fiches d'experts !"
+                "<b>🔒 Article Réservé aux Membres Abonnés & Acheteurs</b><br/>"
+                f"Abonnez-vous ou achetez cet article ({instance.formatted_purchase_price} XOF) pour débloquer sa lecture et sa fiche PDF !"
                 "</div>"
             )
             data['is_locked'] = True
@@ -78,6 +79,29 @@ class PostDetailView(generics.RetrieveAPIView):
             data['is_locked'] = False
 
         return Response(data)
+
+
+class PostPDFDownloadAPIView(generics.GenericAPIView):
+    """Téléchargement de la fiche technique en PDF d'un article de blog."""
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [JWTAuthentication]
+
+    def get(self, request, pk):
+        from apps.subscriptions.purchase_service import PurchaseService
+        from django.shortcuts import get_object_or_404
+        post = get_object_or_404(Post, pk=pk)
+        if not PurchaseService.user_has_post_access(request.user, post):
+            return Response(
+                {'error': "Vous n'avez pas accès à cet article."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        from io import BytesIO
+        from django.http import FileResponse
+        from apps.content.pdf_service import generate_post_pdf
+        buf = BytesIO()
+        generate_post_pdf(post, buf, user=request.user)
+        buf.seek(0)
+        return FileResponse(buf, as_attachment=True, filename=f"Article_{post.slug}.pdf", content_type='application/pdf')
 
 class AddCommentView(APIView):
     authentication_classes = [JWTAuthentication]

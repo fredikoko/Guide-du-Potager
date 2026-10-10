@@ -206,6 +206,9 @@
                 <!-- Navigation Desktop Links (Visibles >= lg) -->
                 <nav class="hidden lg:flex items-center space-x-1 xl:space-x-2 text-sm font-semibold">
                     <a href="{% url 'web:home' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'home' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
+                        Accueil
+                    </a>
+                    <a href="{% url 'web:guide_summary' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'guide' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
                         Guide Ebook
                     </a>
                     <a href="{% url 'web:vegetables_list' %}" class="px-3 py-2 rounded-lg transition {% if active_tab == 'vegetables' %}bg-[#286a37] text-white{% else %}text-gray-200 hover:text-white hover:bg-[#286a37]/60{% endif %}">
@@ -288,8 +291,12 @@
             <!-- Drawer Links Scrollables -->
             <div class="flex-1 overflow-y-auto py-4 px-3 space-y-1">
                 <a href="{% url 'web:home' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'home' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
+                    <i class="fa-solid fa-house w-6 text-[#8AB86C]"></i>
+                    <span>Accueil</span>
+                </a>
+                <a href="{% url 'web:guide_summary' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'guide' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
                     <i class="fa-solid fa-book-open w-6 text-[#8AB86C]"></i>
-                    <span>Accueil & Guide Ebook</span>
+                    <span>Sommaire du Guide</span>
                 </a>
                 <a href="{% url 'web:blog_list' %}" class="flex items-center px-4 py-3 rounded-xl font-medium text-sm transition {% if active_tab == 'blog' %}bg-[#3D7A42] text-white font-bold{% else %}text-gray-200 hover:bg-[#286a37]{% endif %}">
                     <i class="fa-solid fa-newspaper w-6 text-[#8AB86C]"></i>

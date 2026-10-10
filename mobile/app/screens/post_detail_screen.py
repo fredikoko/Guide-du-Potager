@@ -6,6 +6,7 @@ from kivy.uix.button import Button
 from kivy.uix.textinput import TextInput
 from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
+from kivy.clock import Clock
 from ..styles.themes import Theme
 from ..services.blog_service import BlogService
 from ..services.auth_service import AuthService
@@ -38,7 +39,7 @@ class PostDetailScreen(Screen):
             text="← Retour", font_size='16sp', size_hint_x=None, width=90,
             background_normal='', background_color=(0, 0, 0, 0), color=Theme.TEXT_LIGHT
         )
-        back_btn.bind(on_release=lambda x: setattr(self.manager, 'current', 'blog'))
+        back_btn.bind(on_release=self.go_back)
 
         self.title_label = Label(
             text="[b]Article[/b]", markup=True, font_size='17sp',
@@ -51,15 +52,42 @@ class PostDetailScreen(Screen):
         layout.add_widget(header)
 
         # Body Scroll Area
-        scroll = ScrollView()
+        self.scroll = ScrollView()
         self.body_container = BoxLayout(orientation='vertical', size_hint_y=None, padding=20, spacing=15)
         self.body_container.bind(minimum_height=self.body_container.setter('height'))
-        scroll.add_widget(self.body_container)
+        self.scroll.add_widget(self.body_container)
 
-        layout.add_widget(scroll)
+        layout.add_widget(self.scroll)
         self.add_widget(layout)
 
+    def reset_scroll(self, *args):
+        """Réinitialise la position de défilement tout en haut de l'article."""
+        if hasattr(self, 'scroll') and self.scroll:
+            self.scroll.scroll_y = 1.0
+            self.scroll.scroll_x = 0.0
+
+    def go_back(self, *args):
+        """Retour au blog avec réinitialisation du défilement."""
+        self.reset_scroll()
+        if self.manager:
+            self.manager.current = 'blog'
+
+    def on_pre_enter(self, *args):
+        super().on_pre_enter(*args)
+        self.reset_scroll()
+
+    def on_enter(self, *args):
+        super().on_enter(*args)
+        self.reset_scroll()
+        Clock.schedule_once(self.reset_scroll, 0)
+        Clock.schedule_once(self.reset_scroll, 0.05)
+
+    def on_leave(self, *args):
+        super().on_leave(*args)
+        self.reset_scroll()
+
     def load_post(self, post_id):
+        self.reset_scroll()
         self.current_post_id = post_id
         self.body_container.clear_widgets()
 
@@ -67,6 +95,7 @@ class PostDetailScreen(Screen):
         if not res.get('success'):
             err = Label(text="⚠️ Impossible de charger l'article.", color=Theme.TEXT_MUTED, font_size='16sp', size_hint_y=None, height=50)
             self.body_container.add_widget(err)
+            Clock.schedule_once(self.reset_scroll, 0)
             return
 
         data = res['data']
@@ -182,6 +211,7 @@ class PostDetailScreen(Screen):
             lock_card.add_widget(upgrade_btn)
 
             self.body_container.add_widget(lock_card)
+            Clock.schedule_once(self.reset_scroll, 0)
             return
 
         # Render HTML/Markdown Content blocks
@@ -294,6 +324,9 @@ class PostDetailScreen(Screen):
         form_card.add_widget(send_btn)
 
         self.body_container.add_widget(form_card)
+
+        Clock.schedule_once(self.reset_scroll, 0)
+        Clock.schedule_once(self.reset_scroll, 0.05)
 
     def send_comment(self, instance):
         text = self.comment_input.text.strip()

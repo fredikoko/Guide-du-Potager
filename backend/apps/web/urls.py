@@ -6,7 +6,10 @@ app_name = 'web'
 urlpatterns = [
     # Accueil & Guide numérique
     path('', views.home_view, name='home'),
+    path('guide/', views.guide_summary_view, name='guide_summary'),
     path('guide/chapitre/<int:chapter_id>/', views.chapter_detail_view, name='chapter_detail'),
+    path('guide/pdf/telecharger/', views.download_guide_pdf_view, name='download_guide_pdf'),
+    path('guide/acheter/', views.purchase_guide_view, name='purchase_guide'),
 
     # Fiches Légumes & Variétés
     path('legumes/', views.vegetables_list_view, name='vegetables_list'),
@@ -33,6 +36,8 @@ urlpatterns = [
     # Blog & Actualités
     path('blog/', views.blog_list_view, name='blog_list'),
     path('blog/<slug:slug>/', views.blog_detail_view, name='blog_detail'),
+    path('blog/<slug:slug>/pdf/telecharger/', views.download_post_pdf_view, name='download_post_pdf'),
+    path('blog/acheter/<int:post_id>/', views.purchase_post_view, name='purchase_post'),
 
     # Formules d'Abonnement & Paiement Chariow
     path('abonnement/', views.subscription_view, name='subscription'),

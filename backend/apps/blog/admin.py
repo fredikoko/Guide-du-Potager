@@ -61,8 +61,9 @@ class PublicationStatusFilter(admin.SimpleListFilter):
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
-    list_display = ('title', 'category', 'status_badge', 'published_at', 'preview_link', 'is_premium', 'author', 'views_count', 'cover_image_preview')
+    list_display = ('title', 'category', 'status_badge', 'published_at', 'is_premium', 'custom_price', 'author', 'preview_link', 'cover_image_preview')
     list_filter = (PublicationStatusFilter, 'is_premium', 'category', 'published_at')
+    list_editable = ('custom_price',)
     date_hierarchy = 'published_at'
     search_fields = ('title', 'excerpt', 'content')
     prepopulated_fields = {'slug': ('title',)}
@@ -124,15 +125,14 @@ class PostAdmin(admin.ModelAdmin):
         ('Informations Générales', {
             'fields': ('title', 'slug', 'category', 'author')
         }),
-        ('Paramètres & Calendrier de Publication', {
-            'fields': ('is_published', 'published_at', 'is_premium'),
+        ('Paramètres, Accès & Tarification', {
+            'fields': ('is_published', 'published_at', 'is_premium', 'custom_price'),
             'description': (
                 '<div style="background-color: #e0f2fe; border-left: 4px solid #0284c7; padding: 12px; margin-bottom: 12px; border-radius: 4px;">'
-                '<strong>📅 Planification automatique de la publication :</strong><br/>'
-                '• <strong>Publication immédiate :</strong> Laissez "Publier l\'article" coché et la date actuelle.<br/>'
-                '• <strong>Publication programmée / différée :</strong> Choisissez une date et heure future. '
-                'L\'article restera invisible aux visiteurs jusqu\'à cette échéance, puis s\'activera automatiquement en ligne !<br/>'
-                '• <strong>Brouillon :</strong> Décochez "Publier l\'article" pour le masquer complètement.'
+                '<strong>📅 Planification & Tarifs :</strong><br/>'
+                '• <strong>Accès Premium :</strong> Cochez pour réserver l\'article aux abonnés ou à l\'achat à l\'unité.<br/>'
+                '• <strong>Prix unitaire (XOF) :</strong> Tarif spécifique pour cet article. Laissez vide pour utiliser le prix global par défaut.<br/>'
+                '• <strong>Publication programmée :</strong> Choisissez une date et heure future.'
                 '</div>'
             )
         }),

@@ -2,10 +2,11 @@ from rest_framework import status, permissions, generics
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from django.utils import timezone
-from .models import Subscription, Payment, SubscriptionPlan
+from .models import Subscription, Payment, SubscriptionPlan, DigitalProductPricing, UserPurchase
 from .serializers import (
     SubscriptionSerializer, PaymentSerializer,
-    ChariowCheckoutRequestSerializer, SubscriptionPlanSerializer
+    ChariowCheckoutRequestSerializer, SubscriptionPlanSerializer,
+    DigitalProductPricingSerializer, UserPurchaseSerializer
 )
 from .services import SubscriptionService
 from .chariow_service import ChariowService
@@ -133,3 +134,30 @@ class ChariowWebhookView(APIView):
         )
 
         return Response({'success': success, 'message': message}, status=status_code)
+
+
+class DigitalProductPricingView(APIView):
+    """
+    Retourne la tarification administrable pour l'achat à l'unité
+    du Guide Complet et des articles en PDF.
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def get(self, request):
+        pricing = DigitalProductPricing.get_pricing()
+        serializer = DigitalProductPricingSerializer(pricing)
+        return Response(serializer.data)
+
+
+class UserPurchasesListView(generics.ListAPIView):
+    """
+    Retourne la liste des achats de produits numériques de l'utilisateur connecté.
+    """
+    serializer_class = UserPurchaseSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return UserPurchase.objects.filter(
+            user=self.request.user,
+            status='completed'
+        ).order_by('-created_at')

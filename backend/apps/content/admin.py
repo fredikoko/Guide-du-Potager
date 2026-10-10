@@ -29,14 +29,15 @@ class PartAdmin(admin.ModelAdmin):
 
 @admin.register(Chapter)
 class ChapterAdmin(admin.ModelAdmin):
-    list_display = ('order', 'title', 'part', 'is_premium')
+    list_display = ('order', 'title', 'part', 'is_premium', 'custom_price')
+    list_editable = ('custom_price',)
     list_filter = ('part', 'is_premium')
     search_fields = ('title', 'content')
     inlines = [ChapterImageInline]
     ordering = ('part', 'order')
     fieldsets = (
         (None, {
-            'fields': ('part', 'title', 'order', 'is_premium')
+            'fields': ('part', 'title', 'order', 'is_premium', 'custom_price')
         }),
         ('Contenu du Chapitre', {
             'fields': ('content',),
