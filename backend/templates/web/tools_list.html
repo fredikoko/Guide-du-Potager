@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}Outils Maraîchers de Précision - Guide du Potager Tropical{% endblock %}
 
@@ -64,7 +65,7 @@
                     </h2>
 
                     <p class="text-xs text-gray-600 leading-relaxed line-clamp-3">
-                        {{ tool.description }}
+                        {{ tool.description|strip_markup }}
                     </p>
                 </div>
             </div>

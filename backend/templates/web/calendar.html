@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}Simulateur Calendrier Cultural Tropical - Guide du Potager{% endblock %}
 
@@ -99,7 +100,9 @@
                 {% if entry.notes %}
                 <div class="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs text-gray-600 leading-relaxed">
                     <strong class="text-gray-700 block mb-0.5">Conseil du mois :</strong>
-                    {{ entry.notes }}
+                    <div class="article-content prose prose-green max-w-none text-xs text-gray-600">
+                        {{ entry.notes|render_content }}
+                    </div>
                 </div>
                 {% endif %}
             </div>

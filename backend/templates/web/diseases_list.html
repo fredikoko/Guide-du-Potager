@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}Maladies des Plantes & Traitements Bio - Guide du Potager Tropical{% endblock %}
 
@@ -50,7 +51,7 @@
                     </h2>
 
                     <p class="text-xs text-gray-600 leading-relaxed line-clamp-3">
-                        {{ disease.symptoms }}
+                        {{ disease.symptoms|strip_markup }}
                     </p>
 
                     {% if disease.affected_vegetables.all %}

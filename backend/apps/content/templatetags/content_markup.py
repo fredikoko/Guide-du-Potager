@@ -1,6 +1,6 @@
 from django import template
 from django.utils.safestring import mark_safe
-from apps.content.rendering import render_content as parse_content
+from apps.content.rendering import render_content as parse_content, strip_markup as clean_markup
 
 register = template.Library()
 
@@ -15,3 +15,14 @@ def render_content_filter(value):
         return ""
     rendered = parse_content(value)
     return mark_safe(rendered)
+
+@register.filter(name='strip_markup', is_safe=True)
+def strip_markup_filter(value):
+    """
+    Filtre de template Django pour convertir le Markdown/HTML en texte brut propre
+    sans balises, astérisques ou syntaxe de liste, avec symboles LaTeX convertis.
+    Usage : {{ disease.symptoms|strip_markup|truncatewords:25 }}
+    """
+    if not value:
+        return ""
+    return clean_markup(value)

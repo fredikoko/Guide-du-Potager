@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}Blog Maraîcher & Fiches Pratiques - Guide du Potager Tropical{% endblock %}
 
@@ -123,7 +124,11 @@
                     </h2>
 
                     <p class="text-xs sm:text-sm text-gray-600 leading-relaxed line-clamp-3">
-                        {{ post.excerpt|default:post.rendered_content|striptags }}
+                        {% if post.excerpt %}
+                            {{ post.excerpt|strip_markup }}
+                        {% else %}
+                            {{ post.content|strip_markup|truncatewords:28 }}
+                        {% endif %}
                     </p>
                 </div>
             </div>

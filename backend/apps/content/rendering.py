@@ -279,3 +279,23 @@ class ContentRenderer:
 def render_content(raw_text):
     """Fonction utilitaire principale pour le rendu de contenu riche."""
     return ContentRenderer.render(raw_text)
+
+def strip_markup(raw_text):
+    """
+    Supprime la syntaxe Markdown (gras, puces, titres, liens, etc.) et les balises HTML,
+    tout en convertissant proprement les flèches et symboles mathématiques LaTeX,
+    pour produire un texte brut propre idéal pour les résumés et aperçus de listes.
+    """
+    if not raw_text:
+        return ""
+    # 1. Rendu complet en HTML avec conversion des symboles et Markdown
+    rendered_html = render_content(raw_text)
+    # 2. Remplacement des sauts de blocs par des espaces
+    spaced_text = re.sub(r'</?(?:p|div|li|h[1-6]|tr|br\s*/?)[^>]*>', ' ', rendered_html, flags=re.IGNORECASE)
+    # 3. Suppression de toutes les balises HTML restantes
+    clean_text = re.sub(r'<[^>]+>', '', spaced_text)
+    # 4. Décodage des entités HTML (&amp;, &eacute;, etc.)
+    clean_text = html.unescape(clean_text)
+    # 5. Normalisation des espaces multiples
+    clean_text = re.sub(r'[ \t\r\n]+', ' ', clean_text).strip()
+    return clean_text

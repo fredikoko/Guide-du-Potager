@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}Insectes Nuisibles & Biocontrôle - Guide du Potager Tropical{% endblock %}
 
@@ -50,7 +51,7 @@
                     </h2>
 
                     <p class="text-xs text-gray-600 leading-relaxed line-clamp-3">
-                        {{ insect.damage }}
+                        {{ insect.damage|strip_markup }}
                     </p>
 
                     {% if insect.affected_vegetables.all %}

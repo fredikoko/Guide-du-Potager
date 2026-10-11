@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}Sommaire du Guide du Potager Tropical - Parties & Chapitres{% endblock %}
 
@@ -175,7 +176,7 @@
                     </h2>
 
                     <p class="text-xs sm:text-sm text-gray-600 leading-relaxed line-clamp-3">
-                        {{ chapter.content|striptags|truncatewords:28 }}
+                        {{ chapter.content|strip_markup|truncatewords:28 }}
                     </p>
                 </div>
             </div>
