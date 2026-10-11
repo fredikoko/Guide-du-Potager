@@ -61,6 +61,16 @@ class GlossaryService:
                 return {'success': True, 'data': cached, 'from_cache': True}
         return res
 
+    def get_vegetable_detail(self, vegetable_id):
+        res = self.api.get(f'glossary/vegetables/{vegetable_id}/')
+        if res.get('success'):
+            self.storage.save(f'cache_vegetable_{vegetable_id}', res['data'])
+            return res
+        cached = self.storage.get(f'cache_vegetable_{vegetable_id}')
+        if cached:
+            return {'success': True, 'data': cached, 'from_cache': True}
+        return res
+
     def get_calendar_entries(self, action=None, month=None, vegetable_id=None):
         params = {'page_size': 'all'}
         if action:

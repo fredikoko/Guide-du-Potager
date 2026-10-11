@@ -8,9 +8,11 @@ from kivy.uix.image import AsyncImage
 from kivy.clock import Clock
 from ..styles.themes import Theme
 from ..services.glossary_service import GlossaryService
-from ..components.cards import CardWidget, TableWidget, CodeBlockWidget
+from ..services.auth_service import AuthService
+from ..components.cards import CardWidget
 from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
+from ..components.detail_popup import DetailPopup
 from ..utils.config import Config
 from ..utils.html_parser import HTMLParser
 
@@ -18,9 +20,11 @@ class VegetablesScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.glossary_service = GlossaryService()
+        self.auth_service = AuthService()
         self.current_family_id = None
         self.current_family_name = None
         self.drawer = None
+        self.loaded_vegetables = []
 
         with self.canvas.before:
             Color(*Theme.BG_CREAM)
@@ -130,9 +134,9 @@ class VegetablesScreen(Screen):
         if isinstance(vegetables, dict) and 'results' in vegetables:
             vegetables = vegetables['results']
 
-        vegetables = sorted(vegetables, key=lambda v: v.get('name', '').lower())
+        self.loaded_vegetables = sorted(vegetables, key=lambda v: v.get('name', '').lower())
 
-        if not vegetables:
+        if not self.loaded_vegetables:
             empty_msg = "Aucun légume ne correspond à votre recherche." if search else "Aucune fiche légume disponible pour le moment."
             empty_lbl = Label(
                 text=empty_msg,
@@ -143,10 +147,36 @@ class VegetablesScreen(Screen):
             return
 
         base_root = Config.API_BASE_URL.replace('/api', '')
-        for veg in vegetables:
+        for veg in self.loaded_vegetables:
             card = CardWidget(bg_color=Theme.CARD_BG)
+            is_prem = bool(veg.get('is_premium'))
 
-            # Image if available
+            # Titre du légume + Nom botanique + Etoile Premium
+            title_parts = [f"[b]{veg['name']}[/b]"]
+            if is_prem:
+                title_parts.append("[color=47C26B]★[/color]")
+            if veg.get('scientific_name'):
+                title_parts.append(f"[size=13sp][i]({veg['scientific_name']})[/i][/size]")
+
+            v_title = Label(
+                text=" ".join(title_parts),
+                markup=True, font_size='17sp',
+                color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_DARK,
+                size_hint_y=None, height=32, halign='left', valign='middle'
+            )
+            v_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            card.add_widget(v_title)
+
+            # Badge famille botanique
+            if veg.get('family_name'):
+                fam_lbl = Label(
+                    text=f"[color=3D7A42][b]🌱 {veg['family_name']}[/b][/color]",
+                    markup=True, font_size='12sp', size_hint_y=None, height=20, halign='left'
+                )
+                fam_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+                card.add_widget(fam_lbl)
+
+            # Image du légume
             img_url = veg.get('image')
             if img_url:
                 if img_url.startswith('/'):
@@ -158,104 +188,138 @@ class VegetablesScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
-            # Family tag if available
-            if veg.get('family_name'):
-                fam_lbl = Label(
-                    text=f"[color=3D7A42][b]🌱 {veg['family_name']}[/b][/color]",
-                    markup=True, font_size='12sp', size_hint_y=None, height=20, halign='left'
-                )
-                fam_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-                card.add_widget(fam_lbl)
-
-            v_title = Label(
-                text=f"[b]{veg['name']}[/b] [i]({veg.get('scientific_name', '')})[/i]",
-                markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
-                size_hint_y=None, height=35, halign='left', valign='middle'
+            # Calendrier : Semis et Récolte
+            cal_text = f"[b]Semis :[/b] {veg.get('sowing_period', 'N/A')}  •  [b]Récolte :[/b] {veg.get('harvest_period', 'N/A')}"
+            cal_lbl = Label(
+                text=cal_text,
+                markup=True, color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, height=24, halign='left'
             )
-            v_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            cal_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            card.add_widget(cal_lbl)
 
-            sow = Label(
-                text=f"[b]Semis :[/b] {veg.get('sowing_period', 'N/A')}",
-                markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, height=25, halign='left'
-            )
-            sow.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-
-            harvest = Label(
-                text=f"[b]Récolte :[/b] {veg.get('harvest_period', 'N/A')}",
-                markup=True, color=Theme.BROWN_MAIN, font_size='14sp', size_hint_y=None, height=25, halign='left'
-            )
-            harvest.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-
-            # Caractéristiques agro-climatiques tropicales
+            # Paramètres agro-climatiques succincts
             trop_parts = []
             if veg.get('tropical_season_display'):
-                trop_parts.append(f"[b]Saison :[/b] {veg['tropical_season_display']}")
+                trop_parts.append(f"Saison : {veg['tropical_season_display']}")
             if veg.get('cycle_duration_days'):
-                trop_parts.append(f"[b]Cycle :[/b] {veg['cycle_duration_days']} j")
-            if veg.get('heat_tolerance_display'):
-                trop_parts.append(f"[b]Chaleur :[/b] {veg['heat_tolerance_display']}")
+                trop_parts.append(f"Cycle : {veg['cycle_duration_days']} j")
             if veg.get('water_requirement_display'):
-                trop_parts.append(f"[b]Arrosage :[/b] {veg['water_requirement_display']}")
-            if veg.get('sun_exposure_display'):
-                trop_parts.append(f"[b]Exposition :[/b] {veg['sun_exposure_display']}")
-
-            card.add_widget(v_title)
-            card.add_widget(sow)
-            card.add_widget(harvest)
+                trop_parts.append(f"Eau : {veg['water_requirement_display']}")
 
             if trop_parts:
                 trop_info = Label(
-                    text=" • ".join(trop_parts),
-                    markup=True, color=Theme.PRIMARY_DARK, font_size='13sp', size_hint_y=None, height=26, halign='left'
+                    text="[color=855E42][b]• " + " | ".join(trop_parts) + "[/b][/color]",
+                    markup=True, font_size='12sp', size_hint_y=None, height=22, halign='left'
                 )
                 trop_info.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
                 card.add_widget(trop_info)
 
-            if veg.get('tropical_varieties'):
-                vars_lbl = Label(
-                    text=f"[b]Variétés tropicales conseillées :[/b] {veg['tropical_varieties']}",
-                    markup=True, color=Theme.BROWN_MAIN, font_size='13sp', size_hint_y=None, halign='left'
+            # Extrait des conseils de culture
+            care_raw = veg.get('rendered_care_tips') or veg.get('care_tips')
+            if care_raw:
+                clean_care = HTMLParser.to_markup(str(care_raw)).strip()
+                # Nettoyer les balises pour l'aperçu textuel
+                clean_preview = clean_care.replace('[b]', '').replace('[/b]', '').replace('[i]', '').replace('[/i]', '')
+                if len(clean_preview) > 110:
+                    clean_preview = clean_preview[:110] + "..."
+                preview_lbl = Label(
+                    text=f"[color=555555]{clean_preview}[/color]",
+                    markup=True, font_size='13sp', size_hint_y=None, height=36, halign='left', valign='top'
                 )
-                vars_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-                vars_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-                card.add_widget(vars_lbl)
+                preview_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(preview_lbl)
 
-            care_text = veg.get('rendered_care_tips') or veg.get('care_tips')
-            if care_text:
-                tips_header = Label(
-                    text="[b]Soins & Entretien :[/b]",
-                    markup=True, color=Theme.PRIMARY_DARK, font_size='14sp', size_hint_y=None, height=24, halign='left'
-                )
-                tips_header.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-                card.add_widget(tips_header)
-
-                blocks = HTMLParser.parse_blocks(str(care_text))
-                if not blocks:
-                    tips = Label(
-                        text=HTMLParser.to_markup(str(care_text)),
-                        markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
-                    )
-                    tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-                    tips.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-                    card.add_widget(tips)
-                else:
-                    for block in blocks:
-                        if block['type'] == 'text':
-                            b_lbl = Label(
-                                text=block['content'],
-                                markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
-                            )
-                            b_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-                            b_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
-                            card.add_widget(b_lbl)
-                        elif block['type'] == 'code':
-                            card.add_widget(CodeBlockWidget(content=block['content'], lang=block.get('lang')))
-                        elif block['type'] == 'table':
-                            card.add_widget(TableWidget(headers=block['headers'], rows=block['rows']))
-                        elif block['type'] == 'image':
-                            card.add_widget(AsyncImage(source=block['url'], size_hint_y=None, height=180))
+            # Bouton d'ouverture du détail en Popup
+            vid = veg['id']
+            detail_btn = Button(
+                text="Voir les détails →",
+                font_size='14sp',
+                size_hint_y=None,
+                height=42,
+                background_normal='',
+                background_color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_MAIN,
+                color=Theme.TEXT_LIGHT
+            )
+            detail_btn.bind(on_release=lambda instance, vegetable_id=vid, i_url=img_url: self.open_vegetable_detail(vegetable_id, i_url))
+            card.add_widget(detail_btn)
 
             self.container.add_widget(card)
+
+    def open_vegetable_detail(self, vegetable_id, fallback_img=None):
+        """Ouvre une fiche détaillée complète du légume dans une popup interactive."""
+        # 1. Tenter la récupération via l'API / cache
+        res = self.glossary_service.get_vegetable_detail(vegetable_id)
+        if res.get('success') and res.get('data'):
+            data = res['data']
+        else:
+            # Fallback sur les données déjà chargées dans l'écran
+            data = next((v for v in self.loaded_vegetables if v.get('id') == vegetable_id), None)
+            if not data:
+                return
+
+        is_prem = bool(data.get('is_premium'))
+        is_sub = self.auth_service.is_subscribed()
+        is_locked = data.get('is_locked', False) or (is_prem and not is_sub)
+
+        base_root = Config.API_BASE_URL.replace('/api', '')
+        img_url = data.get('image') or fallback_img
+        if img_url and img_url.startswith('/'):
+            img_url = f"{base_root}{img_url}"
+
+        if is_locked:
+            fields = [
+                (
+                    "Fiche de culture agronomique",
+                    "🔒 La fiche agronomique complète, les protocoles de semis et repiquage, ainsi que les conseils de fertilisation et d'entretien sont réservés aux abonnés.",
+                    Theme.TEXT_MUTED
+                ),
+            ]
+        else:
+            fields = []
+
+            # 1. Nom botanique & Famille
+            if data.get('scientific_name'):
+                fields.append(("Nom botanique", f"[i]{data['scientific_name']}[/i]", Theme.TEXT_MUTED))
+            if data.get('family_name'):
+                fields.append(("Famille botanique", f"🌱 {data['family_name']}", Theme.PRIMARY_MAIN))
+
+            # 2. Périodes culturales
+            fields.append(("Période de semis", data.get('sowing_period', 'Non spécifié'), Theme.PRIMARY_DARK))
+            fields.append(("Période de récolte", data.get('harvest_period', 'Non spécifié'), Theme.BROWN_MAIN))
+
+            # 3. Paramètres agro-climatiques tropicaux
+            agro_lines = []
+            if data.get('tropical_season_display') or data.get('tropical_season'):
+                agro_lines.append(f"• Saison optimale : {data.get('tropical_season_display') or data.get('tropical_season')}")
+            if data.get('cycle_duration_days'):
+                agro_lines.append(f"• Durée du cycle : {data['cycle_duration_days']} jours")
+            if data.get('heat_tolerance_display') or data.get('heat_tolerance'):
+                agro_lines.append(f"• Tolérance à la chaleur : {data.get('heat_tolerance_display') or data.get('heat_tolerance')}")
+            if data.get('water_requirement_display') or data.get('water_requirement'):
+                agro_lines.append(f"• Besoins en eau / irrigation : {data.get('water_requirement_display') or data.get('water_requirement')}")
+            if data.get('sun_exposure_display') or data.get('sun_exposure'):
+                agro_lines.append(f"• Exposition au soleil : {data.get('sun_exposure_display') or data.get('sun_exposure')}")
+
+            if agro_lines:
+                fields.append(("Conditions de culture tropicale", "\n".join(agro_lines), (0.85, 0.45, 0.15, 1)))
+
+            # 4. Variétés tropicales recommandées
+            if data.get('tropical_varieties'):
+                fields.append(("Variétés adaptées au climat tropical", data['tropical_varieties'], Theme.BROWN_MAIN))
+
+            # 5. Conseils de culture et entretien (Markdown / HTML complet)
+            care_text = data.get('rendered_care_tips') or data.get('care_tips')
+            if care_text:
+                fields.append(("Conseils de culture & Entretien", care_text, Theme.PRIMARY_DARK))
+
+        popup = DetailPopup(
+            title_text=data['name'],
+            image_url=img_url,
+            fields=fields,
+            is_locked=is_locked,
+            upgrade_callback=lambda: setattr(self.manager, 'current', 'subscription')
+        )
+        popup.open()
 
     def toggle_drawer(self, instance=None):
         if not self.drawer:
@@ -278,7 +342,6 @@ class VegetablesScreen(Screen):
         self.close_drawer()
 
     def handle_logout(self):
-        from ..services.auth_service import AuthService
         AuthService().logout()
         self.close_drawer()
         self.manager.current = 'login'
