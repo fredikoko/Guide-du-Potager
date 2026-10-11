@@ -5,6 +5,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
+from kivy.clock import Clock
 from ..styles.themes import Theme
 from ..services.glossary_service import GlossaryService
 from ..services.auth_service import AuthService
@@ -78,9 +79,9 @@ class CalendarScreen(Screen):
         layout.add_widget(action_box)
 
         # Horizontal Scroll Area for Months Selector
-        months_scroll = ScrollView(size_hint_y=None, height=50, do_scroll_y=False)
-        months_box = BoxLayout(size_hint_x=None, height=45, padding=[10, 5, 10, 5], spacing=8)
-        months_box.bind(minimum_width=months_box.setter('width'))
+        self.months_scroll = ScrollView(size_hint_y=None, height=50, do_scroll_y=False)
+        self.months_box = BoxLayout(size_hint_x=None, height=45, padding=[10, 5, 10, 5], spacing=8)
+        self.months_box.bind(minimum_width=self.months_box.setter('width'))
 
         self.month_buttons = {}
         for m in MONTHS:
@@ -92,24 +93,57 @@ class CalendarScreen(Screen):
             )
             btn.bind(on_release=lambda instance, month_name=m: self.select_month(month_name))
             self.month_buttons[m] = btn
-            months_box.add_widget(btn)
+            self.months_box.add_widget(btn)
 
-        months_scroll.add_widget(months_box)
-        layout.add_widget(months_scroll)
+        self.months_scroll.add_widget(self.months_box)
+        layout.add_widget(self.months_scroll)
 
         # Content Results Scroll Area
-        scroll = ScrollView()
+        self.scroll = ScrollView()
         self.results_container = BoxLayout(orientation='vertical', size_hint_y=None, padding=15, spacing=15)
         self.results_container.bind(minimum_height=self.results_container.setter('height'))
-        scroll.add_widget(self.results_container)
+        self.scroll.add_widget(self.results_container)
 
-        layout.add_widget(scroll)
+        layout.add_widget(self.scroll)
         self.add_widget(layout)
 
-    def on_enter(self):
+    def reset_scroll(self, *args):
+        """Réinitialise la position de défilement tout en haut des résultats."""
+        if hasattr(self, 'scroll') and self.scroll:
+            self.scroll.scroll_y = 1.0
+            self.scroll.scroll_x = 0.0
+
+    def scroll_to_selected_month(self, *args):
+        """Assure que le bouton du mois sélectionné est visible dans la barre horizontale."""
+        if hasattr(self, 'months_scroll') and self.months_scroll and hasattr(self, 'months_box'):
+            btn = self.month_buttons.get(self.selected_month)
+            if btn and self.months_box.width > self.months_scroll.width:
+                total_w = self.months_box.width - self.months_scroll.width
+                if total_w > 0:
+                    btn_center = btn.x + (btn.width / 2.0)
+                    view_center = self.months_scroll.width / 2.0
+                    target_x = max(0.0, min(1.0, (btn_center - view_center) / total_w))
+                    self.months_scroll.scroll_x = target_x
+
+    def on_pre_enter(self, *args):
+        super().on_pre_enter(*args)
+        self.reset_scroll()
+
+    def on_enter(self, *args):
+        super().on_enter(*args)
+        self.reset_scroll()
+        Clock.schedule_once(self.reset_scroll, 0)
+        Clock.schedule_once(self.reset_scroll, 0.05)
+        Clock.schedule_once(self.scroll_to_selected_month, 0.05)
         self.load_calendar_data()
 
+    def on_leave(self, *args):
+        super().on_leave(*args)
+        self.close_drawer()
+        self.reset_scroll()
+
     def load_calendar_data(self):
+        self.reset_scroll()
         self.results_container.clear_widgets()
         loading = Label(text="Chargement du calendrier...", color=Theme.TEXT_MUTED, font_size='15sp', size_hint_y=None, height=50)
         self.results_container.add_widget(loading)
@@ -134,6 +168,7 @@ class CalendarScreen(Screen):
             self.results_container.clear_widgets()
             err = Label(text="⚠️ Impossible de charger les données du calendrier.", color=Theme.TEXT_MUTED, font_size='15sp', size_hint_y=None, height=50)
             self.results_container.add_widget(err)
+            Clock.schedule_once(self.reset_scroll, 0)
             return
 
         vegetables = res.get('data', [])
@@ -175,6 +210,8 @@ class CalendarScreen(Screen):
         self.render_calendar_entries(matching)
 
     def select_action(self, action):
+        if self.selected_action == action:
+            return
         self.selected_action = action
         if action == 'semis':
             self.semis_btn.background_color = Theme.PRIMARY_MAIN
@@ -187,7 +224,10 @@ class CalendarScreen(Screen):
             self.semis_btn.background_color = (0.9, 0.9, 0.9, 1)
             self.semis_btn.color = Theme.TEXT_DARK
 
+        self.reset_scroll()
         self.load_calendar_data()
+        Clock.schedule_once(self.reset_scroll, 0)
+        Clock.schedule_once(self.reset_scroll, 0.05)
 
     def select_month(self, month_name):
         self.selected_month = month_name
@@ -199,10 +239,15 @@ class CalendarScreen(Screen):
                 btn.background_color = Theme.CARD_BG
                 btn.color = Theme.TEXT_DARK
 
+        self.reset_scroll()
+        Clock.schedule_once(self.scroll_to_selected_month, 0)
         self.load_calendar_data()
+        Clock.schedule_once(self.reset_scroll, 0)
+        Clock.schedule_once(self.reset_scroll, 0.05)
 
     def render_calendar_entries(self, entries):
         self.results_container.clear_widgets()
+        self.reset_scroll()
         base_root = Config.API_BASE_URL.replace('/api', '')
 
         # Tri alphabétique par nom de légume
@@ -224,6 +269,8 @@ class CalendarScreen(Screen):
             )
             empty_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
             self.results_container.add_widget(empty_lbl)
+            Clock.schedule_once(self.reset_scroll, 0)
+            Clock.schedule_once(self.reset_scroll, 0.05)
             return
 
         for item in entries:
@@ -330,6 +377,9 @@ class CalendarScreen(Screen):
             card.add_widget(detail_btn)
 
             self.results_container.add_widget(card)
+
+        Clock.schedule_once(self.reset_scroll, 0)
+        Clock.schedule_once(self.reset_scroll, 0.05)
 
     def open_calendar_vegetable_detail(self, vegetable_id, item_data, fallback_img=None):
         """Affiche les détails agronomiques complets du légume dans une Popup interactive."""
@@ -451,6 +501,7 @@ class CalendarScreen(Screen):
 
     def on_leave(self):
         self.close_drawer()
+        self.reset_scroll()
 
     def handle_logout(self):
         self.auth_service.logout()

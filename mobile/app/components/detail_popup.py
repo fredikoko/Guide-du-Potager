@@ -5,6 +5,7 @@ from kivy.uix.label import Label
 from kivy.uix.button import Button
 from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, RoundedRectangle
+from kivy.clock import Clock
 from ..styles.themes import Theme
 from ..utils.html_parser import HTMLParser
 from .cards import TableWidget, CodeBlockWidget
@@ -152,6 +153,7 @@ class DetailPopup(Popup):
         main_layout.add_widget(close_btn)
 
         self.content = main_layout
+        self.bind(on_open=lambda *args: Clock.schedule_once(lambda dt: setattr(scroll, 'scroll_y', 1.0), 0.05))
 
     def _update_rect(self, instance, value):
         self.rect.pos = instance.pos
