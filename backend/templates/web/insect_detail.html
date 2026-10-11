@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}{{ insect.name }} - Insectes Nuisibles & Biocontrôle - Guide du Potager{% endblock %}
 
@@ -57,8 +58,8 @@
                         <i class="fa-solid fa-circle-info mr-2 text-[#3D7A42]"></i>
                         Description & Identification
                     </h3>
-                    <div class="article-content prose prose-green max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
-                        {{ insect.description|safe }}
+                    <div class="article-content prose prose-green max-w-none text-gray-700 leading-relaxed">
+                        {{ insect.description|render_content }}
                     </div>
                 </div>
 
@@ -67,8 +68,8 @@
                         <i class="fa-solid fa-triangle-exclamation mr-2"></i>
                         Dégâts Caractéristiques sur les Cultures
                     </h3>
-                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-amber-950 whitespace-pre-line">
-                        {{ insect.damage|safe }}
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-amber-950">
+                        {{ insect.damage|render_content }}
                     </div>
                 </div>
 
@@ -76,8 +77,8 @@
                     <h3 class="text-base font-bold text-gray-900 mb-2">
                         Solutions Curatives Générales
                     </h3>
-                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-700 whitespace-pre-line">
-                        {{ insect.solution|safe }}
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-700">
+                        {{ insect.solution|render_content }}
                     </div>
                 </div>
 
@@ -87,8 +88,8 @@
                         <i class="fa-solid fa-flask-vial mr-2 text-[#47C26B]"></i>
                         Biocontrôle & Répulsifs Naturels Locaux
                     </h3>
-                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-emerald-950 leading-relaxed whitespace-pre-line">
-                        {{ insect.tropical_bio_control|safe }}
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-emerald-950 leading-relaxed">
+                        {{ insect.tropical_bio_control|render_content }}
                     </div>
                 </div>
                 {% endif %}
@@ -99,8 +100,8 @@
                         <i class="fa-solid fa-shield mr-2 text-[#3D7A42]"></i>
                         Prévention Physique & Barrières Agro-écologiques
                     </h3>
-                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-700 whitespace-pre-line">
-                        {{ insect.prevention_tips|safe }}
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-700">
+                        {{ insect.prevention_tips|render_content }}
                     </div>
                 </div>
                 {% endif %}

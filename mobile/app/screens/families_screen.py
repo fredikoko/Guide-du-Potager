@@ -8,6 +8,7 @@ from ..styles.themes import Theme
 from ..services.glossary_service import GlossaryService
 from ..components.cards import CardWidget
 from ..components.navigation_drawer import NavigationDrawer
+from ..utils.html_parser import HTMLParser
 
 class FamiliesScreen(Screen):
     def __init__(self, **kwargs):
@@ -80,8 +81,10 @@ class FamiliesScreen(Screen):
             )
             f_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
 
+            desc_text = HTMLParser.to_markup(str(family.get('rendered_description') or family.get('description') or ''))
             f_desc = Label(
-                text=family['description'],
+                text=desc_text,
+                markup=True,
                 color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
             )
             f_desc.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
@@ -90,9 +93,11 @@ class FamiliesScreen(Screen):
             card.add_widget(f_title)
             card.add_widget(f_desc)
 
-            if family.get('characteristics'):
+            char_text = family.get('rendered_characteristics') or family.get('characteristics')
+            if char_text:
+                char_markup = HTMLParser.to_markup(str(char_text))
                 f_char = Label(
-                    text=f"[b]Caractéristiques agronomiques :[/b]\n{family['characteristics']}",
+                    text=f"[b]Caractéristiques agronomiques :[/b]\n{char_markup}",
                     markup=True,
                     color=Theme.BROWN_DARK, font_size='13sp', size_hint_y=None, halign='left', valign='top'
                 )

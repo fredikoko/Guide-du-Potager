@@ -97,6 +97,10 @@ class FAQAccordionCard(BoxLayout):
 
         self.bind(size=self._update_graphics, pos=self._update_graphics)
 
+        from ..utils.html_parser import HTMLParser
+        parsed_q = HTMLParser.to_markup(str(self.question or '')).strip()
+        parsed_a = HTMLParser.to_markup(str(self.answer or '')).strip()
+
         # En-tête cliquable (Question + Chevron)
         self.header_btn = ClickableRow(orientation='horizontal', size_hint_y=None, spacing=8)
         self.header_btn.bind(minimum_height=self.header_btn.setter('height'))
@@ -104,7 +108,7 @@ class FAQAccordionCard(BoxLayout):
 
         # Label Question
         self.q_label = Label(
-            text=f"[b][color=1E592E]Q.[/color]  {self.question}[/b]",
+            text=f"[b][color=1E592E]Q.[/color]  {parsed_q}[/b]",
             markup=True,
             font_size='15sp',
             color=Theme.PRIMARY_DARK,
@@ -136,7 +140,7 @@ class FAQAccordionCard(BoxLayout):
         self.answer_box.bind(minimum_height=self.answer_box.setter('height'))
 
         self.a_label = Label(
-            text=f"[b][color=47C26B]R.[/color][/b]  {self.answer}",
+            text=f"[b][color=47C26B]R.[/color][/b]  {parsed_a}",
             markup=True,
             font_size='14sp',
             color=Theme.TEXT_DARK,

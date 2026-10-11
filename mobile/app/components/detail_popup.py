@@ -6,6 +6,8 @@ from kivy.uix.button import Button
 from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, RoundedRectangle
 from ..styles.themes import Theme
+from ..utils.html_parser import HTMLParser
+from .cards import TableWidget, CodeBlockWidget
 
 class DetailPopup(Popup):
     def __init__(self, title_text, image_url=None, fields=[], is_locked=False, upgrade_callback=None, **kwargs):
@@ -79,19 +81,45 @@ class DetailPopup(Popup):
                 title_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
                 content_box.add_widget(title_lbl)
 
-                # Section body in dark text on light cream background
-                val_lbl = Label(
-                    text=text_val,
-                    markup=True,
-                    color=Theme.TEXT_DARK,
-                    font_size='15sp',
-                    size_hint_y=None,
-                    halign='left',
-                    valign='top'
-                )
-                val_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-                val_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-                content_box.add_widget(val_lbl)
+                # Parse Markdown and HTML blocks
+                blocks = HTMLParser.parse_blocks(str(text_val))
+                if not blocks:
+                    # Fallback single label with to_markup
+                    val_lbl = Label(
+                        text=HTMLParser.to_markup(str(text_val)),
+                        markup=True,
+                        color=Theme.TEXT_DARK,
+                        font_size='15sp',
+                        line_height=1.25,
+                        size_hint_y=None,
+                        halign='left',
+                        valign='top'
+                    )
+                    val_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                    val_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                    content_box.add_widget(val_lbl)
+                else:
+                    for block in blocks:
+                        if block['type'] == 'text':
+                            b_lbl = Label(
+                                text=block['content'],
+                                markup=True,
+                                color=Theme.TEXT_DARK,
+                                font_size='15sp',
+                                line_height=1.25,
+                                size_hint_y=None,
+                                halign='left',
+                                valign='top'
+                            )
+                            b_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                            b_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                            content_box.add_widget(b_lbl)
+                        elif block['type'] == 'code':
+                            content_box.add_widget(CodeBlockWidget(content=block['content'], lang=block.get('lang')))
+                        elif block['type'] == 'table':
+                            content_box.add_widget(TableWidget(headers=block['headers'], rows=block['rows']))
+                        elif block['type'] == 'image':
+                            content_box.add_widget(AsyncImage(source=block['url'], size_hint_y=None, height=180))
 
         # Upgrade button if access is locked
         if is_locked and upgrade_callback:

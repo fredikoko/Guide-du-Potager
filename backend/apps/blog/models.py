@@ -163,5 +163,10 @@ class PostFAQ(models.Model):
         verbose_name_plural = "Foire Aux Questions (FAQ)"
         ordering = ['order', 'id']
 
+    @property
+    def rendered_answer(self):
+        from apps.content.rendering import render_content
+        return render_content(self.answer)
+
     def __str__(self):
         return f"{self.question[:60]} ({self.post.title})"

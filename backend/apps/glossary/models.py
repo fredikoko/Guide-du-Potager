@@ -45,6 +45,21 @@ class Tool(models.Model):
     class Meta:
         ordering = ['id']
 
+    @property
+    def rendered_description(self):
+        from apps.content.rendering import render_content
+        return render_content(self.description)
+
+    @property
+    def rendered_usage_tips(self):
+        from apps.content.rendering import render_content
+        return render_content(self.usage_tips)
+
+    @property
+    def rendered_tropical_tips(self):
+        from apps.content.rendering import render_content
+        return render_content(self.tropical_tips)
+
     def __str__(self):
         return self.name
 
@@ -58,6 +73,16 @@ class PlantFamily(models.Model):
     class Meta:
         verbose_name_plural = "Plant Families"
         ordering = ['name']
+
+    @property
+    def rendered_description(self):
+        from apps.content.rendering import render_content
+        return render_content(self.description)
+
+    @property
+    def rendered_characteristics(self):
+        from apps.content.rendering import render_content
+        return render_content(self.characteristics)
 
     def __str__(self):
         return self.name
@@ -112,6 +137,11 @@ class Vegetable(models.Model):
     class Meta:
         ordering = ['name']
 
+    @property
+    def rendered_care_tips(self):
+        from apps.content.rendering import render_content
+        return render_content(self.care_tips)
+
     def __str__(self):
         return self.name
 
@@ -148,6 +178,11 @@ class CalendarEntry(models.Model):
         verbose_name_plural = "Calendrier Cultural"
         ordering = ['month', 'action', 'vegetable__name']
         unique_together = ('vegetable', 'action', 'month')
+
+    @property
+    def rendered_notes(self):
+        from apps.content.rendering import render_content
+        return render_content(self.notes)
 
     def __str__(self):
         return f"{self.get_action_display()} - {self.vegetable.name} ({self.get_month_display()})"

@@ -8,10 +8,11 @@ from kivy.uix.image import AsyncImage
 from kivy.clock import Clock
 from ..styles.themes import Theme
 from ..services.glossary_service import GlossaryService
-from ..components.cards import CardWidget
+from ..components.cards import CardWidget, TableWidget, CodeBlockWidget
 from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
 from ..utils.config import Config
+from ..utils.html_parser import HTMLParser
 
 class VegetablesScreen(Screen):
     def __init__(self, **kwargs):
@@ -219,14 +220,40 @@ class VegetablesScreen(Screen):
                 vars_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
                 card.add_widget(vars_lbl)
 
-            if veg.get('care_tips'):
-                tips = Label(
-                    text=f"[b]Soins & Entretien :[/b]\n{veg.get('care_tips', '')}",
-                    markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
+            care_text = veg.get('rendered_care_tips') or veg.get('care_tips')
+            if care_text:
+                tips_header = Label(
+                    text="[b]Soins & Entretien :[/b]",
+                    markup=True, color=Theme.PRIMARY_DARK, font_size='14sp', size_hint_y=None, height=24, halign='left'
                 )
-                tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-                tips.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-                card.add_widget(tips)
+                tips_header.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+                card.add_widget(tips_header)
+
+                blocks = HTMLParser.parse_blocks(str(care_text))
+                if not blocks:
+                    tips = Label(
+                        text=HTMLParser.to_markup(str(care_text)),
+                        markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
+                    )
+                    tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                    tips.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+                    card.add_widget(tips)
+                else:
+                    for block in blocks:
+                        if block['type'] == 'text':
+                            b_lbl = Label(
+                                text=block['content'],
+                                markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, halign='left', valign='top'
+                            )
+                            b_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
+                            b_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (instance.width, None)))
+                            card.add_widget(b_lbl)
+                        elif block['type'] == 'code':
+                            card.add_widget(CodeBlockWidget(content=block['content'], lang=block.get('lang')))
+                        elif block['type'] == 'table':
+                            card.add_widget(TableWidget(headers=block['headers'], rows=block['rows']))
+                        elif block['type'] == 'image':
+                            card.add_widget(AsyncImage(source=block['url'], size_hint_y=None, height=180))
 
             self.container.add_widget(card)
 

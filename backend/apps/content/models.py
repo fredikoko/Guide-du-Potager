@@ -132,6 +132,31 @@ class AboutPage(models.Model):
     def __str__(self):
         return f"{self.title} (v{self.app_version})"
 
+    @property
+    def rendered_mission_text(self):
+        from .rendering import render_content
+        return render_content(self.mission_text)
+
+    @property
+    def rendered_pillar_1_desc(self):
+        from .rendering import render_content
+        return render_content(self.pillar_1_desc)
+
+    @property
+    def rendered_pillar_2_desc(self):
+        from .rendering import render_content
+        return render_content(self.pillar_2_desc)
+
+    @property
+    def rendered_pillar_3_desc(self):
+        from .rendering import render_content
+        return render_content(self.pillar_3_desc)
+
+    @property
+    def rendered_contact_text(self):
+        from .rendering import render_content
+        return render_content(self.contact_text)
+
     @classmethod
     def get_solo(cls):
         obj, _ = cls.objects.get_or_create(id=1)

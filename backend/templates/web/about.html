@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}À Propos & Mission Agro-écologique - Guide du Potager Tropical{% endblock %}
 
@@ -22,11 +23,7 @@
         </h2>
 
         <div class="article-content prose prose-green max-w-none text-gray-700 leading-relaxed text-sm sm:text-base">
-            {% if "<p" in about.mission_text or "<br" in about.mission_text %}
-                {{ about.mission_text|safe }}
-            {% else %}
-                {{ about.mission_text|linebreaks }}
-            {% endif %}
+            {{ about.mission_text|render_content }}
         </div>
 
         <!-- 3 Piliers -->
@@ -36,8 +33,8 @@
                     <i class="fa-solid fa-droplet"></i>
                 </div>
                 <h3 class="font-bold text-gray-900 text-sm">{{ about.pillar_1_title }}</h3>
-                <div class="article-content text-xs text-gray-600 leading-relaxed">
-                    {{ about.pillar_1_desc|safe }}
+                <div class="article-content prose prose-green max-w-none text-xs text-gray-600 leading-relaxed">
+                    {{ about.pillar_1_desc|render_content }}
                 </div>
             </div>
 
@@ -46,8 +43,8 @@
                     <i class="fa-solid fa-worm"></i>
                 </div>
                 <h3 class="font-bold text-gray-900 text-sm">{{ about.pillar_2_title }}</h3>
-                <div class="article-content text-xs text-gray-600 leading-relaxed">
-                    {{ about.pillar_2_desc|safe }}
+                <div class="article-content prose prose-green max-w-none text-xs text-gray-600 leading-relaxed">
+                    {{ about.pillar_2_desc|render_content }}
                 </div>
             </div>
 
@@ -56,8 +53,8 @@
                     <i class="fa-solid fa-shield-virus"></i>
                 </div>
                 <h3 class="font-bold text-gray-900 text-sm">{{ about.pillar_3_title }}</h3>
-                <div class="article-content text-xs text-gray-600 leading-relaxed">
-                    {{ about.pillar_3_desc|safe }}
+                <div class="article-content prose prose-green max-w-none text-xs text-gray-600 leading-relaxed">
+                    {{ about.pillar_3_desc|render_content }}
                 </div>
             </div>
         </div>
@@ -66,9 +63,9 @@
     <!-- Contact & Assistance -->
     <div class="bg-white rounded-3xl p-6 sm:p-10 shadow-sm border border-gray-200 space-y-4">
         <h2 class="text-xl font-extrabold text-[#1E592E]">{{ about.contact_title }}</h2>
-        <p class="text-xs sm:text-sm text-gray-600 leading-relaxed">
-            {{ about.contact_text }}
-        </p>
+        <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-600 leading-relaxed">
+            {{ about.contact_text|render_content }}
+        </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 text-xs sm:text-sm">
             <a href="mailto:{{ about.contact_email }}" class="p-4 rounded-xl bg-gray-50 hover:bg-gray-100 border border-gray-100 flex items-center space-x-3 transition">

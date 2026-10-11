@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}{{ post.title }} - Blog - Guide du Potager Tropical{% endblock %}
 
@@ -119,10 +120,10 @@
                         <i class="fa-solid fa-chevron-down text-xs sm:text-sm"></i>
                     </span>
                 </summary>
-                <div class="px-4 pb-4 pt-2 border-t border-gray-200 text-xs sm:text-sm text-gray-700 leading-relaxed whitespace-pre-line bg-white/60">
+                <div class="px-4 pb-4 pt-2 border-t border-gray-200 text-xs sm:text-sm text-gray-700 leading-relaxed bg-white/60">
                     <div class="flex items-start space-x-3">
                         <span class="text-[#47C26B] font-black shrink-0">R.</span>
-                        <div class="flex-1">{{ faq.answer }}</div>
+                        <div class="flex-1 prose prose-green max-w-none text-xs sm:text-sm article-content">{{ faq.answer|render_content }}</div>
                     </div>
                 </div>
             </details>

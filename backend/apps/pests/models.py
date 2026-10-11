@@ -27,6 +27,26 @@ class Disease(models.Model):
     class Meta:
         ordering = ['id']
 
+    @property
+    def rendered_symptoms(self):
+        from apps.content.rendering import render_content
+        return render_content(self.symptoms)
+
+    @property
+    def rendered_treatment(self):
+        from apps.content.rendering import render_content
+        return render_content(self.treatment)
+
+    @property
+    def rendered_prevention(self):
+        from apps.content.rendering import render_content
+        return render_content(self.prevention)
+
+    @property
+    def rendered_tropical_organic_treatment(self):
+        from apps.content.rendering import render_content
+        return render_content(self.tropical_organic_treatment)
+
     def __str__(self):
         return self.name
 
@@ -60,6 +80,31 @@ class Insect(models.Model):
 
     class Meta:
         ordering = ['id']
+
+    @property
+    def rendered_description(self):
+        from apps.content.rendering import render_content
+        return render_content(self.description)
+
+    @property
+    def rendered_damage(self):
+        from apps.content.rendering import render_content
+        return render_content(self.damage)
+
+    @property
+    def rendered_solution(self):
+        from apps.content.rendering import render_content
+        return render_content(self.solution)
+
+    @property
+    def rendered_tropical_bio_control(self):
+        from apps.content.rendering import render_content
+        return render_content(self.tropical_bio_control)
+
+    @property
+    def rendered_prevention_tips(self):
+        from apps.content.rendering import render_content
+        return render_content(self.prevention_tips)
 
     def __str__(self):
         return self.name

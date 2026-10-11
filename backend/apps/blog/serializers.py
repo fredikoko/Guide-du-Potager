@@ -9,7 +9,7 @@ class CategorySerializer(serializers.ModelSerializer):
 class PostFAQSerializer(serializers.ModelSerializer):
     class Meta:
         model = PostFAQ
-        fields = ['id', 'question', 'answer', 'order']
+        fields = ['id', 'question', 'answer', 'rendered_answer', 'order']
 
 class PostImageSerializer(serializers.ModelSerializer):
     image = serializers.SerializerMethodField()

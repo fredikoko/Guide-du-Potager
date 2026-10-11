@@ -90,14 +90,21 @@ class PartSerializer(serializers.ModelSerializer):
 
 
 class AboutPageSerializer(serializers.ModelSerializer):
+    rendered_mission_text = serializers.CharField(read_only=True)
+    rendered_pillar_1_desc = serializers.CharField(read_only=True)
+    rendered_pillar_2_desc = serializers.CharField(read_only=True)
+    rendered_pillar_3_desc = serializers.CharField(read_only=True)
+    rendered_contact_text = serializers.CharField(read_only=True)
+
     class Meta:
         model = AboutPage
         fields = [
-            'id', 'title', 'subtitle', 'mission_title', 'mission_text',
-            'pillar_1_title', 'pillar_1_desc',
-            'pillar_2_title', 'pillar_2_desc',
-            'pillar_3_title', 'pillar_3_desc',
-            'contact_title', 'contact_text', 'contact_email', 'contact_phone',
+            'id', 'title', 'subtitle', 'mission_title', 'mission_text', 'rendered_mission_text',
+            'pillar_1_title', 'pillar_1_desc', 'rendered_pillar_1_desc',
+            'pillar_2_title', 'pillar_2_desc', 'rendered_pillar_2_desc',
+            'pillar_3_title', 'pillar_3_desc', 'rendered_pillar_3_desc',
+            'contact_title', 'contact_text', 'rendered_contact_text',
+            'contact_email', 'contact_phone',
             'app_version', 'updated_at'
         ]
 

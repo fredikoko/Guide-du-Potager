@@ -1,4 +1,5 @@
 {% extends 'web/base.html' %}
+{% load content_markup %}
 
 {% block title %}{{ tool.name }} - Outils Maraîchers - Guide du Potager{% endblock %}
 
@@ -55,8 +56,8 @@
                         <i class="fa-solid fa-circle-info mr-2 text-[#3D7A42]"></i>
                         Description & Fonctionnement
                     </h3>
-                    <div class="article-content prose prose-green max-w-none text-gray-700 leading-relaxed whitespace-pre-line">
-                        {{ tool.description|safe }}
+                    <div class="article-content prose prose-green max-w-none text-gray-700 leading-relaxed">
+                        {{ tool.description|render_content }}
                     </div>
                 </div>
 
@@ -66,8 +67,8 @@
                         <i class="fa-solid fa-wrench mr-2 text-[#3D7A42]"></i>
                         Conseils d'utilisation & Précision
                     </h3>
-                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-700 whitespace-pre-line">
-                        {{ tool.usage_tips|safe }}
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-gray-700">
+                        {{ tool.usage_tips|render_content }}
                     </div>
                 </div>
                 {% endif %}
@@ -78,8 +79,8 @@
                         <i class="fa-solid fa-sun mr-2 text-[#47C26B]"></i>
                         Astuces en climat tropical & sahélien
                     </h3>
-                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-emerald-950 whitespace-pre-line">
-                        {{ tool.tropical_tips|safe }}
+                    <div class="article-content prose prose-green max-w-none text-xs sm:text-sm text-emerald-950">
+                        {{ tool.tropical_tips|render_content }}
                     </div>
                 </div>
                 {% endif %}

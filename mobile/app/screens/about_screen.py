@@ -160,9 +160,9 @@ class AboutScreen(Screen):
         self.container.add_widget(pillars_header)
 
         pillars = [
-            ("💧 " + data.get('pillar_1_title', "Gestion de l'Eau"), data.get('pillar_1_desc', '')),
-            ("🪱 " + data.get('pillar_2_title', "Sols Vivants"), data.get('pillar_2_desc', '')),
-            ("🛡️ " + data.get('pillar_3_title', "Zéro Chimique"), data.get('pillar_3_desc', '')),
+            ("💧 " + data.get('pillar_1_title', "Gestion de l'Eau"), HTMLParser.to_markup(data.get('rendered_pillar_1_desc') or data.get('pillar_1_desc') or '')),
+            ("🪱 " + data.get('pillar_2_title', "Sols Vivants"), HTMLParser.to_markup(data.get('rendered_pillar_2_desc') or data.get('pillar_2_desc') or '')),
+            ("🛡️ " + data.get('pillar_3_title', "Zéro Chimique"), HTMLParser.to_markup(data.get('rendered_pillar_3_desc') or data.get('pillar_3_desc') or '')),
         ]
         for p_title, p_desc in pillars:
             p_card = CardWidget(bg_color=Theme.CARD_BG)
@@ -228,8 +228,9 @@ class AboutScreen(Screen):
             f"[b]📞 {data.get('contact_title', 'Assistance & Communauté')}[/b]",
             font_size='16sp', color=Theme.PRIMARY_MAIN
         )
+        contact_desc_markup = HTMLParser.to_markup(data.get('rendered_contact_text') or data.get('contact_text') or '')
         contact_desc = self._create_auto_label(
-            data.get('contact_text', ''),
+            contact_desc_markup,
             font_size='13sp', color=Theme.TEXT_DARK
         )
         contact_email = self._create_auto_label(

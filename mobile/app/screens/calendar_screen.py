@@ -10,6 +10,7 @@ from ..services.glossary_service import GlossaryService
 from ..components.cards import CardWidget
 from ..components.navigation_drawer import NavigationDrawer
 from ..utils.config import Config
+from ..utils.html_parser import HTMLParser
 
 MONTHS = [
     "Janvier", "Février", "Mars", "Avril", "Mai", "Juin",
@@ -237,9 +238,11 @@ class CalendarScreen(Screen):
                 card.add_widget(img_widget)
 
             # Note spécifique pour ce mois si définie dans l'admin
-            if item.get('notes'):
+            notes_content = item.get('rendered_notes') or item.get('notes')
+            if notes_content:
+                parsed_notes = HTMLParser.to_markup(str(notes_content)).strip()
                 note_lbl = Label(
-                    text=f"[b]💡 Conseil {self.selected_month} :[/b] {item['notes']}",
+                    text=f"[b]💡 Conseil {self.selected_month} :[/b] {parsed_notes}",
                     markup=True, color=Theme.PRIMARY_DARK, font_size='13sp', size_hint_y=None
                 )
                 note_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
@@ -273,9 +276,11 @@ class CalendarScreen(Screen):
                 trop_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
                 card.add_widget(trop_lbl)
 
-            if item.get('care_tips'):
+            care_content = item.get('rendered_care_tips') or item.get('care_tips')
+            if care_content:
+                parsed_care = HTMLParser.to_markup(str(care_content)).strip()
                 tips = Label(
-                    text=f"[b]Soins :[/b] {item['care_tips']}",
+                    text=f"[b]Soins :[/b] {parsed_care}",
                     markup=True, color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, halign='left', valign='top'
                 )
                 tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
