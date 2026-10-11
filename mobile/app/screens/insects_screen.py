@@ -13,6 +13,7 @@ from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
 from ..components.detail_popup import DetailPopup
 from ..utils.config import Config
+from ..utils.html_parser import HTMLParser
 
 class InsectsScreen(Screen):
     def __init__(self, **kwargs):
@@ -107,10 +108,13 @@ class InsectsScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
-            if insect.get('damage'):
-                dam_text = insect['damage'][:100] + ("..." if len(insect['damage']) > 100 else "")
+            dam_raw = insect.get('rendered_damage') or insect.get('damage')
+            if dam_raw:
+                parsed_dam = HTMLParser.to_markup(str(dam_raw)).strip()
+                dam_text = parsed_dam[:120] + ("..." if len(parsed_dam) > 120 else "")
                 i_desc = Label(
                     text=dam_text,
+                    markup=True,
                     color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, height=40, halign='left', valign='top'
                 )
                 i_desc.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
@@ -152,16 +156,16 @@ class InsectsScreen(Screen):
             ]
         else:
             fields = [
-                ("Description", data.get('description', ''), Theme.TEXT_DARK),
-                ("Dégâts constatés", data.get('damage', ''), (0.8, 0.3, 0.2, 1)),
-                ("Solution Bio / Traitement", data.get('solution', ''), Theme.PRIMARY_MAIN),
+                ("Description", data.get('rendered_description') or data.get('description', ''), Theme.TEXT_DARK),
+                ("Dégâts constatés", data.get('rendered_damage') or data.get('damage', ''), (0.8, 0.3, 0.2, 1)),
+                ("Solution Bio / Traitement", data.get('rendered_solution') or data.get('solution', ''), Theme.PRIMARY_MAIN),
             ]
             if data.get('favorable_season'):
                 fields.append(("Saison favorable", data.get('favorable_season'), (0.85, 0.45, 0.15, 1)))
-            if data.get('tropical_bio_control'):
-                fields.append(("Lutte biologique tropicale", data.get('tropical_bio_control'), Theme.PRIMARY_DARK))
-            if data.get('prevention_tips'):
-                fields.append(("Conseils de prévention", data.get('prevention_tips'), Theme.BROWN_MAIN))
+            if data.get('rendered_tropical_bio_control') or data.get('tropical_bio_control'):
+                fields.append(("Lutte biologique tropicale", data.get('rendered_tropical_bio_control') or data.get('tropical_bio_control'), Theme.PRIMARY_DARK))
+            if data.get('rendered_prevention_tips') or data.get('prevention_tips'):
+                fields.append(("Conseils de prévention", data.get('rendered_prevention_tips') or data.get('prevention_tips'), Theme.BROWN_MAIN))
 
         popup = DetailPopup(
             title_text=data['name'],

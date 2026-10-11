@@ -13,6 +13,7 @@ from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
 from ..components.detail_popup import DetailPopup
 from ..utils.config import Config
+from ..utils.html_parser import HTMLParser
 
 class ToolsScreen(Screen):
     def __init__(self, **kwargs):
@@ -150,12 +151,17 @@ class ToolsScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
-            t_desc = Label(
-                text=tool['description'][:110] + ("..." if len(tool['description']) > 110 else ""),
-                color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, height=45, halign='left', valign='top'
-            )
-            t_desc.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-            card.add_widget(t_desc)
+            desc_raw = tool.get('rendered_description') or tool.get('description')
+            if desc_raw:
+                parsed_t_desc = HTMLParser.to_markup(str(desc_raw)).strip()
+                t_desc_text = parsed_t_desc[:120] + ("..." if len(parsed_t_desc) > 120 else "")
+                t_desc = Label(
+                    text=t_desc_text,
+                    markup=True,
+                    color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, height=45, halign='left', valign='top'
+                )
+                t_desc.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(t_desc)
 
             # Details Button
             tool_item = tool
@@ -192,11 +198,11 @@ class ToolsScreen(Screen):
         else:
             fields = [
                 ("Catégorie", category_txt, Theme.BROWN_MAIN),
-                ("Description", data.get('description', ''), Theme.TEXT_DARK),
-                ("Conseils d'utilisation", data.get('usage_tips', ''), Theme.PRIMARY_MAIN),
+                ("Description", data.get('rendered_description') or data.get('description', ''), Theme.TEXT_DARK),
+                ("Conseils d'utilisation", data.get('rendered_usage_tips') or data.get('usage_tips', ''), Theme.PRIMARY_MAIN),
             ]
-            if data.get('tropical_tips'):
-                fields.append(("Spécificités en climat tropical", data.get('tropical_tips'), Theme.PRIMARY_DARK))
+            if data.get('rendered_tropical_tips') or data.get('tropical_tips'):
+                fields.append(("Spécificités en climat tropical", data.get('rendered_tropical_tips') or data.get('tropical_tips'), Theme.PRIMARY_DARK))
 
         popup = DetailPopup(
             title_text=data['name'],

@@ -243,6 +243,34 @@ class ContentRenderer:
         text = re.sub(r'(?<![a-zA-Z0-9])\*(?!\s)([^*\n]+?)(?<!\s)\*(?![a-zA-Z0-9])', r'<em>\1</em>', text)
         text = re.sub(r'(?<![a-zA-Z0-9])_(?!\s)([^_\n]+?)(?<!\s)_(?![a-zA-Z0-9])', r'<em>\1</em>', text)
 
+        # 6.5 Symboles mathématiques et flèches LaTeX courantes ($\rightarrow$, \to, etc.)
+        math_replacements = [
+            (r'\$(?:\\rightarrow|\\to)\$', '→'),
+            (r'\\(?:rightarrow|to)\b', '→'),
+            (r'\$(?:\\leftarrow)\$', '←'),
+            (r'\\leftarrow\b', '←'),
+            (r'\$(?:\\Rightarrow)\$', '⇒'),
+            (r'\\Rightarrow\b', '⇒'),
+            (r'\$(?:\\Leftarrow)\$', '⇐'),
+            (r'\\Leftarrow\b', '⇐'),
+            (r'\$(?:\\leftrightarrow)\$', '↔'),
+            (r'\\leftrightarrow\b', '↔'),
+            (r'\$(?:\\le|\\leq)\$', '≤'),
+            (r'\\(?:le|leq)\b', '≤'),
+            (r'\$(?:\\ge|\\geq)\$', '≥'),
+            (r'\\(?:ge|geq)\b', '≥'),
+            (r'\$(?:\\pm)\$', '±'),
+            (r'\\pm\b', '±'),
+            (r'\$(?:\\times)\$', '×'),
+            (r'\\times\b', '×'),
+            (r'\$(?:\\approx)\$', '≈'),
+            (r'\\approx\b', '≈'),
+            (r'\$(?:\\neq)\$', '≠'),
+            (r'\\neq\b', '≠'),
+        ]
+        for pattern, repl in math_replacements:
+            text = re.sub(pattern, repl, text)
+
         # 7. Texte barré : ~~texte~~
         text = re.sub(r'~~(.*?)~~', r'<del>\1</del>', text)
 

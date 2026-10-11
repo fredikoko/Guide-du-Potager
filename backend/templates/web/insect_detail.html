@@ -44,7 +44,9 @@
             <div class="space-y-4 text-gray-700 leading-relaxed">
                 <div>
                     <h3 class="font-bold text-gray-900 mb-1">Dégâts causés :</h3>
-                    <p class="text-sm">{{ insect.damage|truncatewords:35 }}</p>
+                    <div class="prose prose-green max-w-none text-sm text-gray-700">
+                        {{ insect.damage|render_content|truncatewords_html:35 }}
+                    </div>
                 </div>
             </div>
 

@@ -43,7 +43,7 @@
 
         {% if is_locked %}
             <div class="prose max-w-none text-gray-700 leading-relaxed space-y-3">
-                <p>{{ tool.description|truncatewords:40 }}</p>
+                {{ tool.description|render_content|truncatewords_html:40 }}
             </div>
 
             <!-- Paywall Vert Clair -->

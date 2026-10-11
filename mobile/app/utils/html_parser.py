@@ -17,6 +17,34 @@ class HTMLParser:
         # 1. Remplacement des entités courantes et espaces insécables
         text = text.replace('&nbsp;', ' ')
 
+        # 1.0 Conversion des symboles et flèches LaTeX courantes ($\rightarrow$, \to, etc.)
+        math_replacements = [
+            (r'\$(?:\\rightarrow|\\to)\$', '→'),
+            (r'\\(?:rightarrow|to)\b', '→'),
+            (r'\$(?:\\leftarrow)\$', '←'),
+            (r'\\leftarrow\b', '←'),
+            (r'\$(?:\\Rightarrow)\$', '⇒'),
+            (r'\\Rightarrow\b', '⇒'),
+            (r'\$(?:\\Leftarrow)\$', '⇐'),
+            (r'\\Leftarrow\b', '⇐'),
+            (r'\$(?:\\leftrightarrow)\$', '↔'),
+            (r'\\leftrightarrow\b', '↔'),
+            (r'\$(?:\\le|\\leq)\$', '≤'),
+            (r'\\(?:le|leq)\b', '≤'),
+            (r'\$(?:\\ge|\\geq)\$', '≥'),
+            (r'\\(?:ge|geq)\b', '≥'),
+            (r'\$(?:\\pm)\$', '±'),
+            (r'\\pm\b', '±'),
+            (r'\$(?:\\times)\$', '×'),
+            (r'\\times\b', '×'),
+            (r'\$(?:\\approx)\$', '≈'),
+            (r'\\approx\b', '≈'),
+            (r'\$(?:\\neq)\$', '≠'),
+            (r'\\neq\b', '≠'),
+        ]
+        for pat, repl in math_replacements:
+            text = re.sub(pat, repl, text)
+
         # 1.1 Support universel de la syntaxe Markdown (titres #, ##, ###, ####, #####, ######)
         # Gestion des titres enveloppés dans des balises HTML (<p>### ...</p> ou <br/>### ...)
         text = re.sub(

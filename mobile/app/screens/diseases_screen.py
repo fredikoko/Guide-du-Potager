@@ -13,6 +13,7 @@ from ..components.search_bar import SearchBar
 from ..components.navigation_drawer import NavigationDrawer
 from ..components.detail_popup import DetailPopup
 from ..utils.config import Config
+from ..utils.html_parser import HTMLParser
 
 class DiseasesScreen(Screen):
     def __init__(self, **kwargs):
@@ -107,10 +108,13 @@ class DiseasesScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
-            if disease.get('symptoms'):
-                s_text = disease['symptoms'][:100] + ("..." if len(disease['symptoms']) > 100 else "")
+            symp_raw = disease.get('rendered_symptoms') or disease.get('symptoms')
+            if symp_raw:
+                parsed_symp = HTMLParser.to_markup(str(symp_raw)).strip()
+                s_text = parsed_symp[:120] + ("..." if len(parsed_symp) > 120 else "")
                 d_desc = Label(
                     text=s_text,
+                    markup=True,
                     color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, height=40, halign='left', valign='top'
                 )
                 d_desc.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
@@ -152,14 +156,14 @@ class DiseasesScreen(Screen):
             ]
         else:
             fields = [
-                ("Symptômes", data.get('symptoms', ''), Theme.TEXT_DARK),
-                ("Traitement", data.get('treatment', ''), Theme.PRIMARY_MAIN),
-                ("Prévention", data.get('prevention', ''), Theme.BROWN_MAIN),
+                ("Symptômes", data.get('rendered_symptoms') or data.get('symptoms', ''), Theme.TEXT_DARK),
+                ("Traitement", data.get('rendered_treatment') or data.get('treatment', ''), Theme.PRIMARY_MAIN),
+                ("Prévention", data.get('rendered_prevention') or data.get('prevention', ''), Theme.BROWN_MAIN),
             ]
             if data.get('favorable_season'):
                 fields.append(("Saison de prolifération", data.get('favorable_season'), (0.85, 0.45, 0.15, 1)))
-            if data.get('tropical_organic_treatment'):
-                fields.append(("Traitement bio tropical", data.get('tropical_organic_treatment'), Theme.PRIMARY_DARK))
+            if data.get('rendered_tropical_organic_treatment') or data.get('tropical_organic_treatment'):
+                fields.append(("Traitement bio tropical", data.get('rendered_tropical_organic_treatment') or data.get('tropical_organic_treatment'), Theme.PRIMARY_DARK))
 
         popup = DetailPopup(
             title_text=data['name'],
