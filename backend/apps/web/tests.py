@@ -192,3 +192,23 @@ class WebAppTestCase(TestCase):
         response = self.client.get(reverse('web:about'))
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Notre Mission")
+
+    def test_purchase_guide_flow(self):
+        self.client.login(username='gratuit@potager.com', password='Password123!')
+        # GET confirm page
+        get_resp = self.client.get(reverse('web:purchase_guide'))
+        self.assertEqual(get_resp.status_code, 200)
+        # POST to purchase
+        post_resp = self.client.post(reverse('web:purchase_guide'), follow=True)
+        self.assertEqual(post_resp.status_code, 200)
+        self.assertContains(post_resp, "Guide Complet")
+
+    def test_purchase_post_flow(self):
+        self.client.login(username='gratuit@potager.com', password='Password123!')
+        # GET confirm page
+        get_resp = self.client.get(reverse('web:purchase_post', args=[self.post.id]))
+        self.assertEqual(get_resp.status_code, 200)
+        # POST to purchase
+        post_resp = self.client.post(reverse('web:purchase_post', args=[self.post.id]), follow=True)
+        self.assertEqual(post_resp.status_code, 200)
+        self.assertContains(post_resp, self.post.title)

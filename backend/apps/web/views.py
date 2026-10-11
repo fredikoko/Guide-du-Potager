@@ -1,4 +1,5 @@
 from io import BytesIO
+from django.conf import settings
 from django.http import FileResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth import authenticate, login, logout, get_user_model
