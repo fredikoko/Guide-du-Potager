@@ -464,8 +464,9 @@ def checkout_view(request, plan_type):
         customer_ip=customer_ip
     )
 
-    if result.get('success') and result.get('payment_url'):
-        return redirect(result['payment_url'])
+    payment_url = result.get('payment_url') or result.get('checkout_url')
+    if result.get('success') and payment_url:
+        return redirect(payment_url)
     else:
         err_msg = result.get('error') or "Impossible d'initier le paiement en ligne. Veuillez réessayer."
         messages.error(request, f"Erreur de paiement : {err_msg}")
@@ -599,7 +600,7 @@ def download_guide_pdf_view(request):
 
 @login_required(login_url='web:login')
 def purchase_guide_view(request):
-    """Achat direct ou via Chariow du Guide Complet en Ebook PDF."""
+    """Achat direct du Guide Complet en Ebook PDF via la passerelle de paiement Chariow."""
     if PurchaseService.user_has_guide_access(request.user):
         messages.info(request, "Vous possédez déjà le Guide Complet en Ebook PDF.")
         return redirect('web:guide_summary')
@@ -607,30 +608,24 @@ def purchase_guide_view(request):
     pricing = PurchaseService.get_pricing()
 
     if request.method == 'POST':
-        api_key = getattr(settings, 'CHARIOW_API_KEY', '')
-        # Si Chariow est configuré avec un product_id pour le guide
-        if api_key and pricing.guide_chariow_product_id:
-            redirect_url = request.build_absolute_uri('/guide/')
-            result = ChariowService.create_checkout_session(
-                user=request.user,
-                plan_type='full_guide',
-                redirect_url=redirect_url,
-                customer_ip=request.META.get('REMOTE_ADDR')
-            )
-            if result.get('success') and result.get('checkout_url'):
-                return redirect(result['checkout_url'])
+        redirect_url = request.build_absolute_uri('/guide/?purchase=success')
+        customer_ip = request.META.get('REMOTE_ADDR')
 
-        # Validation de l'achat numérique
-        purchase, _ = PurchaseService.record_completed_purchase(
+        result = ChariowService.create_checkout_session(
             user=request.user,
+            plan_type='full_guide',
             purchase_type='full_guide',
-            payment_method='chariow'
+            redirect_url=redirect_url,
+            customer_ip=customer_ip
         )
-        messages.success(
-            request,
-            f"Félicitations ! Vous avez acquis le Guide Complet ({pricing.formatted_guide_price} {pricing.currency}). Le téléchargement de votre Ebook PDF est immédiatement disponible !"
-        )
-        return redirect('web:guide_summary')
+
+        payment_url = result.get('payment_url') or result.get('checkout_url')
+        if result.get('success') and payment_url:
+            return redirect(payment_url)
+
+        err_msg = result.get('error') or "Impossible d'initier la session de paiement Chariow. Veuillez réessayer."
+        messages.error(request, f"Erreur de paiement : {err_msg}")
+        return redirect('web:purchase_guide')
 
     context = {
         'pricing': pricing,
@@ -659,7 +654,7 @@ def download_post_pdf_view(request, slug):
 
 @login_required(login_url='web:login')
 def purchase_post_view(request, post_id):
-    """Achat unitaire d'un article de blog spécifique."""
+    """Achat unitaire d'un article de blog spécifique via la passerelle Chariow."""
     post = get_object_or_404(Post, id=post_id)
     if PurchaseService.user_has_post_access(request.user, post) and post.is_premium:
         messages.info(request, "Vous avez déjà accès à cet article.")
@@ -668,30 +663,25 @@ def purchase_post_view(request, post_id):
     pricing = PurchaseService.get_pricing()
 
     if request.method == 'POST':
-        api_key = getattr(settings, 'CHARIOW_API_KEY', '')
-        if api_key and pricing.article_chariow_product_id:
-            redirect_url = request.build_absolute_uri(f'/blog/{post.slug}/')
-            result = ChariowService.create_checkout_session(
-                user=request.user,
-                plan_type='post',
-                redirect_url=redirect_url,
-                customer_ip=request.META.get('REMOTE_ADDR')
-            )
-            if result.get('success') and result.get('checkout_url'):
-                return redirect(result['checkout_url'])
+        redirect_url = request.build_absolute_uri(f'/blog/{post.slug}/?purchase=success')
+        customer_ip = request.META.get('REMOTE_ADDR')
 
-        # Enregistrement de l'achat direct
-        purchase, _ = PurchaseService.record_completed_purchase(
+        result = ChariowService.create_checkout_session(
             user=request.user,
+            plan_type='post',
             purchase_type='post',
-            post=post,
-            payment_method='chariow'
+            post_id=post.id,
+            redirect_url=redirect_url,
+            customer_ip=customer_ip
         )
-        messages.success(
-            request,
-            f"L'article « {post.title} » est maintenant débloqué ({post.formatted_purchase_price} {pricing.currency}) ! Vous pouvez le consulter et télécharger son PDF."
-        )
-        return redirect('web:blog_detail', slug=post.slug)
+
+        payment_url = result.get('payment_url') or result.get('checkout_url')
+        if result.get('success') and payment_url:
+            return redirect(payment_url)
+
+        err_msg = result.get('error') or "Impossible d'initier la session de paiement Chariow. Veuillez réessayer."
+        messages.error(request, f"Erreur de paiement : {err_msg}")
+        return redirect('web:purchase_post', post_id=post.id)
 
     context = {
         'post': post,

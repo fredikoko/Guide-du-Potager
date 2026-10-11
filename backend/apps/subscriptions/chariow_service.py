@@ -23,8 +23,20 @@ class ChariowService:
         return getattr(settings, 'CHARIOW_BASE_URL', 'https://api.chariow.com/v1').rstrip('/')
 
     @staticmethod
-    def get_product_id_for_plan(plan_type):
-        from .models import SubscriptionPlan
+    def get_product_id_for_plan(plan_type, purchase_type=None):
+        from .models import SubscriptionPlan, DigitalProductPricing
+        p_type = purchase_type or plan_type
+        if p_type == 'full_guide':
+            pricing = DigitalProductPricing.get_pricing()
+            if pricing.guide_chariow_product_id:
+                return pricing.guide_chariow_product_id
+            return getattr(settings, 'CHARIOW_PRODUCT_GUIDE_ID', '')
+        if p_type == 'post':
+            pricing = DigitalProductPricing.get_pricing()
+            if pricing.article_chariow_product_id:
+                return pricing.article_chariow_product_id
+            return getattr(settings, 'CHARIOW_PRODUCT_ARTICLE_ID', '')
+
         plan = SubscriptionPlan.objects.filter(plan_type=plan_type, is_active=True).first()
         if plan and plan.chariow_product_id:
             return plan.chariow_product_id
@@ -35,10 +47,11 @@ class ChariowService:
         return getattr(settings, 'CHARIOW_PRODUCT_MONTHLY_ID', '')
 
     @classmethod
-    def create_checkout_session(cls, user, plan_type, redirect_url=None, customer_ip=None):
+    def create_checkout_session(cls, user, plan_type='monthly', purchase_type=None, post_id=None, chapter_id=None, redirect_url=None, customer_ip=None):
         """
         Initie une session de paiement Chariow en appelant POST /v1/checkout.
-        Retourne l'URL de paiement sécurisée (checkout_url).
+        Supporte les abonnements récurrents et les achats à l'acte (Guide Ebook PDF, Articles).
+        Retourne l'URL de paiement sécurisée (checkout_url / payment_url).
         """
         api_key = getattr(settings, 'CHARIOW_API_KEY', '')
         if not api_key:
@@ -48,26 +61,36 @@ class ChariowService:
                 'error': 'Le service de paiement Chariow n\'est pas configuré (clé API manquante).'
             }
 
-        product_id = cls.get_product_id_for_plan(plan_type)
+        product_id = cls.get_product_id_for_plan(plan_type, purchase_type=purchase_type)
         if not product_id:
-            logger.error(f"Aucun ID de produit Chariow configuré pour le plan : {plan_type}")
+            target_desc = purchase_type or plan_type
+            logger.error(f"Aucun ID de produit Chariow configuré pour : {target_desc}")
             return {
                 'success': False,
-                'error': f"ID de produit Chariow introuvable pour la formule {plan_type}."
+                'error': f"ID de produit Chariow introuvable pour {target_desc}."
             }
 
         first_name = user.first_name or getattr(user, 'username', '') or 'Client'
         last_name = user.last_name or ''
+
+        custom_metadata = {
+            'user_id': str(user.id),
+        }
+        if purchase_type:
+            custom_metadata['purchase_type'] = purchase_type
+            if post_id:
+                custom_metadata['post_id'] = str(post_id)
+            if chapter_id:
+                custom_metadata['chapter_id'] = str(chapter_id)
+        else:
+            custom_metadata['plan_type'] = plan_type
 
         payload = {
             'product_id': product_id,
             'email': user.email,
             'first_name': first_name,
             'last_name': last_name,
-            'custom_metadata': {
-                'user_id': str(user.id),
-                'plan_type': plan_type,
-            }
+            'custom_metadata': custom_metadata
         }
 
         if redirect_url:
@@ -113,27 +136,62 @@ class ChariowService:
             # Si le produit est gratuit ou déjà validé
             step = data.get('step') or data.get('data', {}).get('step')
             if step == 'completed':
-                # Activer directement l'abonnement
-                sub, pay = SubscriptionService.activate_subscription(
-                    user=user,
-                    plan_type=plan_type,
-                    payment_method='chariow',
-                    transaction_id=f"CHARIOW-{uuid.uuid4().hex[:10].upper()}"
-                )
-                return {
-                    'success': True,
-                    'step': 'completed',
-                    'message': 'Abonnement activé immédiatement.',
-                    'subscription_id': sub.id
-                }
+                if purchase_type in ('full_guide', 'post', 'chapter'):
+                    from .purchase_service import PurchaseService
+                    from apps.blog.models import Post
+                    from apps.content.models import Chapter
+                    post_obj = Post.objects.filter(id=post_id).first() if post_id else None
+                    chapter_obj = Chapter.objects.filter(id=chapter_id).first() if chapter_id else None
+                    purchase, _ = PurchaseService.record_completed_purchase(
+                        user=user,
+                        purchase_type=purchase_type,
+                        post=post_obj,
+                        chapter=chapter_obj,
+                        payment_method='chariow',
+                        transaction_id=f"CHARIOW-{uuid.uuid4().hex[:10].upper()}"
+                    )
+                    return {
+                        'success': True,
+                        'step': 'completed',
+                        'message': 'Achat numérique validé immédiatement.',
+                        'purchase_id': purchase.id
+                    }
+                else:
+                    # Activer directement l'abonnement
+                    sub, pay = SubscriptionService.activate_subscription(
+                        user=user,
+                        plan_type=plan_type,
+                        payment_method='chariow',
+                        transaction_id=f"CHARIOW-{uuid.uuid4().hex[:10].upper()}"
+                    )
+                    return {
+                        'success': True,
+                        'step': 'completed',
+                        'message': 'Abonnement activé immédiatement.',
+                        'subscription_id': sub.id
+                    }
 
             return {
                 'success': False,
                 'error': 'Impossible de récupérer l\'URL de paiement Chariow.'
             }
 
-        # Enregistrer une transaction en attente (pending)
-        plan_amount = SubscriptionService.get_plan_amount(plan_type)
+        # Calculer le montant approprié et enregistrer une transaction en attente (pending)
+        if purchase_type == 'full_guide':
+            from .models import DigitalProductPricing
+            plan_amount = DigitalProductPricing.get_pricing().guide_price
+        elif purchase_type == 'post':
+            from .models import DigitalProductPricing
+            from apps.blog.models import Post
+            pricing = DigitalProductPricing.get_pricing()
+            plan_amount = pricing.article_default_price
+            if post_id:
+                p_obj = Post.objects.filter(id=post_id).first()
+                if p_obj:
+                    plan_amount = p_obj.purchase_price
+        else:
+            plan_amount = SubscriptionService.get_plan_amount(plan_type)
+
         pending_tx_id = f"CHARIOW-INIT-{uuid.uuid4().hex[:10].upper()}"
         Payment.objects.create(
             user=user,
@@ -149,8 +207,10 @@ class ChariowService:
             'success': True,
             'step': 'payment',
             'checkout_url': checkout_url,
+            'payment_url': checkout_url,
             'transaction_id': pending_tx_id,
             'plan_type': plan_type,
+            'purchase_type': purchase_type,
             'amount': plan_amount,
         }
 

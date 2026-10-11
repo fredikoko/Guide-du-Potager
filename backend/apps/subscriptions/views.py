@@ -95,13 +95,19 @@ class ChariowCheckoutView(APIView):
         if not serializer.is_valid():
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-        plan_type = serializer.validated_data['plan_type']
+        plan_type = serializer.validated_data.get('plan_type', 'monthly')
+        purchase_type = serializer.validated_data.get('purchase_type')
+        post_id = serializer.validated_data.get('post_id')
+        chapter_id = serializer.validated_data.get('chapter_id')
         redirect_url = serializer.validated_data.get('redirect_url')
         customer_ip = request.META.get('REMOTE_ADDR')
 
         result = ChariowService.create_checkout_session(
             user=request.user,
             plan_type=plan_type,
+            purchase_type=purchase_type,
+            post_id=post_id,
+            chapter_id=chapter_id,
             redirect_url=redirect_url,
             customer_ip=customer_ip
         )

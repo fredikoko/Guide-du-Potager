@@ -24,7 +24,18 @@ class PaymentSerializer(serializers.ModelSerializer):
         fields = ['id', 'payment_method', 'amount', 'currency', 'status', 'transaction_id', 'phone_number', 'created_at']
 
 class ChariowCheckoutRequestSerializer(serializers.Serializer):
-    plan_type = serializers.ChoiceField(choices=['monthly', 'seasonal', 'yearly'])
+    plan_type = serializers.ChoiceField(
+        choices=['monthly', 'seasonal', 'yearly', 'full_guide', 'post'],
+        default='monthly',
+        required=False
+    )
+    purchase_type = serializers.ChoiceField(
+        choices=['full_guide', 'post', 'chapter'],
+        required=False,
+        allow_null=True
+    )
+    post_id = serializers.IntegerField(required=False, allow_null=True)
+    chapter_id = serializers.IntegerField(required=False, allow_null=True)
     redirect_url = serializers.URLField(required=False, allow_blank=True)
 
 

@@ -2,6 +2,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth import get_user_model
 from django.utils import timezone
+from unittest.mock import patch
 from datetime import timedelta
 
 from apps.content.models import Part, Chapter
@@ -198,17 +199,33 @@ class WebAppTestCase(TestCase):
         # GET confirm page
         get_resp = self.client.get(reverse('web:purchase_guide'))
         self.assertEqual(get_resp.status_code, 200)
-        # POST to purchase
-        post_resp = self.client.post(reverse('web:purchase_guide'), follow=True)
-        self.assertEqual(post_resp.status_code, 200)
-        self.assertContains(post_resp, "Guide Complet")
+
+        # POST without Chariow success -> should display error and NOT grant access
+        with patch('apps.subscriptions.chariow_service.ChariowService.create_checkout_session') as mock_checkout:
+            mock_checkout.return_value = {'success': False, 'error': 'Chariow non configure'}
+            fail_resp = self.client.post(reverse('web:purchase_guide'), follow=True)
+            self.assertEqual(fail_resp.status_code, 200)
+            self.assertContains(fail_resp, "Erreur de paiement")
+            from apps.subscriptions.purchase_service import PurchaseService
+            self.assertFalse(PurchaseService.user_has_guide_access(self.free_user))
+
+        # POST with Chariow success -> should redirect to Chariow checkout URL
+        with patch('apps.subscriptions.chariow_service.ChariowService.create_checkout_session') as mock_checkout:
+            mock_checkout.return_value = {'success': True, 'checkout_url': 'https://checkout.chariow.com/pay/guide-123'}
+            success_resp = self.client.post(reverse('web:purchase_guide'))
+            self.assertEqual(success_resp.status_code, 302)
+            self.assertEqual(success_resp.url, 'https://checkout.chariow.com/pay/guide-123')
 
     def test_purchase_post_flow(self):
         self.client.login(username='gratuit@potager.com', password='Password123!')
         # GET confirm page
         get_resp = self.client.get(reverse('web:purchase_post', args=[self.post.id]))
         self.assertEqual(get_resp.status_code, 200)
-        # POST to purchase
-        post_resp = self.client.post(reverse('web:purchase_post', args=[self.post.id]), follow=True)
-        self.assertEqual(post_resp.status_code, 200)
-        self.assertContains(post_resp, self.post.title)
+
+        # POST with Chariow success -> should redirect to Chariow checkout URL
+        with patch('apps.subscriptions.chariow_service.ChariowService.create_checkout_session') as mock_checkout:
+            mock_checkout.return_value = {'success': True, 'checkout_url': 'https://checkout.chariow.com/pay/post-456'}
+            success_resp = self.client.post(reverse('web:purchase_post', args=[self.post.id]))
+            self.assertEqual(success_resp.status_code, 302)
+            self.assertEqual(success_resp.url, 'https://checkout.chariow.com/pay/post-456')
+

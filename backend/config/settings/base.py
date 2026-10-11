@@ -165,7 +165,10 @@ CHARIOW_API_KEY = os.environ.get('CHARIOW_API_KEY', '')
 CHARIOW_WEBHOOK_SECRET = os.environ.get('CHARIOW_WEBHOOK_SECRET', '')
 CHARIOW_BASE_URL = os.environ.get('CHARIOW_BASE_URL', 'https://api.chariow.com/v1').rstrip('/')
 CHARIOW_PRODUCT_MONTHLY_ID = os.environ.get('CHARIOW_PRODUCT_MONTHLY_ID', '')
+CHARIOW_PRODUCT_SEASONAL_ID = os.environ.get('CHARIOW_PRODUCT_SEASONAL_ID', '')
 CHARIOW_PRODUCT_YEARLY_ID = os.environ.get('CHARIOW_PRODUCT_YEARLY_ID', '')
+CHARIOW_PRODUCT_GUIDE_ID = os.environ.get('CHARIOW_PRODUCT_GUIDE_ID', '')
+CHARIOW_PRODUCT_ARTICLE_ID = os.environ.get('CHARIOW_PRODUCT_ARTICLE_ID', '')
 
 # Email Configuration
 EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND', 'django.core.mail.backends.console.EmailBackend')
