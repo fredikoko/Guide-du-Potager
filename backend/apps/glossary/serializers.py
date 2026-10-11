@@ -139,3 +139,17 @@ class CalendarEntrySerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.vegetable.image.url)
             return obj.vegetable.image.url
         return None
+
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        request = self.context.get('request')
+        user = request.user if request else None
+        has_access = not instance.vegetable.is_premium or (user and user.is_authenticated and hasattr(user, 'profile') and user.profile.is_premium)
+        if not has_access:
+            data['is_locked'] = True
+            msg = "🔒 Contenu réservé : Abonnez-vous pour débloquer les conseils de culture et d'entretien complets."
+            data['care_tips'] = msg
+            data['rendered_care_tips'] = f"<p>{msg}</p>"
+        else:
+            data['is_locked'] = False
+        return data

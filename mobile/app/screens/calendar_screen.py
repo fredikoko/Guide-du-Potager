@@ -7,8 +7,10 @@ from kivy.uix.image import AsyncImage
 from kivy.graphics import Color, Rectangle
 from ..styles.themes import Theme
 from ..services.glossary_service import GlossaryService
+from ..services.auth_service import AuthService
 from ..components.cards import CardWidget
 from ..components.navigation_drawer import NavigationDrawer
+from ..components.detail_popup import DetailPopup
 from ..utils.config import Config
 from ..utils.html_parser import HTMLParser
 
@@ -21,6 +23,7 @@ class CalendarScreen(Screen):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.glossary_service = GlossaryService()
+        self.auth_service = AuthService()
         self.drawer = None
         self.selected_month = "Mars"
         self.selected_action = "semis"  # "semis" or "recolte"
@@ -151,14 +154,22 @@ class CalendarScreen(Screen):
                 or "toute l’année" in txt
             ):
                 matching.append({
+                    'vegetable_id': veg.get('id'),
                     'vegetable_name': veg.get('name'),
                     'scientific_name': veg.get('scientific_name'),
+                    'family_name': veg.get('family_name'),
                     'vegetable_image': veg.get('image'),
                     'sowing_period': veg.get('sowing_period'),
                     'harvest_period': veg.get('harvest_period'),
                     'care_tips': veg.get('care_tips'),
+                    'rendered_care_tips': veg.get('rendered_care_tips'),
                     'tropical_season_display': veg.get('tropical_season_display'),
                     'cycle_duration_days': veg.get('cycle_duration_days'),
+                    'heat_tolerance_display': veg.get('heat_tolerance_display'),
+                    'water_requirement_display': veg.get('water_requirement_display'),
+                    'sun_exposure_display': veg.get('sun_exposure_display'),
+                    'tropical_varieties': veg.get('tropical_varieties'),
+                    'is_premium': veg.get('is_premium'),
                     'notes': ''
                 })
         self.render_calendar_entries(matching)
@@ -217,14 +228,32 @@ class CalendarScreen(Screen):
 
         for item in entries:
             card = CardWidget(bg_color=Theme.CARD_BG)
+            is_prem = bool(item.get('is_premium'))
+
+            # Titre du légume + Etoile Premium + Nom botanique
+            title_parts = [f"[b]{item.get('vegetable_name', '')}[/b]"]
+            if is_prem:
+                title_parts.append("[color=47C26B]★[/color]")
+            if item.get('scientific_name'):
+                title_parts.append(f"[size=13sp][i]({item['scientific_name']})[/i][/size]")
 
             v_title = Label(
-                text=f"[b]{item.get('vegetable_name', '')}[/b] [i]({item.get('scientific_name', '')})[/i]",
-                markup=True, font_size='17sp', color=Theme.PRIMARY_DARK,
-                size_hint_y=None, height=35, halign='left'
+                text=" ".join(title_parts),
+                markup=True, font_size='17sp',
+                color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_DARK,
+                size_hint_y=None, height=32, halign='left', valign='middle'
             )
             v_title.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
             card.add_widget(v_title)
+
+            # Badge famille si disponible
+            if item.get('family_name'):
+                fam_lbl = Label(
+                    text=f"[color=3D7A42][b]🌱 {item['family_name']}[/b][/color]",
+                    markup=True, font_size='12sp', size_hint_y=None, height=20, halign='left'
+                )
+                fam_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+                card.add_widget(fam_lbl)
 
             img_url = item.get('vegetable_image')
             if img_url:
@@ -237,32 +266,28 @@ class CalendarScreen(Screen):
                 )
                 card.add_widget(img_widget)
 
-            # Note spécifique pour ce mois si définie dans l'admin
+            # Note spécifique pour ce mois si définie dans le calendrier
             notes_content = item.get('rendered_notes') or item.get('notes')
             if notes_content:
                 parsed_notes = HTMLParser.to_markup(str(notes_content)).strip()
                 note_lbl = Label(
-                    text=f"[b]💡 Conseil {self.selected_month} :[/b] {parsed_notes}",
-                    markup=True, color=Theme.PRIMARY_DARK, font_size='13sp', size_hint_y=None
+                    text=f"[color=1E592E][b]💡 Conseil {self.selected_month} :[/b][/color] {parsed_notes}",
+                    markup=True, font_size='13sp', size_hint_y=None
                 )
                 note_lbl.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
                 note_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
                 card.add_widget(note_lbl)
 
-            sow = Label(
-                text=f"[b]Semis :[/b] {item.get('sowing_period', 'N/A')}",
-                markup=True, color=Theme.TEXT_DARK, font_size='14sp', size_hint_y=None, height=25, halign='left'
+            # Périodes culturales (Semis & Récolte)
+            cal_text = f"[b]Semis :[/b] {item.get('sowing_period', 'N/A')}  •  [b]Récolte :[/b] {item.get('harvest_period', 'N/A')}"
+            cal_lbl = Label(
+                text=cal_text,
+                markup=True, color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, height=24, halign='left'
             )
-            sow.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-            card.add_widget(sow)
+            cal_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
+            card.add_widget(cal_lbl)
 
-            harvest = Label(
-                text=f"[b]Récolte :[/b] {item.get('harvest_period', 'N/A')}",
-                markup=True, color=Theme.BROWN_MAIN, font_size='14sp', size_hint_y=None, height=25, halign='left'
-            )
-            harvest.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
-            card.add_widget(harvest)
-
+            # Profil tropical succinct
             if item.get('tropical_season_display') or item.get('cycle_duration_days'):
                 trop_desc = []
                 if item.get('tropical_season_display'):
@@ -270,24 +295,142 @@ class CalendarScreen(Screen):
                 if item.get('cycle_duration_days'):
                     trop_desc.append(f"Cycle : {item['cycle_duration_days']} j")
                 trop_lbl = Label(
-                    text=f"[b]Profil tropical :[/b] {' | '.join(trop_desc)}",
-                    markup=True, color=Theme.PRIMARY_DARK, font_size='13sp', size_hint_y=None, height=25, halign='left'
+                    text=f"[color=855E42][b]• {' | '.join(trop_desc)}[/b][/color]",
+                    markup=True, font_size='12sp', size_hint_y=None, height=22, halign='left'
                 )
                 trop_lbl.bind(size=lambda s, v: setattr(s, 'text_size', (s.width, None)))
                 card.add_widget(trop_lbl)
 
+            # Aperçu court des conseils
             care_content = item.get('rendered_care_tips') or item.get('care_tips')
             if care_content:
-                parsed_care = HTMLParser.to_markup(str(care_content)).strip()
-                tips = Label(
-                    text=f"[b]Soins :[/b] {parsed_care}",
-                    markup=True, color=Theme.TEXT_DARK, font_size='13sp', size_hint_y=None, halign='left', valign='top'
+                clean_care = HTMLParser.to_markup(str(care_content)).strip()
+                clean_preview = clean_care.replace('[b]', '').replace('[/b]', '').replace('[i]', '').replace('[/i]', '')
+                if len(clean_preview) > 100:
+                    clean_preview = clean_preview[:100] + "..."
+                tips_lbl = Label(
+                    text=f"[color=555555]{clean_preview}[/color]",
+                    markup=True, font_size='13sp', size_hint_y=None, height=36, halign='left', valign='top'
                 )
-                tips.bind(texture_size=lambda instance, value: setattr(instance, 'height', value[1]))
-                tips.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
-                card.add_widget(tips)
+                tips_lbl.bind(size=lambda instance, value: setattr(instance, 'text_size', (value[0], None)))
+                card.add_widget(tips_lbl)
+
+            # Bouton d'ouverture du détail en Popup
+            vid = item.get('vegetable_id')
+            detail_btn = Button(
+                text="Voir les détails du légume →",
+                font_size='14sp',
+                size_hint_y=None,
+                height=42,
+                background_normal='',
+                background_color=Theme.ACCENT_EXCLUSIVE if is_prem else Theme.PRIMARY_MAIN,
+                color=Theme.TEXT_LIGHT
+            )
+            detail_btn.bind(on_release=lambda instance, vegetable_id=vid, vitem=item, i_url=img_url: self.open_calendar_vegetable_detail(vegetable_id, vitem, i_url))
+            card.add_widget(detail_btn)
 
             self.results_container.add_widget(card)
+
+    def open_calendar_vegetable_detail(self, vegetable_id, item_data, fallback_img=None):
+        """Affiche les détails agronomiques complets du légume dans une Popup interactive."""
+        data = None
+        if vegetable_id:
+            res = self.glossary_service.get_vegetable_detail(vegetable_id)
+            if res.get('success') and res.get('data'):
+                data = res['data']
+
+        if not data:
+            data = item_data
+
+        is_prem = bool(data.get('is_premium'))
+        is_sub = self.auth_service.is_subscribed()
+        is_locked = data.get('is_locked', False) or (is_prem and not is_sub)
+
+        base_root = Config.API_BASE_URL.replace('/api', '')
+        img_url = data.get('image') or data.get('vegetable_image') or fallback_img
+        if img_url and img_url.startswith('/'):
+            img_url = f"{base_root}{img_url}"
+
+        if is_locked:
+            fields = [
+                (
+                    "Fiche de culture agronomique",
+                    "🔒 La fiche agronomique complète, le calendrier détaillé et les protocoles de fertilisation et d'entretien sont réservés aux abonnés.",
+                    Theme.TEXT_MUTED
+                ),
+            ]
+        else:
+            fields = []
+
+            # 1. Conseil spécifique pour le mois en cours dans le simulateur
+            monthly_notes = item_data.get('rendered_notes') or item_data.get('notes')
+            if monthly_notes:
+                fields.append((
+                    f"Conseil agronomique ({self.selected_month})",
+                    str(monthly_notes),
+                    (0.85, 0.45, 0.15, 1)
+                ))
+
+            # 2. Nom botanique & Famille
+            sci_name = data.get('scientific_name') or item_data.get('scientific_name')
+            if sci_name:
+                fields.append(("Nom botanique", f"[i]{sci_name}[/i]", Theme.TEXT_MUTED))
+
+            fam_name = data.get('family_name') or item_data.get('family_name')
+            if fam_name:
+                fields.append(("Famille botanique", f"🌱 {fam_name}", Theme.PRIMARY_MAIN))
+
+            # 3. Périodes culturales
+            sowing = data.get('sowing_period') or item_data.get('sowing_period', 'Non spécifié')
+            harvest = data.get('harvest_period') or item_data.get('harvest_period', 'Non spécifié')
+            fields.append(("Période de semis", sowing, Theme.PRIMARY_DARK))
+            fields.append(("Période de récolte", harvest, Theme.BROWN_MAIN))
+
+            # 4. Paramètres agro-climatiques tropicaux
+            agro_lines = []
+            s_disp = data.get('tropical_season_display') or data.get('tropical_season') or item_data.get('tropical_season_display')
+            if s_disp:
+                agro_lines.append(f"• Saison optimale : {s_disp}")
+            cycle = data.get('cycle_duration_days') or item_data.get('cycle_duration_days')
+            if cycle:
+                agro_lines.append(f"• Durée du cycle : {cycle} jours")
+            heat = data.get('heat_tolerance_display') or data.get('heat_tolerance')
+            if heat:
+                agro_lines.append(f"• Tolérance à la chaleur : {heat}")
+            water = data.get('water_requirement_display') or data.get('water_requirement')
+            if water:
+                agro_lines.append(f"• Besoins en eau / irrigation : {water}")
+            sun = data.get('sun_exposure_display') or data.get('sun_exposure')
+            if sun:
+                agro_lines.append(f"• Exposition au soleil : {sun}")
+
+            if agro_lines:
+                fields.append(("Conditions de culture tropicale", "\n".join(agro_lines), (0.85, 0.45, 0.15, 1)))
+
+            # 5. Variétés tropicales recommandées
+            trop_var = data.get('tropical_varieties')
+            if trop_var:
+                fields.append(("Variétés adaptées au climat tropical", trop_var, Theme.BROWN_MAIN))
+
+            # 6. Conseils de culture et entretien intégraux (Markdown / HTML)
+            care_tips = (
+                data.get('rendered_care_tips')
+                or data.get('care_tips')
+                or item_data.get('rendered_care_tips')
+                or item_data.get('care_tips')
+            )
+            if care_tips:
+                fields.append(("Conseils de culture & Entretien", care_tips, Theme.PRIMARY_DARK))
+
+        popup_title = data.get('name') or data.get('vegetable_name') or item_data.get('vegetable_name', 'Détails du Légume')
+        popup = DetailPopup(
+            title_text=popup_title,
+            image_url=img_url,
+            fields=fields,
+            is_locked=is_locked,
+            upgrade_callback=lambda: setattr(self.manager, 'current', 'subscription')
+        )
+        popup.open()
 
     def toggle_drawer(self, instance=None):
         if not self.drawer:
@@ -310,8 +453,7 @@ class CalendarScreen(Screen):
         self.close_drawer()
 
     def handle_logout(self):
-        from ..services.auth_service import AuthService
-        AuthService().logout()
+        self.auth_service.logout()
         self.close_drawer()
         self.manager.current = 'login'
 
