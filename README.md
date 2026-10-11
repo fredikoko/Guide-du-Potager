@@ -1,118 +1,227 @@
 # Guide du Potager Tropical 🌿
 
-Application mobile éducative et interactive sur le jardinage potager et le maraîchage biologique en milieu tropical (Kivy), communicant avec un backend Django REST API (Django REST Framework + JWT).
+Plateforme agronomique et éducative complète dédiée au maraîchage biologique et aux pratiques potagères adaptées au climat tropical et sahélien (Afrique de l'Ouest, Caraïbes, zones tropicales humides et arides).
+
+Le projet comprend une double interface :
+1. **Application Web moderne (Django + Tailwind CSS + Vanilla JS)** : Consultation responsive, téléchargement d'ebooks PDF A4, blog avec FAQ, simulateur de calendrier cultural, fiches de diagnostic et paiements sécurisés.
+2. **Application Mobile native (Kivy / KivyMD)** : Conçue pour une utilisation au champ et sur parcelle avec mode hors-ligne intégral, schémas techniques en code ASCII/Unicode et navigation optimisée pour smartphones Android.
+3. **API RESTful robuste (Django REST Framework + JWT + Swagger)** : Fournissant l'ensemble des données, l'authentification et les webhooks de paiement.
 
 ---
 
-## 🚀 Fonctionnalités Principales
+## 🚀 Fonctionnalités Détaillées
 
-- **Authentification Sécurisée JWT** : Inscription, connexion, réinitialisation de mot de passe à jeton, profil et gestion de compte.
-- **Parties & Chapitres Éducatifs** : Organisation hiérarchique avec affichage de contenu riche HTML, images intégrées dans le texte, temps de lecture et gestion des accès.
-- **Simulateur Interactif de Calendrier de Semis & Récoltes** (`calendar_screen.py`) :
-  - Sélection mensuelle interactive (Janvier à Décembre).
-  - Filtrage par geste alternatif (*Semis & Plantations* vs *Récoltes*).
-  - Génération du plan de culture sur-mesure avec fiches légumes, conseils et périodes.
-- **📰 Module Blog & Actualités** (`apps/blog`) :
-  - Publication d'articles par catégories (*Conseils de Saison*, *Permaculture*, etc.).
-  - Support des images de couverture et des images secondaires intégrées dans le corps du texte.
-  - **Gestion d'Accès Gratuit vs Premium** : Articles gratuits pour tous et articles exclusifs réservés aux abonnés Premium.
-  - Espace commentaires sous chaque article pour les membres.
-- **Dictionnaire Visuel Maraîcher & Pop-up Modale Détaillée** (`DetailPopup`) :
-  - **Outils Maraîchers** (Grelinette, Transplantoir, Serouette, Semoir de précision...).
-  - **Familles Botaniques** (Solanacées, Cucurbitacées, Fabacées, Brassicacées...).
-  - **Fiches Légumes** avec périodes de semis, récoltes et conseils de soin.
-  - **Fiches Maladies & Insectes** avec symptômes, dégâts, traitements bio et prévention.
-  - Affichage direct des illustrations dans les cartes de liste + bouton **"Voir les détails →"**.
-- **Interface Administrateur Django Enrichie** :
-  - Téléversement d'images inline (`ChapterImageInline`, `PostImageInline`).
-  - Aperçu miniature instantané et **générateur automatique de code HTML** prêt à copier/coller dans le texte des chapitres et articles.
-- **Documentation OpenAPI & Swagger UI** :
-  - Interface Swagger UI interactive accessible sur `http://127.0.0.1:8000/api/docs/`.
-  - Schéma OpenAPI sur `http://127.0.0.1:8000/api/schema/`.
-- **Pagination REST Rétrocompatible** (`FlexiblePageNumberPagination`) :
-  - Pagination à 15 éléments par page par défaut avec paramètre `page_size=all` pour la réactivité mobile.
-- **Système d'Abonnement Premium** :
-  - Accès gratuit au contenu de base.
-  - Déblocage Premium des chapitres avancés, fiches maladies/insectes, outils spécialisés et articles de blog exclusifs.
-  - **Paiements** : Intégration simulée et prête pour **Orange Money**, **Wave**, **MTN Mobile Money** (Afrique de l'Ouest) et **Stripe**.
-- **Mode Hors-ligne & Cache** : Mise en cache locale JSON des données consultées.
+### 1. Agronomie & Contenus Pédagogiques
+- **Manuel Complet & Chapitres Pédagogiques** (`apps/content`) :
+  - Découpage hiérarchique en parties et chapitres (préparation du sol vivant, compostage, gestion économe de l'eau, associations végétales, biopesticides).
+  - Support simultané **HTML & Markdown** pour l'ensemble des contenus (titres, tableaux, citations, listes ordonnées/à puces, code).
+  - Support des schémas d'agronomie en blocs ASCII/Unicode (coupes de buttes, tranchées drainantes, paillage) avec préservation exacte des alignements.
+  - Conversion automatique des notations et flèches mathématiques (`$\rightarrow$` $\rightarrow$ `→`).
+
+- **Génération & Téléchargement de PDF Professionnels (A4)** :
+  - **Ebook Complet du Guide** : Génération ReportLab de haute qualité avec page de garde stylisée, table des matières, numérotation dynamique (`Page X sur Y`), en-têtes/pieds de page personnalisés et rendu parfait des schémas monospaces.
+  - **Articles de Blog en PDF** : Téléchargement individuel au format imprimable A4.
+
+- **Simulateur de Calendrier Cultural Interactif** (`apps/glossary`) :
+  - Sélection mensuelle interactive de Janvier à Décembre.
+  - Filtrage immédiat par geste cultural (*Semis / Plantation* vs *Récolte*).
+  - Conseils agronomiques spécifiques au mois sélectionné.
+  - Profils climatiques détaillés : durée de cycle, tolérance à la chaleur, besoins hydriques, exposition solaire.
+
+- **Dictionnaire & Clinique des Plantes** :
+  - **Fiches Légumes** : Périodes de semis/récolte, variétés tropicales recommandées, besoins thermiques et conseils de culture.
+  - **Familles Botaniques** : Règles de rotation triennale et quadriennale pour casser le cycle des pathogènes du sol.
+  - **Maladies Cryptogamiques & Bactériennes** (`apps/pests`) : Diagnostic précoce, symptômes foliaires, mesures préventives et recettes bio tropicales (purins, décoctions de neem, piment, cendre).
+  - **Insectes Nuisibles & Biocontrôle** (`apps/pests`) : Identification, dégâts caractéristiques, auxiliaires et barrières agro-écologiques.
+  - **Outils Maraîchers de Précision** : Guide ergonomique du matériel respectueux de la vie du sol (grelinette, semoirs de précision, toiles d'ombrage, etc.).
+
+### 2. Module Blog & Foire Aux Questions
+- Articles thématiques riches mêlant approches conventionnelles raisonnées et bio-intensives.
+- Foire Aux Questions (FAQ) interactive intégrée sous chaque article (accordéon collapsible).
+- Espace commentaires interactif pour les membres.
+- Système de planification de publication pour les administrateurs (articles brouillons, planifiés, publiés).
+
+### 3. Monétisation & Abonnements Flexibles
+- **Abonnements Premium** (`apps/subscriptions`) :
+  - Formules administrables depuis le back-office : Mensuel, Saison Potager (3 mois), Annuel.
+  - Déblocage automatique des chapitres d'experts, des fiches de maladies/insectes exclusives et des recettes curatives.
+- **Achats Numériques à l'Unité (Pay-per-Content)** :
+  - Achat du Guide Complet en Ebook PDF téléchargeable à vie.
+  - Achat d'articles de blog individuels avec accès permanent et téléchargement PDF.
+- **Passerelle de Paiement Chariow** :
+  - Paiement sécurisé par **Mobile Money** (Wave, Orange Money, MTN Mobile Money, Moov) et **Carte Bancaire**.
+  - Gestion sécurisée des webhooks (`/api/subscriptions/webhook/chariow/`) avec signature cryptographique HMAC-SHA256 et idempotence.
+
+### 4. Authentification & Sécurité
+- Authentification basée sur jetons JWT (`rest_framework_simplejwt`) pour le mobile et sessions Django pour le web.
+- Protection CSRF et filtrage CORS configuré.
+- Paywall progressif vert clair préservant le SEO et invitant à l'abonnement.
+
+---
+
+## 🏗️ Architecture du Projet
+
+```text
+Guide du potager/
+├── backend/                              # Backend Django & API REST
+│   ├── apps/
+│   │   ├── accounts/                     # Gestion des utilisateurs & profils JWT
+│   │   ├── blog/                         # Articles, catégories, images, FAQ & commentaires
+│   │   ├── content/                      # Parties, chapitres, moteur de rendu & générateur PDF
+│   │   │   ├── rendering.py              # Moteur de rendu universel Markdown + HTML + LaTeX
+│   │   │   └── pdf_service.py            # Générateur ReportLab (Guide complet & articles A4)
+│   │   ├── glossary/                     # Légumes, familles botaniques, outils & calendrier
+│   │   ├── pests/                        # Maladies, insectes nuisibles & biocontrôle
+│   │   ├── subscriptions/                # Formules, paiements Chariow & achats à l'unité
+│   │   └── web/                          # Vues et contrôleurs de la plateforme Web
+│   ├── config/                           # Paramètres Django (base, dev, prod), URLs, OpenAPI
+│   ├── static/                           # Feuilles CSS, JS, favicons et logos
+│   ├── templates/                        # Templates HTML Tailwind (web & composants)
+│   ├── tests/                            # Suite de tests automatisés
+│   ├── manage.py
+│   └── requirements.txt
+│
+├── mobile/                               # Application Client Kivy Mobile (Android / Desktop)
+│   ├── app/
+│   │   ├── assets/                       # Icônes de l'application & polices TTF (Consolas, DejaVu)
+│   │   ├── components/                   # Widgets réutilisables (Cards, DetailPopup, Drawer, etc.)
+│   │   ├── screens/                      # Écrans Kivy (Home, Chapter, Blog, Calendar, etc.)
+│   │   ├── services/                     # Clients d'API, gestion du cache & authentification
+│   │   ├── styles/                       # Thèmes et palette de couleurs naturelles
+│   │   └── utils/                        # Parser HTML/Markdown vers Kivy BBCode & Config
+│   ├── buildozer.spec                    # Configuration de compilation Android APK/AAB
+│   ├── main.py                           # Point d'entrée de l'application Kivy
+│   └── requirements.txt
+│
+├── docker-compose.yml                    # Environnement conteneurisé de développement
+├── docker-compose.prod.yml               # Déploiement conteneurisé de production
+├── GUIDE_MISE_EN_PRODUCTION.md           # Guide complet de déploiement (Nginx, Gunicorn, PostgreSQL)
+└── README.md                             # Documentation principale du projet
+```
 
 ---
 
 ## 🛠️ Installation & Démarrage
 
-### 1. Backend Django REST API
-
-```bash
-cd backend
-python -m pip install -r requirements.txt
-python manage.py makemigrations
-python manage.py migrate
-python manage.py seed_data  # Alimente la base avec du contenu éducatif et des articles de démonstration
-python manage.py runserver
-```
-
-- **API REST** : `http://127.0.0.1:8000/api/`
-- **Documentation Swagger UI** : `http://127.0.0.1:8000/api/docs/`
-- **Administration Django** : `http://127.0.0.1:8000/admin/`
-
-### Comptes de démonstration pré-créés par `seed_data` :
-- **Utilisateur Gratuit** : `demo@potager.fr` / `potager123`
-- **Utilisateur Premium** : `premium@potager.fr` / `potager123`
+### Prérequis
+- Python 3.10 ou supérieur
+- Git
+- Un environnement virtuel dédié pour le backend et le mobile
 
 ---
 
-### 2. Application Mobile Kivy
+### 1. Démarrage du Backend (Web & API REST)
 
 ```bash
+# 1. Cloner le dépôt et se positionner dans le dossier backend
+cd backend
+
+# 2. Créer et activer un environnement virtuel
+python -m venv .venv
+# Sur Windows :
+.venv\Scripts\activate
+# Sur Linux/macOS :
+source .venv/bin/activate
+
+# 3. Installer les dépendances
+pip install -r requirements.txt
+
+# 4. Appliquer les migrations de base de données
+python manage.py makemigrations
+python manage.py migrate
+
+# 5. Charger le jeu de données initial (cultures, chapitres, fiches bio)
+python manage.py seed_data
+
+# 6. Lancer le serveur de développement
+python manage.py runserver
+```
+
+#### Points d'accès Backend :
+- **Plateforme Web** : [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
+- **API REST** : [http://127.0.0.1:8000/api/](http://127.0.0.1:8000/api/)
+- **Documentation OpenAPI / Swagger** : [http://127.0.0.1:8000/api/docs/](http://127.0.0.1:8000/api/docs/)
+- **Administration Django** : [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/)
+
+#### Comptes de démonstration créés par `seed_data` :
+- **Membre Standard (Gratuit)** : `demo@potager.fr` / `potager123`
+- **Membre Premium (Abonné)** : `premium@potager.fr` / `potager123`
+- **Administrateur** : `admin@potager.fr` / `potager123` (ou créé via `createsuperuser`)
+
+---
+
+### 2. Démarrage de l'Application Mobile (Kivy)
+
+```bash
+# 1. Se positionner dans le dossier mobile
 cd mobile
-python -m pip install -r requirements.txt
+
+# 2. Créer et activer un environnement virtuel dédié
+python -m venv .env
+# Sur Windows :
+.env\Scripts\activate
+# Sur Linux/macOS :
+source .env/bin/activate
+
+# 3. Installer les dépendances Kivy
+pip install -r requirements.txt
+
+# 4. Lancer l'application
 python main.py
 ```
 
-### Build Android avec Buildozer :
+#### Configuration Mobile :
+L'URL de l'API est configurable dans `mobile/app/utils/config.py` ou via un fichier `.env` :
+```env
+API_BASE_URL=http://127.0.0.1:8000/api
+```
+*(Pour tester sur un smartphone physique Android relié au même réseau Wi-Fi, remplacez `127.0.0.1` par l'adresse IP locale de votre machine, ex: `http://192.168.1.50:8000/api`).*
+
+---
+
+### 3. Compilation du Paquet Android (APK / AAB)
+
+La compilation s'effectue sous Linux (ou WSL2 sur Windows) à l'aide de **Buildozer** :
 
 ```bash
 cd mobile
 buildozer android debug
 ```
+L'APK prêt à être installé se trouvera dans le dossier `mobile/bin/`.
 
 ---
 
-## 🧪 Tests Unitaires Backend
+## 🧪 Tests & Qualité du Code
+
+Exécutez la suite complète de tests unitaires et d'intégration Django :
 
 ```bash
-python backend/manage.py test tests
+cd backend
+python manage.py test tests
+```
+
+Vérification de l'intégrité du projet Django :
+```bash
+python manage.py check
 ```
 
 ---
 
-## 📁 Structure du Projet
+## 💳 Configuration des Paiements Chariow
 
-```text
-Guide du potager tropical/
-├── backend/                  # API REST Django
-│   ├── apps/
-│   │   ├── accounts/         # Utilisateurs & Authentification JWT
-│   │   ├── content/          # Parties, Chapitres & Pagination
-│   │   ├── blog/             # Articles, Catégories, Images & Commentaires
-│   │   ├── glossary/         # Outils, Familles & Légumes
-│   │   ├── pests/            # Maladies & Insectes
-│   │   └── subscriptions/    # Abonnements & Passerelle de Paiement Sécurisée Chariow
-│   ├── config/               # Settings (base, dev, prod), URLs & Swagger OpenAPI
-│   ├── tests/                # Suite de tests unitaires
-│   ├── manage.py
-│   └── requirements.txt
-├── mobile/                   # Application Client Kivy
-│   ├── app/
-│   │   ├── screens/          # Login, Register, Home, Chapter, Calendar, Blog, PostDetail, Tools, Families, Vegetables, Diseases, Insects, Profile, Subscription
-│   │   ├── services/         # APIClient, AuthService, ContentService, BlogService, GlossaryService, PestService, SubscriptionService, CacheService
-│   │   ├── components/       # Drawer, Cards, SearchBar, DetailPopup, LoadingSpinner
-│   │   ├── styles/           # Palette de thèmes naturels
-│   │   └── utils/            # Config, Storage JSON, HTML Parser (Images & Balises)
-│   ├── main.py
-│   ├── buildozer.spec
-│   └── requirements.txt
-├── docker-compose.yml
-└── README.md
-```
+Pour activer les paiements par Mobile Money et Carte Bancaire :
+1. Créez un compte marchand sur [Chariow](https://chariow.com/).
+2. Renseignez vos clés API dans `backend/.env` :
+   ```env
+   CHARIOW_SECRET_KEY=votre_cle_secrete
+   CHARIOW_WEBHOOK_SECRET=votre_secret_webhook
+   CHARIOW_PUBLIC_KEY=votre_cle_publique
+   ```
+3. Configurez l'URL de rappel du webhook dans votre tableau de bord Chariow :
+   `https://votre-domaine.com/api/subscriptions/webhook/chariow/`
+
+---
+
+## 📄 Licence & Droits
+
+Tous droits réservés © Guide du Potager Tropical. Ce logiciel et ses contenus agronomiques sont protégés par le droit d'auteur.
