@@ -130,8 +130,9 @@ pip install -r requirements.txt
 python manage.py makemigrations
 python manage.py migrate
 
-# 5. Charger le jeu de données initial (cultures, chapitres, fiches bio)
-python manage.py seed_data
+# 5. Charger le jeu de données initial et alimenter les 4 parties / 26 chapitres du guide
+python manage.py populate_guide    # Extrait et injecte l'intégralité de Guide_du_Potager_Tropical.md
+python manage.py seed_data         # Abonnements, utilisateurs démo, glossaire, ravageurs & blog
 
 # 6. Lancer le serveur de développement
 python manage.py runserver
